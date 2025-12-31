@@ -1,5 +1,5 @@
 import { useLocalStorage } from './useLocalStorage';
-import { Prospect, Devis, Intervention } from '@/types';
+import { Prospect, Devis, Intervention, Material } from '@/types';
 
 export function useProspects() {
   const [prospects, setProspects] = useLocalStorage<Prospect[]>('allntic_prospects', []);
@@ -107,5 +107,47 @@ export function useInterventions() {
     updateIntervention,
     deleteIntervention,
     getInterventionsForProspect,
+  };
+}
+
+export function useMaterials() {
+  const [materials, setMaterials] = useLocalStorage<Material[]>('allntic_materials', []);
+
+  const addMaterial = (material: Omit<Material, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const now = new Date().toISOString();
+    const newMaterial: Material = {
+      ...material,
+      id: crypto.randomUUID(),
+      createdAt: now,
+      updatedAt: now,
+    };
+    setMaterials((prev) => [...prev, newMaterial]);
+    return newMaterial;
+  };
+
+  const updateMaterial = (id: string, updates: Partial<Material>) => {
+    setMaterials((prev) =>
+      prev.map((m) =>
+        m.id === id ? { ...m, ...updates, updatedAt: new Date().toISOString() } : m
+      )
+    );
+  };
+
+  const deleteMaterial = (id: string) => {
+    setMaterials((prev) => prev.filter((m) => m.id !== id));
+  };
+
+  const getMaterial = (id: string) => materials.find((m) => m.id === id);
+
+  const getMaterialsByCategory = (category: string) =>
+    materials.filter((m) => m.categorie === category);
+
+  return {
+    materials,
+    addMaterial,
+    updateMaterial,
+    deleteMaterial,
+    getMaterial,
+    getMaterialsByCategory,
   };
 }

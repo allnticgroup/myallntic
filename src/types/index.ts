@@ -99,3 +99,27 @@ export const INTERVENTION_STATUS_LABELS: Record<InterventionStatus, string> = {
   a_faire: 'À faire',
   fait: 'Fait',
 };
+
+// Types pour les matériels/matériaux
+export type MaterialCategory = 'camera' | 'cable' | 'enregistreur' | 'accessoire' | 'reseau' | 'autre';
+
+export interface Material {
+  id: string;
+  nom: string;
+  reference: string;
+  categorie: MaterialCategory;
+  prixUnitaire: number;
+  unite: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const MATERIAL_CATEGORY_LABELS: Record<MaterialCategory, string> = {
+  camera: 'Caméra',
+  cable: 'Câble',
+  enregistreur: 'Enregistreur',
+  accessoire: 'Accessoire',
+  reseau: 'Réseau',
+  autre: 'Autre',
+};
