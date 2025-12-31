@@ -22,6 +22,11 @@ const COMPANY_SERVICES = [
   'Développement web',
 ];
 
+// Fonction pour formater les montants avec des points
+function formatMontant(montant: number): string {
+  return montant.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
 async function loadImageAsBase64(url: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -60,27 +65,28 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
 
   // Nom de l'entreprise à côté du logo
   doc.setFontSize(18);
-  doc.setFont('helvetica', 'bold');
+  doc.setFont('times', 'bold');
   doc.setTextColor(33, 90, 168);
   doc.text(COMPANY_INFO.name, margin + 30, y + 10);
 
   // Services à côté du logo (sous le nom)
   doc.setFontSize(7);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(80);
+  doc.setFont('times', 'normal');
+  doc.setTextColor(100, 100, 100);
   const servicesText = '• ' + COMPANY_SERVICES.join(' • ');
   const servicesLines = doc.splitTextToSize(servicesText, 80);
   doc.text(servicesLines, margin + 30, y + 16);
 
   // DEVIS en haut à droite
   doc.setFontSize(28);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(0);
+  doc.setFont('times', 'bold');
+  doc.setTextColor(33, 90, 168);
   doc.text('DEVIS', pageWidth - margin, y + 8, { align: 'right' });
 
   // Numéro et date sous DEVIS
   doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
+  doc.setFont('times', 'normal');
+  doc.setTextColor(80, 80, 80);
   doc.text(`Numéro : ${devis.id.slice(0, 8).toUpperCase()}`, pageWidth - margin, y + 16, { align: 'right' });
   doc.text(`Date : ${format(new Date(devis.dateDevis), 'dd/MM/yyyy', { locale: fr })}`, pageWidth - margin, y + 22, { align: 'right' });
 
@@ -98,40 +104,40 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   const rightColX = margin + colWidth + 10;
 
   // Bloc entreprise à gauche
-  doc.setFillColor(248, 249, 250);
+  doc.setFillColor(240, 245, 250);
   doc.rect(leftColX, y, colWidth, 35, 'F');
   doc.setDrawColor(33, 90, 168);
   doc.setLineWidth(0.5);
   doc.line(leftColX, y, leftColX, y + 35);
 
   doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
+  doc.setFont('times', 'bold');
   doc.setTextColor(33, 90, 168);
   doc.text(COMPANY_INFO.name, leftColX + 5, y + 8);
   
   doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(60);
+  doc.setFont('times', 'normal');
+  doc.setTextColor(80, 80, 80);
   doc.text(COMPANY_INFO.address, leftColX + 5, y + 14);
   doc.text(`Tél : ${COMPANY_INFO.phone}`, leftColX + 5, y + 20);
   doc.text(`Email : ${COMPANY_INFO.email}`, leftColX + 5, y + 26);
   doc.text(`Site : ${COMPANY_INFO.website}`, leftColX + 5, y + 32);
 
   // Bloc client à droite
-  doc.setFillColor(248, 249, 250);
+  doc.setFillColor(240, 245, 250);
   doc.rect(rightColX, y, colWidth, 35, 'F');
   doc.setDrawColor(33, 90, 168);
   doc.setLineWidth(0.5);
   doc.line(rightColX, y, rightColX, y + 35);
 
   doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
+  doc.setFont('times', 'bold');
   doc.setTextColor(33, 90, 168);
   doc.text('Client :', rightColX + 5, y + 8);
   
   doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(60);
+  doc.setFont('times', 'normal');
+  doc.setTextColor(80, 80, 80);
   doc.text(prospect.nomStructure, rightColX + 5, y + 14);
   doc.text(`Contact : ${prospect.nomDecideur}`, rightColX + 5, y + 20);
   doc.text(`Tél : ${prospect.telephone}`, rightColX + 5, y + 26);
@@ -140,8 +146,8 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
 
   // Objet du devis
   doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(0);
+  doc.setFont('times', 'bold');
+  doc.setTextColor(33, 90, 168);
   doc.text(`Objet : ${DEVIS_OPTION_LABELS[devis.option]} - ${DEVIS_STATUS_LABELS[devis.statut]}`, margin, y);
   y += 12;
 
@@ -158,13 +164,13 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
       margin + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3],
     ];
     
-    // Header du tableau avec fond jaune/orange comme l'image
-    doc.setFillColor(245, 190, 60);
+    // Header du tableau avec fond bleu
+    doc.setFillColor(33, 90, 168);
     doc.rect(margin, y - 5, tableWidth, 10, 'F');
     
     doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0);
+    doc.setFont('times', 'bold');
+    doc.setTextColor(255, 255, 255);
     doc.text('Désignation', colX[0] + 3, y + 1);
     doc.text('Prix unitaire HT', colX[1] + 3, y + 1);
     doc.text('Qté', colX[2] + 3, y + 1);
@@ -173,7 +179,7 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
     y += 10;
 
     // Lignes du tableau
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('times', 'normal');
     doc.setTextColor(0);
     devis.lignes.forEach((ligne, index) => {
       if (y > 245) {
@@ -181,26 +187,27 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
         y = 20;
       }
       
-      // Alternance de couleurs
+      // Alternance de couleurs gris clair
       if (index % 2 === 0) {
-        doc.setFillColor(252, 252, 252);
+        doc.setFillColor(255, 255, 255);
       } else {
-        doc.setFillColor(245, 247, 250);
+        doc.setFillColor(240, 242, 245);
       }
       doc.rect(margin, y - 4, tableWidth, 8, 'F');
       
-      // Bordures légères
-      doc.setDrawColor(220);
+      // Bordures légères grises
+      doc.setDrawColor(180, 180, 180);
       doc.setLineWidth(0.1);
       doc.line(margin, y + 4, margin + tableWidth, y + 4);
       
       doc.setFontSize(8);
+      doc.setTextColor(50, 50, 50);
       const nom = ligne.nom.length > 35 ? ligne.nom.substring(0, 35) + '...' : ligne.nom;
       doc.text(nom, colX[0] + 3, y + 1);
-      doc.text(`${ligne.prixUnitaire.toLocaleString('fr-FR')} F`, colX[1] + 3, y + 1);
+      doc.text(`${formatMontant(ligne.prixUnitaire)} F`, colX[1] + 3, y + 1);
       doc.text(ligne.quantite.toString(), colX[2] + 3, y + 1);
-      doc.text(`${ligne.total.toLocaleString('fr-FR')} F`, colX[3] + 3, y + 1);
-      doc.text(`${ligne.total.toLocaleString('fr-FR')} F`, colX[4] + 3, y + 1);
+      doc.text(`${formatMontant(ligne.total)} F`, colX[3] + 3, y + 1);
+      doc.text(`${formatMontant(ligne.total)} F`, colX[4] + 3, y + 1);
       y += 8;
     });
 
@@ -211,46 +218,48 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   const totalsX = pageWidth - margin - 70;
   
   // Total HT
-  doc.setFillColor(245, 190, 60);
+  doc.setFillColor(33, 90, 168);
   doc.rect(totalsX, y, 35, 8, 'F');
   doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(0);
+  doc.setFont('times', 'bold');
+  doc.setTextColor(255, 255, 255);
   doc.text('Total HT', totalsX + 3, y + 5);
   doc.setFillColor(255, 255, 255);
   doc.rect(totalsX + 35, y, 35, 8, 'F');
-  doc.setDrawColor(220);
+  doc.setDrawColor(180, 180, 180);
   doc.rect(totalsX + 35, y, 35, 8, 'S');
-  doc.text(`${devis.montant.toLocaleString('fr-FR')} F`, totalsX + 68, y + 5, { align: 'right' });
+  doc.setTextColor(50, 50, 50);
+  doc.text(`${formatMontant(devis.montant)} F`, totalsX + 68, y + 5, { align: 'right' });
   y += 10;
 
   // Net à payer
-  doc.setFillColor(0, 0, 0);
+  doc.setFillColor(33, 90, 168);
   doc.rect(totalsX, y, 35, 10, 'F');
   doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(255);
+  doc.setFont('times', 'bold');
+  doc.setTextColor(255, 255, 255);
   doc.text('Net à payer', totalsX + 3, y + 7);
   doc.setFillColor(255, 255, 255);
   doc.rect(totalsX + 35, y, 35, 10, 'F');
-  doc.setDrawColor(0);
+  doc.setDrawColor(33, 90, 168);
   doc.rect(totalsX + 35, y, 35, 10, 'S');
-  doc.setTextColor(0);
+  doc.setTextColor(33, 90, 168);
   doc.setFontSize(11);
-  doc.text(`${devis.montant.toLocaleString('fr-FR')} F`, totalsX + 68, y + 7, { align: 'right' });
+  doc.text(`${formatMontant(devis.montant)} F`, totalsX + 68, y + 7, { align: 'right' });
   y += 15;
 
   // Acompte si reçu
   if (devis.acompteRecu && devis.montantAcompte > 0) {
     doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0);
+    doc.setFont('times', 'bold');
+    doc.setTextColor(33, 90, 168);
     doc.text('Conditions de règlement :', margin, y);
     y += 6;
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Acompte de 50% à la commande : ${devis.montantAcompte.toLocaleString('fr-FR')} F`, margin, y);
+    doc.setFont('times', 'normal');
+    doc.setTextColor(80, 80, 80);
+    doc.text(`Acompte de 50% à la commande : ${formatMontant(devis.montantAcompte)} F`, margin, y);
     y += 5;
-    doc.text(`Solde à la livraison : ${(devis.montant - devis.montantAcompte).toLocaleString('fr-FR')} F`, margin, y);
+    doc.text(`Solde à la livraison : ${formatMontant(devis.montant - devis.montantAcompte)} F`, margin, y);
     y += 10;
   }
 
@@ -261,12 +270,12 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   }
   
   y += 5;
-  doc.setDrawColor(200);
+  doc.setDrawColor(180, 180, 180);
   doc.setLineWidth(0.3);
   doc.rect(pageWidth - margin - 80, y, 80, 25, 'S');
   doc.setFontSize(7);
-  doc.setFont('helvetica', 'italic');
-  doc.setTextColor(100);
+  doc.setFont('times', 'italic');
+  doc.setTextColor(100, 100, 100);
   doc.text('Signature du client (précédée de la mention « Bon pour accord »)', pageWidth - margin - 78, y + 5);
   y += 35;
 
@@ -276,26 +285,24 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
     y = 20;
   }
   
-  doc.setDrawColor(200);
+  doc.setDrawColor(180, 180, 180);
   doc.setLineWidth(0.3);
   doc.line(margin, y, pageWidth - margin, y);
   y += 6;
   
   doc.setFontSize(8);
-  doc.setFont('helvetica', 'bold');
+  doc.setFont('times', 'bold');
   doc.setTextColor(33, 90, 168);
   doc.text('CONDITIONS GÉNÉRALES DE VENTE', margin, y);
   y += 6;
   
-  doc.setFontSize(6);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100);
+  doc.setFontSize(7);
+  doc.setFont('times', 'normal');
+  doc.setTextColor(80, 80, 80);
   
   const cgv = [
-    '1. VALIDITÉ : Ce devis est valable 30 jours à compter de sa date d\'émission.',
-    '2. PAIEMENT : Un acompte de 50% est requis à la commande. Le solde est dû à la livraison.',
-    '3. GARANTIE : Nos équipements sont garantis 12 mois pièces et main d\'œuvre.',
-    '4. LITIGES : En cas de litige, seuls les tribunaux d\'Abidjan seront compétents.',
+    '1. VALIDITÉ : Ce devis est valable 7 jours à compter de sa date d\'émission.',
+    '2. PAIEMENT : Un acompte de 60% est requis à la commande. Le solde est dû à la livraison.',
   ];
   
   cgv.forEach((line) => {
@@ -315,8 +322,8 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   doc.line(margin, footerY - 8, pageWidth - margin, footerY - 8);
   
   doc.setFontSize(7);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(80);
+  doc.setFont('times', 'normal');
+  doc.setTextColor(80, 80, 80);
   const footerText = `${COMPANY_INFO.name} - ${COMPANY_INFO.address} | Tél : ${COMPANY_INFO.phone} | ${COMPANY_INFO.email} | ${COMPANY_INFO.website}`;
   doc.text(footerText, pageWidth / 2, footerY - 2, { align: 'center' });
 
