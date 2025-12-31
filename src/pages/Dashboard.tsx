@@ -1,12 +1,15 @@
 import { Link } from 'react-router-dom';
-import { Users, FileText, Wrench, TrendingUp, Clock, CheckCircle2 } from 'lucide-react';
+import { Users, FileText, Wrench, TrendingUp, Clock, CheckCircle2, Download } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { StatCard } from '@/components/StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useProspects, useDevis, useInterventions } from '@/hooks/useData';
+import { exportToJson, getAllData, generateExportFilename } from '@/lib/export';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { toast } from 'sonner';
 
 export default function Dashboard() {
   const { prospects } = useProspects();
@@ -28,9 +31,25 @@ export default function Dashboard() {
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
     .slice(0, 3);
 
+  const handleExport = () => {
+    const data = getAllData();
+    const filename = generateExportFilename();
+    exportToJson(data, filename);
+    toast.success('Sauvegarde téléchargée');
+  };
+
   return (
     <div className="min-h-screen pb-20">
-      <PageHeader title="ALLNTIC" subtitle="Tableau de bord" />
+      <PageHeader 
+        title="ALLNTIC" 
+        subtitle="Tableau de bord"
+        action={
+          <Button size="sm" variant="outline" onClick={handleExport}>
+            <Download className="h-4 w-4 mr-1" />
+            Export
+          </Button>
+        }
+      />
 
       <main className="p-4 space-y-6 max-w-lg mx-auto">
         {/* Stats Grid */}
