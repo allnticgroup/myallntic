@@ -1,12 +1,13 @@
+import { useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, FileText, Wrench, TrendingUp, Clock, CheckCircle2, Download } from 'lucide-react';
+import { Users, FileText, Wrench, TrendingUp, Clock, CheckCircle2, Download, Upload } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { StatCard } from '@/components/StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useProspects, useDevis, useInterventions } from '@/hooks/useData';
-import { exportToJson, getAllData, generateExportFilename } from '@/lib/export';
+import { exportToJson, getAllData, generateExportFilename, readJsonFile, validateImportData, importData } from '@/lib/export';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -15,6 +16,7 @@ export default function Dashboard() {
   const { prospects } = useProspects();
   const { devisList } = useDevis();
   const { interventions } = useInterventions();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const activeProspects = prospects.filter(
     (p) => !['signe', 'refuse'].includes(p.statut)
@@ -38,16 +40,62 @@ export default function Dashboard() {
     toast.success('Sauvegarde téléchargée');
   };
 
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const data = await readJsonFile(file);
+      
+      if (!validateImportData(data)) {
+        toast.error('Format de fichier invalide');
+        return;
+      }
+
+      const result = importData(data);
+      
+      if (result.success) {
+        toast.success(
+          `Importé: ${result.counts.prospects} prospects, ${result.counts.devis} devis, ${result.counts.interventions} interventions`
+        );
+        // Reload to reflect changes
+        window.location.reload();
+      } else {
+        toast.error('Erreur lors de l\'import');
+      }
+    } catch (error) {
+      toast.error('Fichier JSON invalide');
+    }
+    
+    // Reset input
+    e.target.value = '';
+  };
+
   return (
     <div className="min-h-screen pb-20">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        onChange={handleFileChange}
+        className="hidden"
+      />
       <PageHeader 
         title="ALLNTIC" 
         subtitle="Tableau de bord"
         action={
-          <Button size="sm" variant="outline" onClick={handleExport}>
-            <Download className="h-4 w-4 mr-1" />
-            Export
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={handleImportClick}>
+              <Upload className="h-4 w-4" />
+            </Button>
+            <Button size="sm" variant="outline" onClick={handleExport}>
+              <Download className="h-4 w-4" />
+            </Button>
+          </div>
         }
       />
 
