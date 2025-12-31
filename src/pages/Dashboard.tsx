@@ -1,13 +1,23 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, FileText, Wrench, TrendingUp, Clock, CheckCircle2, Download, Upload } from 'lucide-react';
+import { Users, FileText, Wrench, TrendingUp, Clock, CheckCircle2, Download, Upload, AlertTriangle } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { StatCard } from '@/components/StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/StatusBadge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useProspects, useDevis, useInterventions } from '@/hooks/useData';
-import { exportToJson, getAllData, generateExportFilename, readJsonFile, validateImportData, importData } from '@/lib/export';
+import { exportToJson, getAllData, generateExportFilename, readJsonFile, validateImportData, importData, ImportData } from '@/lib/export';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -17,6 +27,8 @@ export default function Dashboard() {
   const { devisList } = useDevis();
   const { interventions } = useInterventions();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingImport, setPendingImport] = useState<ImportData | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const activeProspects = prospects.filter(
     (p) => !['signe', 'refuse'].includes(p.statut)
@@ -53,20 +65,13 @@ export default function Dashboard() {
       
       if (!validateImportData(data)) {
         toast.error('Format de fichier invalide');
+        e.target.value = '';
         return;
       }
 
-      const result = importData(data);
-      
-      if (result.success) {
-        toast.success(
-          `Importé: ${result.counts.prospects} prospects, ${result.counts.devis} devis, ${result.counts.interventions} interventions`
-        );
-        // Reload to reflect changes
-        window.location.reload();
-      } else {
-        toast.error('Erreur lors de l\'import');
-      }
+      // Store pending import and show confirmation
+      setPendingImport(data);
+      setShowConfirmDialog(true);
     } catch (error) {
       toast.error('Fichier JSON invalide');
     }
@@ -74,6 +79,31 @@ export default function Dashboard() {
     // Reset input
     e.target.value = '';
   };
+
+  const confirmImport = () => {
+    if (!pendingImport) return;
+
+    const result = importData(pendingImport);
+    
+    if (result.success) {
+      toast.success(
+        `Importé: ${result.counts.prospects} prospects, ${result.counts.devis} devis, ${result.counts.interventions} interventions`
+      );
+      setShowConfirmDialog(false);
+      setPendingImport(null);
+      // Reload to reflect changes
+      window.location.reload();
+    } else {
+      toast.error('Erreur lors de l\'import');
+    }
+  };
+
+  const cancelImport = () => {
+    setShowConfirmDialog(false);
+    setPendingImport(null);
+  };
+
+  const hasExistingData = prospects.length > 0 || devisList.length > 0 || interventions.length > 0;
 
   return (
     <div className="min-h-screen pb-20">
@@ -84,6 +114,52 @@ export default function Dashboard() {
         onChange={handleFileChange}
         className="hidden"
       />
+
+      {/* Import Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              {hasExistingData && <AlertTriangle className="h-5 w-5 text-warning" />}
+              Confirmer l'import
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                {hasExistingData && (
+                  <div className="p-3 bg-warning/10 rounded-lg border border-warning/20">
+                    <p className="text-sm font-medium text-warning">
+                      Attention : vos données actuelles seront remplacées
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {prospects.length} prospects, {devisList.length} devis, {interventions.length} interventions
+                    </p>
+                  </div>
+                )}
+                
+                {pendingImport && (
+                  <div className="p-3 bg-muted rounded-lg">
+                    <p className="text-sm font-medium text-foreground">Données à importer :</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {pendingImport.data.prospects.length} prospects, {pendingImport.data.devis.length} devis, {pendingImport.data.interventions.length} interventions
+                    </p>
+                    {pendingImport.exportDate && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Sauvegarde du {format(new Date(pendingImport.exportDate), 'dd MMMM yyyy à HH:mm', { locale: fr })}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelImport}>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmImport}>
+              Importer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <PageHeader 
         title="ALLNTIC" 
         subtitle="Tableau de bord"
