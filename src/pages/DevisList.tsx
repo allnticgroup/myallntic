@@ -1,18 +1,39 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, CheckCircle2, Clock, XCircle, Download } from 'lucide-react';
+import { FileText, CheckCircle2, Clock, XCircle, Download, Pencil, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useDevis, useProspects } from '@/hooks/useData';
-import { DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS } from '@/types';
+import { Devis, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS } from '@/types';
 import { generateDevisPdf } from '@/lib/generateDevisPdf';
+import { DevisForm } from '@/components/forms/DevisForm';
+import { toast } from 'sonner';
 
 export default function DevisList() {
-  const { devisList } = useDevis();
+  const { devisList, updateDevis, deleteDevis } = useDevis();
   const { getProspect } = useProspects();
+  const [editingDevis, setEditingDevis] = useState<Devis | null>(null);
+  const [deletingDevis, setDeletingDevis] = useState<Devis | null>(null);
 
   const sortedDevis = [...devisList].sort(
     (a, b) => new Date(b.dateDevis).getTime() - new Date(a.dateDevis).getTime()
@@ -25,6 +46,22 @@ export default function DevisList() {
   const totalAccepted = devisList
     .filter((d) => d.statut === 'accepte')
     .reduce((sum, d) => sum + d.montant, 0);
+
+  const handleUpdateDevis = (data: Omit<Devis, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (editingDevis) {
+      updateDevis(editingDevis.id, data);
+      setEditingDevis(null);
+      toast.success('Devis modifié avec succès');
+    }
+  };
+
+  const handleDeleteDevis = () => {
+    if (deletingDevis) {
+      deleteDevis(deletingDevis.id);
+      setDeletingDevis(null);
+      toast.success('Devis supprimé avec succès');
+    }
+  };
 
   return (
     <div className="min-h-screen pb-20">
@@ -118,20 +155,42 @@ export default function DevisList() {
                         </div>
                       </div>
                     </Link>
-                    {prospect && (
+                    <div className="flex gap-2 mt-3">
+                      {prospect && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            await generateDevisPdf(devis, prospect);
+                          }}
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          PDF
+                        </Button>
+                      )}
                       <Button
-                        variant="outline"
+                        variant="secondary"
                         size="sm"
-                        className="mt-3 w-full"
-                        onClick={async (e) => {
+                        onClick={(e) => {
                           e.preventDefault();
-                          await generateDevisPdf(devis, prospect);
+                          setEditingDevis(devis);
                         }}
                       >
-                        <Download className="h-4 w-4 mr-2" />
-                        Télécharger PDF
+                        <Pencil className="h-4 w-4" />
                       </Button>
-                    )}
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setDeletingDevis(devis);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               );
@@ -139,6 +198,43 @@ export default function DevisList() {
           </div>
         )}
       </main>
+
+      {/* Formulaire modification devis */}
+      <Sheet open={!!editingDevis} onOpenChange={() => setEditingDevis(null)}>
+        <SheetContent side="bottom" className="h-[90vh] rounded-t-xl">
+          <SheetHeader className="mb-4">
+            <SheetTitle>Modifier le devis</SheetTitle>
+          </SheetHeader>
+          <div className="overflow-y-auto max-h-[calc(90vh-100px)]">
+            {editingDevis && (
+              <DevisForm
+                prospectId={editingDevis.prospectId}
+                devis={editingDevis}
+                onSubmit={handleUpdateDevis}
+                onCancel={() => setEditingDevis(null)}
+              />
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Confirmation suppression */}
+      <AlertDialog open={!!deletingDevis} onOpenChange={() => setDeletingDevis(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer le devis ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. Le devis de {deletingDevis?.montant.toLocaleString('fr-FR')} F sera définitivement supprimé.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteDevis} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
