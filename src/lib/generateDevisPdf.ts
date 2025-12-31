@@ -6,10 +6,11 @@ import { fr } from 'date-fns/locale';
 // Informations de l'entreprise
 const COMPANY_INFO = {
   name: 'ALL-NTIC',
-  address: 'Dakar, Sénégal',
-  phone: '+221 XX XXX XX XX',
-  email: 'contact@all-ntic.sn',
-  website: 'www.all-ntic.sn',
+  address: 'Abidjan, Côte d\'Ivoire',
+  phone: '+225 07 78 02 33 31',
+  email: 'all.ntic225@gmail.com',
+  email2: 'infos@allntic.com',
+  website: 'www.allntic.com',
 };
 
 async function loadImageAsBase64(url: string): Promise<string> {
@@ -53,14 +54,16 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   doc.setTextColor(33, 90, 168); // Bleu
   doc.text(COMPANY_INFO.name, margin + 35, y + 5);
   
-  doc.setFontSize(9);
+  doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(80);
   doc.text(COMPANY_INFO.address, margin + 35, y + 12);
   doc.text(`Tél: ${COMPANY_INFO.phone}`, margin + 35, y + 17);
   doc.text(COMPANY_INFO.email, margin + 35, y + 22);
+  doc.text(COMPANY_INFO.email2, margin + 35, y + 27);
+  doc.text(COMPANY_INFO.website, margin + 35, y + 32);
   
-  y += 40;
+  y += 45;
 
   // Titre DEVIS
   doc.setFontSize(22);
