@@ -123,9 +123,9 @@ export default function DevisList() {
                         variant="outline"
                         size="sm"
                         className="mt-3 w-full"
-                        onClick={(e) => {
+                        onClick={async (e) => {
                           e.preventDefault();
-                          generateDevisPdf(devis, prospect);
+                          await generateDevisPdf(devis, prospect);
                         }}
                       >
                         <Download className="h-4 w-4 mr-2" />
