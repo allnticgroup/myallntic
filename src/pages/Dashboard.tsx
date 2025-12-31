@@ -29,6 +29,7 @@ export default function Dashboard() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingImport, setPendingImport] = useState<ImportData | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [importMode, setImportMode] = useState<'replace' | 'merge'>('replace');
 
   const activeProspects = prospects.filter(
     (p) => !['signe', 'refuse'].includes(p.statut)
@@ -80,17 +81,19 @@ export default function Dashboard() {
     e.target.value = '';
   };
 
-  const confirmImport = () => {
+  const confirmImport = (mode: 'replace' | 'merge') => {
     if (!pendingImport) return;
 
-    const result = importData(pendingImport);
+    const result = importData(pendingImport, mode);
     
     if (result.success) {
-      toast.success(
-        `Importé: ${result.counts.prospects} prospects, ${result.counts.devis} devis, ${result.counts.interventions} interventions`
-      );
+      const message = mode === 'merge' 
+        ? `Ajouté: ${result.counts.prospects} prospects, ${result.counts.devis} devis, ${result.counts.interventions} interventions`
+        : `Importé: ${result.counts.prospects} prospects, ${result.counts.devis} devis, ${result.counts.interventions} interventions`;
+      toast.success(message);
       setShowConfirmDialog(false);
       setPendingImport(null);
+      setImportMode('replace');
       // Reload to reflect changes
       window.location.reload();
     } else {
@@ -126,10 +129,8 @@ export default function Dashboard() {
             <AlertDialogDescription asChild>
               <div className="space-y-3">
                 {hasExistingData && (
-                  <div className="p-3 bg-warning/10 rounded-lg border border-warning/20">
-                    <p className="text-sm font-medium text-warning">
-                      Attention : vos données actuelles seront remplacées
-                    </p>
+                  <div className="p-3 bg-muted rounded-lg">
+                    <p className="text-sm font-medium text-foreground">Données actuelles :</p>
                     <p className="text-xs text-muted-foreground mt-1">
                       {prospects.length} prospects, {devisList.length} devis, {interventions.length} interventions
                     </p>
@@ -152,10 +153,19 @@ export default function Dashboard() {
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={cancelImport}>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmImport}>
-              Importer
+          <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
+            <AlertDialogCancel onClick={cancelImport} className="mt-0">Annuler</AlertDialogCancel>
+            {hasExistingData && (
+              <Button 
+                variant="outline" 
+                onClick={() => confirmImport('merge')}
+                className="border-success/50 text-success hover:bg-success/10"
+              >
+                Fusionner
+              </Button>
+            )}
+            <AlertDialogAction onClick={() => confirmImport('replace')}>
+              {hasExistingData ? 'Remplacer tout' : 'Importer'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

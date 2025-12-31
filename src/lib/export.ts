@@ -58,20 +58,51 @@ export function validateImportData(data: unknown): data is ImportData {
   );
 }
 
-export function importData(data: ImportData): { success: boolean; counts: { prospects: number; devis: number; interventions: number } } {
+export function importData(
+  data: ImportData, 
+  mode: 'replace' | 'merge' = 'replace'
+): { success: boolean; counts: { prospects: number; devis: number; interventions: number } } {
   try {
-    localStorage.setItem('allntic_prospects', JSON.stringify(data.data.prospects));
-    localStorage.setItem('allntic_devis', JSON.stringify(data.data.devis));
-    localStorage.setItem('allntic_interventions', JSON.stringify(data.data.interventions));
-    
-    return {
-      success: true,
-      counts: {
-        prospects: data.data.prospects.length,
-        devis: data.data.devis.length,
-        interventions: data.data.interventions.length,
-      },
-    };
+    if (mode === 'replace') {
+      localStorage.setItem('allntic_prospects', JSON.stringify(data.data.prospects));
+      localStorage.setItem('allntic_devis', JSON.stringify(data.data.devis));
+      localStorage.setItem('allntic_interventions', JSON.stringify(data.data.interventions));
+      
+      return {
+        success: true,
+        counts: {
+          prospects: data.data.prospects.length,
+          devis: data.data.devis.length,
+          interventions: data.data.interventions.length,
+        },
+      };
+    } else {
+      // Merge mode: add new items, skip duplicates by ID
+      const existingProspects = JSON.parse(localStorage.getItem('allntic_prospects') || '[]');
+      const existingDevis = JSON.parse(localStorage.getItem('allntic_devis') || '[]');
+      const existingInterventions = JSON.parse(localStorage.getItem('allntic_interventions') || '[]');
+
+      const existingProspectIds = new Set(existingProspects.map((p: { id: string }) => p.id));
+      const existingDevisIds = new Set(existingDevis.map((d: { id: string }) => d.id));
+      const existingInterventionIds = new Set(existingInterventions.map((i: { id: string }) => i.id));
+
+      const newProspects = (data.data.prospects as { id: string }[]).filter(p => !existingProspectIds.has(p.id));
+      const newDevis = (data.data.devis as { id: string }[]).filter(d => !existingDevisIds.has(d.id));
+      const newInterventions = (data.data.interventions as { id: string }[]).filter(i => !existingInterventionIds.has(i.id));
+
+      localStorage.setItem('allntic_prospects', JSON.stringify([...existingProspects, ...newProspects]));
+      localStorage.setItem('allntic_devis', JSON.stringify([...existingDevis, ...newDevis]));
+      localStorage.setItem('allntic_interventions', JSON.stringify([...existingInterventions, ...newInterventions]));
+
+      return {
+        success: true,
+        counts: {
+          prospects: newProspects.length,
+          devis: newDevis.length,
+          interventions: newInterventions.length,
+        },
+      };
+    }
   } catch {
     return {
       success: false,
