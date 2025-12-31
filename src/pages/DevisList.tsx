@@ -1,12 +1,14 @@
 import { Link } from 'react-router-dom';
-import { FileText, CheckCircle2, Clock, XCircle } from 'lucide-react';
+import { FileText, CheckCircle2, Clock, XCircle, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useDevis, useProspects } from '@/hooks/useData';
 import { DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS } from '@/types';
+import { generateDevisPdf } from '@/lib/generateDevisPdf';
 
 export default function DevisList() {
   const { devisList } = useDevis();
@@ -81,9 +83,9 @@ export default function DevisList() {
                   : 'text-warning';
 
               return (
-                <Link key={devis.id} to={`/prospects/${devis.prospectId}`}>
-                  <Card className="transition-smooth hover:shadow-md hover:border-primary/30 animate-fade-in">
-                    <CardContent className="p-4">
+                <Card key={devis.id} className="transition-smooth hover:shadow-md hover:border-primary/30 animate-fade-in">
+                  <CardContent className="p-4">
+                    <Link to={`/prospects/${devis.prospectId}`}>
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-foreground truncate">
@@ -115,9 +117,23 @@ export default function DevisList() {
                           )}
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+                    </Link>
+                    {prospect && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-3 w-full"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          generateDevisPdf(devis, prospect);
+                        }}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Télécharger PDF
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
               );
             })}
           </div>
