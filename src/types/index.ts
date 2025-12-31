@@ -31,12 +31,21 @@ export interface Prospect {
   updatedAt: string;
 }
 
+export interface DevisLigne {
+  materialId: string;
+  nom: string;
+  quantite: number;
+  prixUnitaire: number;
+  total: number;
+}
+
 export interface Devis {
   id: string;
   prospectId: string;
   dateDevis: string;
   option: DevisOption;
   montant: number;
+  lignes: DevisLigne[];
   statut: DevisStatus;
   acompteRecu: boolean;
   montantAcompte: number;
