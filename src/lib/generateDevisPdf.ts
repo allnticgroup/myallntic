@@ -190,14 +190,53 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
     doc.text(`${(devis.montant - devis.montantAcompte).toLocaleString('fr-FR')} F`, pageWidth - margin, y, { align: 'right' });
   }
 
+  // Conditions générales de vente
+  y += 15;
+  if (y > 220) {
+    doc.addPage();
+    y = 20;
+  }
+  
+  doc.setDrawColor(200);
+  doc.setLineWidth(0.3);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 8;
+  
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(33, 90, 168);
+  doc.text('CONDITIONS GÉNÉRALES DE VENTE', margin, y);
+  y += 8;
+  
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(80);
+  
+  const cgv = [
+    '1. VALIDITÉ : Ce devis est valable 30 jours à compter de sa date d\'émission.',
+    '2. PAIEMENT : Un acompte de 50% est requis à la commande. Le solde est dû à la livraison/installation.',
+    '3. DÉLAI : Les délais de livraison sont donnés à titre indicatif et ne constituent pas un engagement ferme.',
+    '4. GARANTIE : Nos équipements sont garantis 12 mois pièces et main d\'œuvre, hors consommables.',
+    '5. INSTALLATION : Les travaux d\'installation sont réalisés selon les règles de l\'art et les normes en vigueur.',
+    '6. RESPONSABILITÉ : ALL-NTIC ne saurait être tenu responsable des dommages indirects liés à l\'utilisation du matériel.',
+    '7. LITIGES : En cas de litige, seuls les tribunaux d\'Abidjan seront compétents.',
+  ];
+  
+  cgv.forEach((line) => {
+    if (y > 275) {
+      doc.addPage();
+      y = 20;
+    }
+    doc.text(line, margin, y);
+    y += 5;
+  });
+
   // Pied de page
-  y = 265;
+  const footerY = 285;
   doc.setFontSize(8);
   doc.setFont('helvetica', 'italic');
   doc.setTextColor(128);
-  doc.text('Ce devis est valable 30 jours à compter de sa date d\'émission.', pageWidth / 2, y, { align: 'center' });
-  y += 5;
-  doc.text(`${COMPANY_INFO.name} - ${COMPANY_INFO.address} - ${COMPANY_INFO.phone}`, pageWidth / 2, y, { align: 'center' });
+  doc.text(`${COMPANY_INFO.name} - ${COMPANY_INFO.address} - ${COMPANY_INFO.phone} - ${COMPANY_INFO.website}`, pageWidth / 2, footerY, { align: 'center' });
 
   // Télécharger le PDF
   const fileName = `Devis_${prospect.nomStructure.replace(/[^a-zA-Z0-9]/g, '_')}_${format(new Date(devis.dateDevis), 'yyyy-MM-dd')}.pdf`;
