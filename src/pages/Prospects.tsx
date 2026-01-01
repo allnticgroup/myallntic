@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Users, Pencil, Trash2, Search } from 'lucide-react';
+import { Plus, Users, Pencil, Trash2, Search, Download } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { ProspectCard } from '@/components/ProspectCard';
 import { StatusFilter } from '@/components/StatusFilter';
@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useProspects, useDevis } from '@/hooks/useData';
 import { Prospect, ProspectStatus } from '@/types';
+import { exportProspectsToCsv } from '@/lib/export';
 import { toast } from 'sonner';
 
 export default function Prospects() {
@@ -87,10 +88,16 @@ export default function Prospects() {
         title="Prospects"
         subtitle={`${prospects.length} contact${prospects.length > 1 ? 's' : ''}`}
         action={
-          <Button size="sm" onClick={() => setShowForm(true)}>
-            <Plus className="h-4 w-4 mr-1" />
-            Nouveau
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => exportProspectsToCsv(prospects)}>
+              <Download className="h-4 w-4 mr-1" />
+              CSV
+            </Button>
+            <Button size="sm" onClick={() => setShowForm(true)}>
+              <Plus className="h-4 w-4 mr-1" />
+              Nouveau
+            </Button>
+          </div>
         }
       />
 
