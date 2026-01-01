@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, CheckCircle2, Clock, XCircle, Download, Pencil, Trash2, Eye } from 'lucide-react';
+import { FileText, CheckCircle2, Clock, XCircle, Download, Pencil, Trash2, Eye, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Sheet,
   SheetContent,
@@ -43,10 +44,15 @@ export default function DevisList() {
   const [editingDevis, setEditingDevis] = useState<Devis | null>(null);
   const [deletingDevis, setDeletingDevis] = useState<Devis | null>(null);
   const [previewingDevis, setPreviewingDevis] = useState<Devis | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const sortedDevis = [...devisList].sort(
-    (a, b) => new Date(b.dateDevis).getTime() - new Date(a.dateDevis).getTime()
-  );
+  const sortedDevis = [...devisList]
+    .filter((devis) => {
+      const prospect = getProspect(devis.prospectId);
+      const prospectName = prospect?.nomStructure || '';
+      return prospectName.toLowerCase().includes(searchQuery.toLowerCase());
+    })
+    .sort((a, b) => new Date(b.dateDevis).getTime() - new Date(a.dateDevis).getTime());
 
   const totalPending = devisList
     .filter((d) => d.statut === 'envoye')
@@ -77,6 +83,15 @@ export default function DevisList() {
       <PageHeader title="Devis" subtitle={`${devisList.length} devis`} />
 
       <main className="p-4 space-y-4 max-w-lg mx-auto">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Rechercher un devis..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
         {/* Summary */}
         {devisList.length > 0 && (
           <div className="grid grid-cols-2 gap-3">
