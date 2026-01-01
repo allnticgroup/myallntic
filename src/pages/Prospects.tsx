@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Plus, Users, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Users, Pencil, Trash2, Search } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { ProspectCard } from '@/components/ProspectCard';
 import { StatusFilter } from '@/components/StatusFilter';
 import { EmptyState } from '@/components/EmptyState';
 import { ProspectForm } from '@/components/forms/ProspectForm';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Sheet,
   SheetContent,
@@ -30,13 +31,17 @@ export default function Prospects() {
   const { prospects, addProspect, updateProspect, deleteProspect } = useProspects();
   const { devisList, deleteDevis } = useDevis();
   const [statusFilter, setStatusFilter] = useState<ProspectStatus | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingProspect, setEditingProspect] = useState<Prospect | null>(null);
   const [deletingProspect, setDeletingProspect] = useState<Prospect | null>(null);
 
-  const filteredProspects = prospects.filter(
-    (p) => statusFilter === 'all' || p.statut === statusFilter
-  );
+  const filteredProspects = prospects.filter((p) => {
+    const matchesStatus = statusFilter === 'all' || p.statut === statusFilter;
+    const matchesSearch = p.nomStructure.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.nomDecideur.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesStatus && matchesSearch;
+  });
 
   const handleAddProspect = (data: Parameters<typeof addProspect>[0]) => {
     addProspect(data);
@@ -90,6 +95,15 @@ export default function Prospects() {
       />
 
       <main className="p-4 space-y-4 max-w-lg mx-auto">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Rechercher un prospect..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
         <StatusFilter selected={statusFilter} onChange={setStatusFilter} />
 
         {filteredProspects.length === 0 ? (
