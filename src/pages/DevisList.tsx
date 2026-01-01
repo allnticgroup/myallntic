@@ -34,6 +34,7 @@ import {
 import { useDevis, useProspects } from '@/hooks/useData';
 import { Devis, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS } from '@/types';
 import { generateDevisPdf } from '@/lib/generateDevisPdf';
+import { exportDevisToCsv } from '@/lib/export';
 import { DevisForm } from '@/components/forms/DevisForm';
 import { DevisPreview } from '@/components/DevisPreview';
 import { toast } from 'sonner';
@@ -78,9 +79,22 @@ export default function DevisList() {
     }
   };
 
+  const handleExportCsv = () => {
+    exportDevisToCsv(devisList, (id) => getProspect(id)?.nomStructure || 'Inconnu');
+  };
+
   return (
     <div className="min-h-screen pb-20">
-      <PageHeader title="Devis" subtitle={`${devisList.length} devis`} />
+      <PageHeader 
+        title="Devis" 
+        subtitle={`${devisList.length} devis`}
+        action={
+          <Button size="sm" variant="outline" onClick={handleExportCsv}>
+            <Download className="h-4 w-4 mr-1" />
+            CSV
+          </Button>
+        }
+      />
 
       <main className="p-4 space-y-4 max-w-lg mx-auto">
         <div className="relative">

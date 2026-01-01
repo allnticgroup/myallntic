@@ -1,3 +1,5 @@
+import { Prospect, Devis, STATUS_LABELS, STRUCTURE_LABELS, BESOIN_LABELS, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS } from '@/types';
+
 export function exportToJson(data: object, filename: string) {
   const jsonString = JSON.stringify(data, null, 2);
   const blob = new Blob([jsonString], { type: 'application/json' });
@@ -10,6 +12,60 @@ export function exportToJson(data: object, filename: string) {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+}
+
+export function exportToCsv(data: string[][], filename: string) {
+  const csvContent = data.map(row => 
+    row.map(cell => {
+      const escaped = String(cell).replace(/"/g, '""');
+      return `"${escaped}"`;
+    }).join(';')
+  ).join('\n');
+  
+  const BOM = '\uFEFF';
+  const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+export function exportProspectsToCsv(prospects: Prospect[]) {
+  const headers = ['Nom Structure', 'Décideur', 'Téléphone', 'Type', 'Besoin', 'Statut', 'Notes', 'Créé le'];
+  const rows = prospects.map(p => [
+    p.nomStructure,
+    p.nomDecideur,
+    p.telephone,
+    STRUCTURE_LABELS[p.typeStructure],
+    BESOIN_LABELS[p.besoinPrincipal],
+    STATUS_LABELS[p.statut],
+    p.notes,
+    new Date(p.createdAt).toLocaleDateString('fr-FR')
+  ]);
+  
+  const date = new Date().toISOString().split('T')[0];
+  exportToCsv([headers, ...rows], `prospects-${date}.csv`);
+}
+
+export function exportDevisToCsv(devisList: Devis[], getProspectName: (id: string) => string) {
+  const headers = ['Client', 'Date', 'Option', 'Montant', 'Statut', 'Acompte reçu', 'Montant acompte'];
+  const rows = devisList.map(d => [
+    getProspectName(d.prospectId),
+    new Date(d.dateDevis).toLocaleDateString('fr-FR'),
+    DEVIS_OPTION_LABELS[d.option],
+    d.montant.toLocaleString('fr-FR') + ' F',
+    DEVIS_STATUS_LABELS[d.statut],
+    d.acompteRecu ? 'Oui' : 'Non',
+    d.montantAcompte.toLocaleString('fr-FR') + ' F'
+  ]);
+  
+  const date = new Date().toISOString().split('T')[0];
+  exportToCsv([headers, ...rows], `devis-${date}.csv`);
 }
 
 export function getAllData() {
