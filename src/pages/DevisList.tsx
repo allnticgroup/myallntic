@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, CheckCircle2, Clock, XCircle, Download, Pencil, Trash2 } from 'lucide-react';
+import { FileText, CheckCircle2, Clock, XCircle, Download, Pencil, Trash2, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
@@ -23,10 +23,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { useDevis, useProspects } from '@/hooks/useData';
 import { Devis, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS } from '@/types';
 import { generateDevisPdf } from '@/lib/generateDevisPdf';
 import { DevisForm } from '@/components/forms/DevisForm';
+import { DevisPreview } from '@/components/DevisPreview';
 import { toast } from 'sonner';
 
 export default function DevisList() {
@@ -34,6 +42,7 @@ export default function DevisList() {
   const { getProspect } = useProspects();
   const [editingDevis, setEditingDevis] = useState<Devis | null>(null);
   const [deletingDevis, setDeletingDevis] = useState<Devis | null>(null);
+  const [previewingDevis, setPreviewingDevis] = useState<Devis | null>(null);
 
   const sortedDevis = [...devisList].sort(
     (a, b) => new Date(b.dateDevis).getTime() - new Date(a.dateDevis).getTime()
@@ -161,13 +170,13 @@ export default function DevisList() {
                           variant="outline"
                           size="sm"
                           className="flex-1"
-                          onClick={async (e) => {
+                          onClick={(e) => {
                             e.preventDefault();
-                            await generateDevisPdf(devis, prospect);
+                            setPreviewingDevis(devis);
                           }}
                         >
-                          <Download className="h-4 w-4 mr-2" />
-                          PDF
+                          <Eye className="h-4 w-4 mr-2" />
+                          Aperçu
                         </Button>
                       )}
                       <Button
@@ -235,6 +244,47 @@ export default function DevisList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Aperçu du devis */}
+      <Dialog open={!!previewingDevis} onOpenChange={() => setPreviewingDevis(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle>Aperçu du devis</DialogTitle>
+          </DialogHeader>
+          {previewingDevis && getProspect(previewingDevis.prospectId) && (
+            <DevisPreview 
+              devis={previewingDevis} 
+              prospect={getProspect(previewingDevis.prospectId)!} 
+            />
+          )}
+          <DialogFooter className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setPreviewingDevis(null);
+                setEditingDevis(previewingDevis);
+              }}
+            >
+              <Pencil className="h-4 w-4 mr-2" />
+              Modifier
+            </Button>
+            <Button
+              onClick={async () => {
+                if (previewingDevis) {
+                  const prospect = getProspect(previewingDevis.prospectId);
+                  if (prospect) {
+                    await generateDevisPdf(previewingDevis, prospect);
+                    setPreviewingDevis(null);
+                  }
+                }
+              }}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Télécharger PDF
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
