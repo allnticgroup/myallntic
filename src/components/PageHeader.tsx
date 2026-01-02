@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface PageHeaderProps {
   title: string;
@@ -34,7 +35,10 @@ export function PageHeader({ title, subtitle, showBack, action }: PageHeaderProp
             )}
           </div>
         </div>
-        {action && <div className="shrink-0">{action}</div>}
+        <div className="flex items-center gap-1 shrink-0">
+          <ThemeToggle />
+          {action}
+        </div>
       </div>
     </header>
   );
