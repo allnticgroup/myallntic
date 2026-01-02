@@ -20,8 +20,9 @@ import { useProspects, useDevis, useInterventions } from '@/hooks/useData';
 import { exportToJson, getAllData, generateExportFilename, readJsonFile, validateImportData, importData, ImportData } from '@/lib/export';
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
 import { STATUS_LABELS, ProspectStatus } from '@/types';
+import { UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Dashboard() {
@@ -89,6 +90,26 @@ export default function Dashboard() {
     signe: 'hsl(var(--success))',
     refuse: 'hsl(var(--destructive))',
   };
+
+  // Chart data: Prospects per month (last 6 months)
+  const prospectsByMonth = useMemo(() => {
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const date = subMonths(new Date(), i);
+      const start = startOfMonth(date);
+      const end = endOfMonth(date);
+      
+      const monthProspects = prospects.filter(p => 
+        isWithinInterval(new Date(p.createdAt), { start, end })
+      ).length;
+      
+      months.push({
+        name: format(date, 'MMM', { locale: fr }),
+        prospects: monthProspects,
+      });
+    }
+    return months;
+  }, [prospects]);
 
   const handleExport = () => {
     const data = getAllData();
@@ -296,6 +317,37 @@ export default function Dashboard() {
                   />
                   <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Prospects by Month Chart */}
+        <Card className="animate-slide-up">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <UserPlus className="h-4 w-4 text-muted-foreground" />
+              Nouveaux prospects (6 derniers mois)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={prospectsByMonth}>
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
+                  <Tooltip 
+                    formatter={(value: number) => [value, 'Prospects']}
+                    contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="prospects" 
+                    stroke="hsl(var(--primary))" 
+                    strokeWidth={2}
+                    dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2 }}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
