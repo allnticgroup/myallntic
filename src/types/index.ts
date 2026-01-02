@@ -132,3 +132,75 @@ export const MATERIAL_CATEGORY_LABELS: Record<MaterialCategory, string> = {
   reseau: 'Réseau',
   autre: 'Autre',
 };
+
+// Types pour les finances
+export type PaymentStatus = 'pending' | 'received' | 'partial';
+export type ExpenseCategory = 'materiel' | 'transport' | 'personnel' | 'marketing' | 'autre';
+export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue';
+
+export interface Payment {
+  id: string;
+  devisId: string;
+  prospectId: string;
+  montant: number;
+  datePaiement: string;
+  modePaiement: 'especes' | 'virement' | 'cheque' | 'mobile_money';
+  reference: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Expense {
+  id: string;
+  libelle: string;
+  montant: number;
+  categorie: ExpenseCategory;
+  dateDepense: string;
+  fournisseur: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Invoice {
+  id: string;
+  numero: string;
+  devisId: string;
+  prospectId: string;
+  montantHT: number;
+  montantTTC: number;
+  dateEmission: string;
+  dateEcheance: string;
+  statut: InvoiceStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
+  pending: 'En attente',
+  received: 'Reçu',
+  partial: 'Partiel',
+};
+
+export const PAYMENT_MODE_LABELS: Record<Payment['modePaiement'], string> = {
+  especes: 'Espèces',
+  virement: 'Virement',
+  cheque: 'Chèque',
+  mobile_money: 'Mobile Money',
+};
+
+export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategory, string> = {
+  materiel: 'Matériel',
+  transport: 'Transport',
+  personnel: 'Personnel',
+  marketing: 'Marketing',
+  autre: 'Autre',
+};
+
+export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
+  draft: 'Brouillon',
+  sent: 'Envoyée',
+  paid: 'Payée',
+  overdue: 'En retard',
+};
