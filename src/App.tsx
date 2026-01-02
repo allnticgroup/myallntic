@@ -11,6 +11,7 @@ import ProspectDetail from "./pages/ProspectDetail";
 import DevisList from "./pages/DevisList";
 import Interventions from "./pages/Interventions";
 import Materials from "./pages/Materials";
+import Finances from "./pages/Finances";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/devis" element={<DevisList />} />
             <Route path="/interventions" element={<Interventions />} />
             <Route path="/materiels" element={<Materials />} />
+            <Route path="/finances" element={<Finances />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />

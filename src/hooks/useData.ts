@@ -1,5 +1,5 @@
 import { useLocalStorage } from './useLocalStorage';
-import { Prospect, Devis, Intervention, Material } from '@/types';
+import { Prospect, Devis, Intervention, Material, Payment, Expense, Invoice } from '@/types';
 
 export function useProspects() {
   const [prospects, setProspects] = useLocalStorage<Prospect[]>('allntic_prospects', []);
@@ -150,4 +150,106 @@ export function useMaterials() {
     getMaterial,
     getMaterialsByCategory,
   };
+}
+
+export function usePayments() {
+  const [payments, setPayments] = useLocalStorage<Payment[]>('allntic_payments', []);
+
+  const addPayment = (payment: Omit<Payment, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const now = new Date().toISOString();
+    const newPayment: Payment = {
+      ...payment,
+      id: crypto.randomUUID(),
+      createdAt: now,
+      updatedAt: now,
+    };
+    setPayments((prev) => [...prev, newPayment]);
+    return newPayment;
+  };
+
+  const updatePayment = (id: string, updates: Partial<Payment>) => {
+    setPayments((prev) =>
+      prev.map((p) =>
+        p.id === id ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p
+      )
+    );
+  };
+
+  const deletePayment = (id: string) => {
+    setPayments((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  const getPaymentsForDevis = (devisId: string) =>
+    payments.filter((p) => p.devisId === devisId);
+
+  return { payments, addPayment, updatePayment, deletePayment, getPaymentsForDevis };
+}
+
+export function useExpenses() {
+  const [expenses, setExpenses] = useLocalStorage<Expense[]>('allntic_expenses', []);
+
+  const addExpense = (expense: Omit<Expense, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const now = new Date().toISOString();
+    const newExpense: Expense = {
+      ...expense,
+      id: crypto.randomUUID(),
+      createdAt: now,
+      updatedAt: now,
+    };
+    setExpenses((prev) => [...prev, newExpense]);
+    return newExpense;
+  };
+
+  const updateExpense = (id: string, updates: Partial<Expense>) => {
+    setExpenses((prev) =>
+      prev.map((e) =>
+        e.id === id ? { ...e, ...updates, updatedAt: new Date().toISOString() } : e
+      )
+    );
+  };
+
+  const deleteExpense = (id: string) => {
+    setExpenses((prev) => prev.filter((e) => e.id !== id));
+  };
+
+  return { expenses, addExpense, updateExpense, deleteExpense };
+}
+
+export function useInvoices() {
+  const [invoices, setInvoices] = useLocalStorage<Invoice[]>('allntic_invoices', []);
+
+  const addInvoice = (invoice: Omit<Invoice, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const now = new Date().toISOString();
+    const newInvoice: Invoice = {
+      ...invoice,
+      id: crypto.randomUUID(),
+      createdAt: now,
+      updatedAt: now,
+    };
+    setInvoices((prev) => [...prev, newInvoice]);
+    return newInvoice;
+  };
+
+  const updateInvoice = (id: string, updates: Partial<Invoice>) => {
+    setInvoices((prev) =>
+      prev.map((i) =>
+        i.id === id ? { ...i, ...updates, updatedAt: new Date().toISOString() } : i
+      )
+    );
+  };
+
+  const deleteInvoice = (id: string) => {
+    setInvoices((prev) => prev.filter((i) => i.id !== id));
+  };
+
+  const getInvoicesForProspect = (prospectId: string) =>
+    invoices.filter((i) => i.prospectId === prospectId);
+
+  const generateInvoiceNumber = () => {
+    const year = new Date().getFullYear();
+    const count = invoices.filter((i) => i.numero.startsWith(`FAC-${year}`)).length + 1;
+    return `FAC-${year}-${String(count).padStart(4, '0')}`;
+  };
+
+  return { invoices, addInvoice, updateInvoice, deleteInvoice, getInvoicesForProspect, generateInvoiceNumber };
 }
