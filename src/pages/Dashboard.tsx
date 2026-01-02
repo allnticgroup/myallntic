@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Users, FileText, Wrench, TrendingUp, Clock, CheckCircle2, Download, Upload, AlertTriangle } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
@@ -18,8 +18,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useProspects, useDevis, useInterventions } from '@/hooks/useData';
 import { exportToJson, getAllData, generateExportFilename, readJsonFile, validateImportData, importData, ImportData } from '@/lib/export';
-import { format } from 'date-fns';
+import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { STATUS_LABELS, ProspectStatus } from '@/types';
 import { toast } from 'sonner';
 
 export default function Dashboard() {
@@ -45,6 +47,48 @@ export default function Dashboard() {
   const recentProspects = [...prospects]
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
     .slice(0, 3);
+
+  // Chart data: Revenue per month (last 6 months)
+  const revenueByMonth = useMemo(() => {
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const date = subMonths(new Date(), i);
+      const start = startOfMonth(date);
+      const end = endOfMonth(date);
+      
+      const monthRevenue = devisList
+        .filter(d => d.statut === 'accepte' && isWithinInterval(new Date(d.dateDevis), { start, end }))
+        .reduce((sum, d) => sum + d.montant, 0);
+      
+      months.push({
+        name: format(date, 'MMM', { locale: fr }),
+        revenue: monthRevenue,
+      });
+    }
+    return months;
+  }, [devisList]);
+
+  // Chart data: Prospects by status
+  const prospectsByStatus = useMemo(() => {
+    const statusCounts: Record<string, number> = {};
+    prospects.forEach(p => {
+      statusCounts[p.statut] = (statusCounts[p.statut] || 0) + 1;
+    });
+    return Object.entries(statusCounts).map(([status, count]) => ({
+      name: STATUS_LABELS[status as ProspectStatus] || status,
+      value: count,
+      status,
+    }));
+  }, [prospects]);
+
+  const STATUS_COLORS: Record<string, string> = {
+    prospect: 'hsl(var(--primary))',
+    audit_prevu: 'hsl(var(--warning))',
+    audit_realise: 'hsl(210, 70%, 50%)',
+    devis_envoye: 'hsl(280, 70%, 50%)',
+    signe: 'hsl(var(--success))',
+    refuse: 'hsl(var(--destructive))',
+  };
 
   const handleExport = () => {
     const data = getAllData();
@@ -227,6 +271,73 @@ export default function Dashboard() {
                     {totalRevenue.toLocaleString('fr-FR')} FCFA
                   </p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Revenue Chart */}
+        <Card className="animate-slide-up">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              Évolution du CA (6 derniers mois)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={revenueByMonth}>
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                  <Tooltip 
+                    formatter={(value: number) => [`${value.toLocaleString('fr-FR')} FCFA`, 'CA']}
+                    contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
+                  />
+                  <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Prospects by Status Chart */}
+        {prospectsByStatus.length > 0 && (
+          <Card className="animate-slide-up">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                Répartition des prospects
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-52">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={prospectsByStatus}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={40}
+                      outerRadius={70}
+                      paddingAngle={2}
+                      dataKey="value"
+                    >
+                      {prospectsByStatus.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.status] || 'hsl(var(--muted))'} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value: number, name: string) => [value, name]}
+                      contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
+                    />
+                    <Legend 
+                      verticalAlign="bottom" 
+                      height={36}
+                      formatter={(value) => <span className="text-xs">{value}</span>}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
