@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import { Devis, Prospect, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS } from '@/types';
+import { Devis, Prospect, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS, MATERIAL_CATEGORY_LABELS } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -155,27 +155,29 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   if (devis.lignes && devis.lignes.length > 0) {
     // En-têtes du tableau
     const tableWidth = pageWidth - margin * 2;
-    const colWidths = [tableWidth * 0.45, tableWidth * 0.12, tableWidth * 0.08, tableWidth * 0.17, tableWidth * 0.18];
+    const colWidths = [tableWidth * 0.30, tableWidth * 0.12, tableWidth * 0.15, tableWidth * 0.13, tableWidth * 0.08, tableWidth * 0.12, tableWidth * 0.10];
     const colX = [
       margin,
       margin + colWidths[0],
       margin + colWidths[0] + colWidths[1],
       margin + colWidths[0] + colWidths[1] + colWidths[2],
       margin + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3],
+      margin + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4],
     ];
     
     // Header du tableau avec fond bleu
     doc.setFillColor(33, 90, 168);
     doc.rect(margin, y - 5, tableWidth, 10, 'F');
     
-    doc.setFontSize(8);
+    doc.setFontSize(7);
     doc.setFont('times', 'bold');
     doc.setTextColor(255, 255, 255);
-    doc.text('Désignation', colX[0] + 3, y + 1);
-    doc.text('Prix unitaire HT', colX[1] + 3, y + 1);
-    doc.text('Qté', colX[2] + 3, y + 1);
-    doc.text('Total HT', colX[3] + 3, y + 1);
-    doc.text('Total TTC', colX[4] + 3, y + 1);
+    doc.text('Désignation', colX[0] + 2, y + 1);
+    doc.text('Réf.', colX[1] + 2, y + 1);
+    doc.text('Catégorie', colX[2] + 2, y + 1);
+    doc.text('P.U. HT', colX[3] + 2, y + 1);
+    doc.text('Qté', colX[4] + 2, y + 1);
+    doc.text('Total HT', colX[5] + 2, y + 1);
     y += 10;
 
     // Lignes du tableau
@@ -200,14 +202,17 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
       doc.setLineWidth(0.1);
       doc.line(margin, y + 4, margin + tableWidth, y + 4);
       
-      doc.setFontSize(8);
+      doc.setFontSize(7);
       doc.setTextColor(50, 50, 50);
-      const nom = ligne.nom.length > 35 ? ligne.nom.substring(0, 35) + '...' : ligne.nom;
-      doc.text(nom, colX[0] + 3, y + 1);
-      doc.text(`${formatMontant(ligne.prixUnitaire)} F`, colX[1] + 3, y + 1);
-      doc.text(ligne.quantite.toString(), colX[2] + 3, y + 1);
-      doc.text(`${formatMontant(ligne.total)} F`, colX[3] + 3, y + 1);
-      doc.text(`${formatMontant(ligne.total)} F`, colX[4] + 3, y + 1);
+      const nom = ligne.nom.length > 25 ? ligne.nom.substring(0, 25) + '...' : ligne.nom;
+      const ref = ligne.reference ? (ligne.reference.length > 10 ? ligne.reference.substring(0, 10) + '...' : ligne.reference) : '-';
+      const categorie = ligne.categorie ? MATERIAL_CATEGORY_LABELS[ligne.categorie] : '-';
+      doc.text(nom, colX[0] + 2, y + 1);
+      doc.text(ref, colX[1] + 2, y + 1);
+      doc.text(categorie, colX[2] + 2, y + 1);
+      doc.text(`${formatMontant(ligne.prixUnitaire)} F`, colX[3] + 2, y + 1);
+      doc.text(ligne.quantite.toString(), colX[4] + 2, y + 1);
+      doc.text(`${formatMontant(ligne.total)} F`, colX[5] + 2, y + 1);
       y += 8;
     });
 

@@ -34,6 +34,8 @@ export interface Prospect {
 export interface DevisLigne {
   materialId: string;
   nom: string;
+  reference: string;
+  categorie: MaterialCategory;
   quantite: number;
   prixUnitaire: number;
   total: number;
