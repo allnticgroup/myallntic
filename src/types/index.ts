@@ -51,6 +51,7 @@ export interface Devis {
   statut: DevisStatus;
   acompteRecu: boolean;
   montantAcompte: number;
+  stockDeduit: boolean;
   createdAt: string;
   updatedAt: string;
 }
