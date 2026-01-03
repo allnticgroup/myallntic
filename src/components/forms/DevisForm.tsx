@@ -87,6 +87,8 @@ export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormPr
       const newLigne: DevisLigne = {
         materialId: material.id,
         nom: material.nom,
+        reference: material.reference,
+        categorie: material.categorie,
         quantite,
         prixUnitaire: material.prixUnitaire,
         total: quantite * material.prixUnitaire,
