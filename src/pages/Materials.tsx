@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Search, Edit2, Trash2, Package } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Package, AlertTriangle } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -140,13 +140,32 @@ export default function Materials() {
                           {material.description}
                         </p>
                       )}
-                      <div className="flex items-center gap-4">
-                        <span className="text-lg font-bold text-primary">
-                          {formatPrice(material.prixUnitaire)}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          / {material.unite}
-                        </span>
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                          <span className="text-lg font-bold text-primary">
+                            {formatPrice(material.prixUnitaire)}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            / {material.unite}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {(material.stockQuantite ?? 0) <= (material.stockMinimum ?? 5) && (
+                            <AlertTriangle className="h-4 w-4 text-amber-500" />
+                          )}
+                          <Badge 
+                            variant="outline" 
+                            className={
+                              (material.stockQuantite ?? 0) === 0
+                                ? 'bg-destructive/10 text-destructive border-destructive/20'
+                                : (material.stockQuantite ?? 0) <= (material.stockMinimum ?? 5)
+                                ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                                : 'bg-green-500/10 text-green-500 border-green-500/20'
+                            }
+                          >
+                            Stock: {material.stockQuantite ?? 0}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
                     <div className="flex gap-1">

@@ -122,6 +122,8 @@ export interface Material {
   prixUnitaire: number;
   unite: string;
   description: string;
+  stockQuantite: number;
+  stockMinimum: number;
   createdAt: string;
   updatedAt: string;
 }
