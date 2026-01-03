@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, FileText, Wrench, Wallet } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, Wrench, Wallet, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -7,6 +7,7 @@ const navItems = [
   { to: '/prospects', icon: Users, label: 'Prospects' },
   { to: '/devis', icon: FileText, label: 'Devis' },
   { to: '/interventions', icon: Wrench, label: 'Travaux' },
+  { to: '/materiels', icon: Package, label: 'Matériels' },
   { to: '/finances', icon: Wallet, label: 'Finances' },
 ];
 
