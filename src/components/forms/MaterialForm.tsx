@@ -16,6 +16,8 @@ const materialSchema = z.object({
   categorie: z.enum(['camera', 'cable', 'enregistreur', 'accessoire', 'reseau', 'autre'] as const),
   prixUnitaire: z.number().min(0, 'Le prix doit être positif'),
   unite: z.string().min(1, 'L\'unité est requise'),
+  stockQuantite: z.number().min(0, 'La quantité doit être positive'),
+  stockMinimum: z.number().min(0, 'Le seuil doit être positif'),
   description: z.string().optional(),
 });
 
@@ -37,6 +39,8 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
       categorie: material?.categorie ?? 'autre',
       prixUnitaire: material?.prixUnitaire ?? 0,
       unite: material?.unite ?? 'unité',
+      stockQuantite: material?.stockQuantite ?? 0,
+      stockMinimum: material?.stockMinimum ?? 5,
       description: material?.description ?? '',
     },
   });
@@ -53,6 +57,8 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
           categorie: data.categorie,
           prixUnitaire: data.prixUnitaire,
           unite: data.unite,
+          stockQuantite: data.stockQuantite,
+          stockMinimum: data.stockMinimum,
           description: data.description ?? '',
         });
         toast.success('Matériel ajouté');
@@ -145,6 +151,46 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
                 <FormLabel>Unité</FormLabel>
                 <FormControl>
                   <Input placeholder="Ex: mètre, unité" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="stockQuantite"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Quantité en stock</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    placeholder="0" 
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="stockMinimum"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Seuil d'alerte</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    placeholder="5" 
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
