@@ -73,7 +73,7 @@ export default function ProspectDetail() {
     updateIntervention,
     deleteIntervention,
   } = useInterventions();
-  const { deductStockForDevis } = useMaterials();
+  const { deductStockForDevis, restoreStockForDevis } = useMaterials();
 
   const [showForm, setShowForm] = useState<FormType>(null);
 
@@ -270,14 +270,20 @@ export default function ProspectDetail() {
                       value={devis.statut}
                       onValueChange={(newStatus: DevisStatus) => {
                         const previousStatus = devis.statut;
-                        updateDevis(devis.id, { statut: newStatus });
                         
                         // Déduire le stock si passage à "accepté" et pas encore déduit
                         if (newStatus === 'accepte' && previousStatus !== 'accepte' && !devis.stockDeduit) {
                           deductStockForDevis(devis.lignes);
                           updateDevis(devis.id, { statut: newStatus, stockDeduit: true });
                           toast.success('Devis accepté - Stock déduit automatiquement');
+                        } 
+                        // Restaurer le stock si passage de "accepté" à un autre statut
+                        else if (previousStatus === 'accepte' && newStatus !== 'accepte' && devis.stockDeduit) {
+                          restoreStockForDevis(devis.lignes);
+                          updateDevis(devis.id, { statut: newStatus, stockDeduit: false });
+                          toast.success('Devis annulé - Stock restauré automatiquement');
                         } else {
+                          updateDevis(devis.id, { statut: newStatus });
                           toast.success('Statut du devis mis à jour');
                         }
                       }}
