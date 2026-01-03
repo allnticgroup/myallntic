@@ -121,6 +121,7 @@ export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormPr
       ...formData,
       lignes,
       montant: montantTotal,
+      stockDeduit: false,
     });
   };
 

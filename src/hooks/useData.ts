@@ -142,6 +142,19 @@ export function useMaterials() {
   const getMaterialsByCategory = (category: string) =>
     materials.filter((m) => m.categorie === category);
 
+  const deductStockForDevis = (lignes: { materialId: string; quantite: number }[]) => {
+    setMaterials((prev) =>
+      prev.map((material) => {
+        const ligne = lignes.find((l) => l.materialId === material.id);
+        if (ligne) {
+          const newStock = Math.max(0, material.stockQuantite - ligne.quantite);
+          return { ...material, stockQuantite: newStock, updatedAt: new Date().toISOString() };
+        }
+        return material;
+      })
+    );
+  };
+
   return {
     materials,
     addMaterial,
@@ -149,6 +162,7 @@ export function useMaterials() {
     deleteMaterial,
     getMaterial,
     getMaterialsByCategory,
+    deductStockForDevis,
   };
 }
 

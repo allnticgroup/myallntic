@@ -46,9 +46,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useProspects, useDevis, useInterventions } from '@/hooks/useData';
+import { useProspects, useDevis, useInterventions, useMaterials } from '@/hooks/useData';
 import {
   ProspectStatus,
+  DevisStatus,
   STATUS_LABELS,
   STRUCTURE_LABELS,
   BESOIN_LABELS,
@@ -65,13 +66,14 @@ export default function ProspectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getProspect, updateProspect, deleteProspect } = useProspects();
-  const { getDevisForProspect, addDevis, updateDevis, deleteDevis } = useDevis();
+  const { getDevisForProspect, addDevis, updateDevis, deleteDevis, devisList: allDevis } = useDevis();
   const {
     getInterventionsForProspect,
     addIntervention,
     updateIntervention,
     deleteIntervention,
   } = useInterventions();
+  const { deductStockForDevis } = useMaterials();
 
   const [showForm, setShowForm] = useState<FormType>(null);
 
@@ -264,17 +266,43 @@ export default function ProspectDetail() {
                     {devis.acompteRecu && (
                       <CheckCircle2 className="h-4 w-4 text-success" />
                     )}
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full ${
-                        devis.statut === 'accepte'
-                          ? 'bg-success/10 text-success'
-                          : devis.statut === 'refuse'
-                          ? 'bg-destructive/10 text-destructive'
-                          : 'bg-warning/10 text-warning'
-                      }`}
+                    <Select
+                      value={devis.statut}
+                      onValueChange={(newStatus: DevisStatus) => {
+                        const previousStatus = devis.statut;
+                        updateDevis(devis.id, { statut: newStatus });
+                        
+                        // Déduire le stock si passage à "accepté" et pas encore déduit
+                        if (newStatus === 'accepte' && previousStatus !== 'accepte' && !devis.stockDeduit) {
+                          deductStockForDevis(devis.lignes);
+                          updateDevis(devis.id, { statut: newStatus, stockDeduit: true });
+                          toast.success('Devis accepté - Stock déduit automatiquement');
+                        } else {
+                          toast.success('Statut du devis mis à jour');
+                        }
+                      }}
                     >
-                      {DEVIS_STATUS_LABELS[devis.statut]}
-                    </span>
+                      <SelectTrigger className="w-auto h-7 text-xs">
+                        <span
+                          className={`px-2 py-0.5 rounded-full ${
+                            devis.statut === 'accepte'
+                              ? 'bg-success/10 text-success'
+                              : devis.statut === 'refuse'
+                              ? 'bg-destructive/10 text-destructive'
+                              : 'bg-warning/10 text-warning'
+                          }`}
+                        >
+                          {DEVIS_STATUS_LABELS[devis.statut]}
+                        </span>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(DEVIS_STATUS_LABELS).map(([key, label]) => (
+                          <SelectItem key={key} value={key}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               ))
