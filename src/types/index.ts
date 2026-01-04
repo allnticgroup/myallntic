@@ -209,3 +209,46 @@ export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
   paid: 'Payée',
   overdue: 'En retard',
 };
+
+// Types pour les fournisseurs
+export type SupplierCategory = 'materiel' | 'services' | 'logistique' | 'autre';
+
+export interface Supplier {
+  id: string;
+  nom: string;
+  contact: string;
+  telephone: string;
+  email: string;
+  adresse: string;
+  categorie: SupplierCategory;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Purchase {
+  id: string;
+  supplierId: string;
+  reference: string;
+  description: string;
+  montant: number;
+  datePurchase: string;
+  dateReception: string | null;
+  statut: 'commande' | 'livree' | 'annulee';
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const SUPPLIER_CATEGORY_LABELS: Record<SupplierCategory, string> = {
+  materiel: 'Matériel',
+  services: 'Services',
+  logistique: 'Logistique',
+  autre: 'Autre',
+};
+
+export const PURCHASE_STATUS_LABELS: Record<Purchase['statut'], string> = {
+  commande: 'Commandé',
+  livree: 'Livrée',
+  annulee: 'Annulée',
+};

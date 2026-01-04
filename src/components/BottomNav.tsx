@@ -1,13 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, FileText, Wrench, Wallet, Package } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, Wrench, Wallet, Truck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Tableau' },
-  { to: '/prospects', icon: Users, label: 'Prospects' },
+  { to: '/prospects', icon: Users, label: 'Clients' },
   { to: '/devis', icon: FileText, label: 'Devis' },
   { to: '/interventions', icon: Wrench, label: 'Travaux' },
-  { to: '/materiels', icon: Package, label: 'Matériels' },
+  { to: '/fournisseurs', icon: Truck, label: 'Fournisseurs' },
   { to: '/finances', icon: Wallet, label: 'Finances' },
 ];
 
