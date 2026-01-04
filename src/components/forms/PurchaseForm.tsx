@@ -10,23 +10,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Purchase, PURCHASE_STATUS_LABELS } from '@/types';
+import { Purchase, PURCHASE_STATUS_LABELS, Material, MATERIAL_CATEGORY_LABELS } from '@/types';
 
 interface PurchaseFormProps {
   supplierId: string;
+  materials: Material[];
   initialData?: Purchase;
   onSubmit: (data: Omit<Purchase, 'id' | 'createdAt' | 'updatedAt'>) => void;
   onCancel: () => void;
 }
 
-export function PurchaseForm({ supplierId, initialData, onSubmit, onCancel }: PurchaseFormProps) {
+export function PurchaseForm({ supplierId, materials, initialData, onSubmit, onCancel }: PurchaseFormProps) {
   const [formData, setFormData] = useState({
     reference: initialData?.reference || '',
     description: initialData?.description || '',
+    materialId: initialData?.materialId || null as string | null,
+    quantite: initialData?.quantite || 1,
     montant: initialData?.montant || 0,
     datePurchase: initialData?.datePurchase || new Date().toISOString().split('T')[0],
     dateReception: initialData?.dateReception || null,
     statut: initialData?.statut || ('commande' as Purchase['statut']),
+    stockUpdated: initialData?.stockUpdated || false,
     notes: initialData?.notes || '',
   });
 
@@ -37,6 +41,10 @@ export function PurchaseForm({ supplierId, initialData, onSubmit, onCancel }: Pu
       supplierId,
     });
   };
+
+  const selectedMaterial = formData.materialId 
+    ? materials.find(m => m.id === formData.materialId) 
+    : null;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -50,6 +58,52 @@ export function PurchaseForm({ supplierId, initialData, onSubmit, onCancel }: Pu
           required
         />
       </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="materialId">Matériel lié (optionnel)</Label>
+        <Select
+          value={formData.materialId || 'none'}
+          onValueChange={(value) =>
+            setFormData({ ...formData, materialId: value === 'none' ? null : value })
+          }
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Sélectionner un matériel" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">Aucun matériel</SelectItem>
+            {materials.map((material) => (
+              <SelectItem key={material.id} value={material.id}>
+                {material.nom} ({MATERIAL_CATEGORY_LABELS[material.categorie]})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {selectedMaterial && (
+          <p className="text-xs text-muted-foreground">
+            Stock actuel : {selectedMaterial.stockQuantite} {selectedMaterial.unite}
+          </p>
+        )}
+      </div>
+
+      {formData.materialId && (
+        <div className="space-y-2">
+          <Label htmlFor="quantite">Quantité commandée *</Label>
+          <Input
+            id="quantite"
+            type="number"
+            min="1"
+            value={formData.quantite}
+            onChange={(e) => setFormData({ ...formData, quantite: Number(e.target.value) })}
+            required
+          />
+          {selectedMaterial && (
+            <p className="text-xs text-muted-foreground">
+              Unité : {selectedMaterial.unite}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="description">Description *</Label>
