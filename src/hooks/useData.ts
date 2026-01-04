@@ -1,5 +1,5 @@
 import { useLocalStorage } from './useLocalStorage';
-import { Prospect, Devis, Intervention, Material, Payment, Expense, Invoice } from '@/types';
+import { Prospect, Devis, Intervention, Material, Payment, Expense, Invoice, Supplier, Purchase } from '@/types';
 
 export function useProspects() {
   const [prospects, setProspects] = useLocalStorage<Prospect[]>('allntic_prospects', []);
@@ -280,4 +280,74 @@ export function useInvoices() {
   };
 
   return { invoices, addInvoice, updateInvoice, deleteInvoice, getInvoicesForProspect, generateInvoiceNumber };
+}
+
+export function useSuppliers() {
+  const [suppliers, setSuppliers] = useLocalStorage<Supplier[]>('allntic_suppliers', []);
+
+  const addSupplier = (supplier: Omit<Supplier, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const now = new Date().toISOString();
+    const newSupplier: Supplier = {
+      ...supplier,
+      id: crypto.randomUUID(),
+      createdAt: now,
+      updatedAt: now,
+    };
+    setSuppliers((prev) => [...prev, newSupplier]);
+    return newSupplier;
+  };
+
+  const updateSupplier = (id: string, updates: Partial<Supplier>) => {
+    setSuppliers((prev) =>
+      prev.map((s) =>
+        s.id === id ? { ...s, ...updates, updatedAt: new Date().toISOString() } : s
+      )
+    );
+  };
+
+  const deleteSupplier = (id: string) => {
+    setSuppliers((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  const getSupplier = (id: string) => suppliers.find((s) => s.id === id);
+
+  return { suppliers, addSupplier, updateSupplier, deleteSupplier, getSupplier };
+}
+
+export function usePurchases() {
+  const [purchases, setPurchases] = useLocalStorage<Purchase[]>('allntic_purchases', []);
+
+  const addPurchase = (purchase: Omit<Purchase, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const now = new Date().toISOString();
+    const newPurchase: Purchase = {
+      ...purchase,
+      id: crypto.randomUUID(),
+      createdAt: now,
+      updatedAt: now,
+    };
+    setPurchases((prev) => [...prev, newPurchase]);
+    return newPurchase;
+  };
+
+  const updatePurchase = (id: string, updates: Partial<Purchase>) => {
+    setPurchases((prev) =>
+      prev.map((p) =>
+        p.id === id ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p
+      )
+    );
+  };
+
+  const deletePurchase = (id: string) => {
+    setPurchases((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  const getPurchasesForSupplier = (supplierId: string) =>
+    purchases.filter((p) => p.supplierId === supplierId);
+
+  const getTotalPurchasesForSupplier = (supplierId: string) =>
+    purchases
+      .filter((p) => p.supplierId === supplierId && p.statut !== 'annulee')
+      .reduce((sum, p) => sum + p.montant, 0);
+
+  return { purchases, addPurchase, updatePurchase, deletePurchase, getPurchasesForSupplier, getTotalPurchasesForSupplier };
 }
