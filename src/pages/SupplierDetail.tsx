@@ -42,7 +42,7 @@ import {
 import { EmptyState } from '@/components/EmptyState';
 import { SupplierForm } from '@/components/forms/SupplierForm';
 import { PurchaseForm } from '@/components/forms/PurchaseForm';
-import { useSuppliers, usePurchases } from '@/hooks/useData';
+import { useSuppliers, usePurchases, useMaterials } from '@/hooks/useData';
 import { SUPPLIER_CATEGORY_LABELS, PURCHASE_STATUS_LABELS, Purchase } from '@/types';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -59,6 +59,7 @@ export default function SupplierDetail() {
     deletePurchase,
     getTotalPurchasesForSupplier 
   } = usePurchases();
+  const { materials, getMaterial, updateMaterial } = useMaterials();
 
   const [showEditForm, setShowEditForm] = useState(false);
   const [showPurchaseForm, setShowPurchaseForm] = useState(false);
@@ -94,7 +95,22 @@ export default function SupplierDetail() {
   };
 
   const handleAddPurchase = (data: Parameters<typeof addPurchase>[0]) => {
-    addPurchase(data);
+    const newPurchase = addPurchase(data);
+    
+    // Si statut livré et matériel lié, mettre à jour le stock
+    if (data.statut === 'livree' && data.materialId && !data.stockUpdated) {
+      const material = getMaterial(data.materialId);
+      if (material) {
+        updateMaterial(data.materialId, {
+          stockQuantite: material.stockQuantite + data.quantite
+        });
+        updatePurchase(newPurchase.id, { stockUpdated: true });
+        toast.success(`Achat enregistré - Stock +${data.quantite} ${material.unite}`);
+        setShowPurchaseForm(false);
+        return;
+      }
+    }
+    
     setShowPurchaseForm(false);
     toast.success('Achat enregistré');
   };
@@ -107,26 +123,72 @@ export default function SupplierDetail() {
     }
   };
 
-  const handleDeletePurchase = (purchaseId: string) => {
-    deletePurchase(purchaseId);
+  const handleStatusChange = (purchase: Purchase, newStatus: Purchase['statut']) => {
+    const previousStatus = purchase.statut;
+    
+    // Passage à "livrée" avec matériel lié et stock pas encore mis à jour
+    if (newStatus === 'livree' && previousStatus !== 'livree' && purchase.materialId && !purchase.stockUpdated) {
+      const material = getMaterial(purchase.materialId);
+      if (material) {
+        updateMaterial(purchase.materialId, {
+          stockQuantite: material.stockQuantite + purchase.quantite
+        });
+        updatePurchase(purchase.id, { 
+          statut: newStatus, 
+          stockUpdated: true,
+          dateReception: new Date().toISOString().split('T')[0]
+        });
+        toast.success(`Livraison confirmée - Stock +${purchase.quantite} ${material.unite}`);
+        return;
+      }
+    }
+    
+    // Annulation d'une commande livrée avec stock mis à jour
+    if (newStatus === 'annulee' && previousStatus === 'livree' && purchase.materialId && purchase.stockUpdated) {
+      const material = getMaterial(purchase.materialId);
+      if (material) {
+        updateMaterial(purchase.materialId, {
+          stockQuantite: Math.max(0, material.stockQuantite - purchase.quantite)
+        });
+        updatePurchase(purchase.id, { statut: newStatus, stockUpdated: false });
+        toast.success(`Commande annulée - Stock -${purchase.quantite} ${material.unite}`);
+        return;
+      }
+    }
+    
+    // Changement de "livrée" vers "commandée" (retour en arrière)
+    if (newStatus === 'commande' && previousStatus === 'livree' && purchase.materialId && purchase.stockUpdated) {
+      const material = getMaterial(purchase.materialId);
+      if (material) {
+        updateMaterial(purchase.materialId, {
+          stockQuantite: Math.max(0, material.stockQuantite - purchase.quantite)
+        });
+        updatePurchase(purchase.id, { statut: newStatus, stockUpdated: false });
+        toast.success(`Statut mis à jour - Stock corrigé`);
+        return;
+      }
+    }
+    
+    updatePurchase(purchase.id, { statut: newStatus });
+    toast.success('Statut mis à jour');
+  };
+
+  const handleDeletePurchase = (purchase: Purchase) => {
+    // Si le stock a été mis à jour, le restaurer
+    if (purchase.stockUpdated && purchase.materialId) {
+      const material = getMaterial(purchase.materialId);
+      if (material) {
+        updateMaterial(purchase.materialId, {
+          stockQuantite: Math.max(0, material.stockQuantite - purchase.quantite)
+        });
+      }
+    }
+    deletePurchase(purchase.id);
     toast.success('Achat supprimé');
   };
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('fr-FR').format(amount) + ' FCFA';
-
-  const getStatusColor = (statut: Purchase['statut']) => {
-    switch (statut) {
-      case 'commande':
-        return 'default';
-      case 'livree':
-        return 'secondary';
-      case 'annulee':
-        return 'destructive';
-      default:
-        return 'default';
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -252,80 +314,95 @@ export default function SupplierDetail() {
             <div className="space-y-3">
               {purchases
                 .sort((a, b) => new Date(b.datePurchase).getTime() - new Date(a.datePurchase).getTime())
-                .map((purchase) => (
-                  <Card key={purchase.id}>
-                    <CardContent className="pt-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <p className="font-medium">{purchase.reference}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {purchase.description}
-                          </p>
+                .map((purchase) => {
+                  const linkedMaterial = purchase.materialId ? getMaterial(purchase.materialId) : null;
+                  return (
+                    <Card key={purchase.id}>
+                      <CardContent className="pt-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <p className="font-medium">{purchase.reference}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {purchase.description}
+                            </p>
+                            {linkedMaterial && (
+                              <div className="flex items-center gap-1 mt-1">
+                                <Package className="h-3 w-3 text-primary" />
+                                <span className="text-xs text-primary">
+                                  {linkedMaterial.nom} × {purchase.quantite} {linkedMaterial.unite}
+                                </span>
+                                {purchase.stockUpdated && (
+                                  <Badge variant="secondary" className="text-xs ml-1">
+                                    Stock ✓
+                                  </Badge>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          <Select
+                            value={purchase.statut}
+                            onValueChange={(value: Purchase['statut']) => handleStatusChange(purchase, value)}
+                          >
+                            <SelectTrigger className="w-28 h-7">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(PURCHASE_STATUS_LABELS).map(([value, label]) => (
+                                <SelectItem key={value} value={value}>
+                                  {label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
-                        <Select
-                          value={purchase.statut}
-                          onValueChange={(value: Purchase['statut']) => {
-                            updatePurchase(purchase.id, { statut: value });
-                            toast.success('Statut mis à jour');
-                          }}
-                        >
-                          <SelectTrigger className="w-28 h-7">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.entries(PURCHASE_STATUS_LABELS).map(([value, label]) => (
-                              <SelectItem key={value} value={value}>
-                                {label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <Calendar className="h-3 w-3" />
-                          {format(new Date(purchase.datePurchase), 'dd MMM yyyy', { locale: fr })}
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <Calendar className="h-3 w-3" />
+                            {format(new Date(purchase.datePurchase), 'dd MMM yyyy', { locale: fr })}
+                          </div>
+                          <span className="font-semibold">
+                            {formatCurrency(purchase.montant)}
+                          </span>
                         </div>
-                        <span className="font-semibold">
-                          {formatCurrency(purchase.montant)}
-                        </span>
-                      </div>
-                      <div className="flex gap-2 mt-3 pt-3 border-t">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => setEditingPurchase(purchase)}
-                        >
-                          <Edit className="h-3 w-3 mr-1" />
-                          Modifier
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="flex-1">
-                              <Trash2 className="h-3 w-3 mr-1" />
-                              Supprimer
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Supprimer l'achat ?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Cette action est irréversible.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Annuler</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDeletePurchase(purchase.id)}>
+                        <div className="flex gap-2 mt-3 pt-3 border-t">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => setEditingPurchase(purchase)}
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
+                            Modifier
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="outline" size="sm" className="flex-1">
+                                <Trash2 className="h-3 w-3 mr-1" />
                                 Supprimer
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Supprimer l'achat ?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  {purchase.stockUpdated && purchase.materialId
+                                    ? 'Le stock sera automatiquement réduit de la quantité livrée.'
+                                    : 'Cette action est irréversible.'}
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeletePurchase(purchase)}>
+                                  Supprimer
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
             </div>
           )}
         </div>
@@ -352,6 +429,7 @@ export default function SupplierDetail() {
           </DialogHeader>
           <PurchaseForm
             supplierId={supplier.id}
+            materials={materials}
             onSubmit={handleAddPurchase}
             onCancel={() => setShowPurchaseForm(false)}
           />
@@ -366,6 +444,7 @@ export default function SupplierDetail() {
           {editingPurchase && (
             <PurchaseForm
               supplierId={supplier.id}
+              materials={materials}
               initialData={editingPurchase}
               onSubmit={handleUpdatePurchase}
               onCancel={() => setEditingPurchase(null)}

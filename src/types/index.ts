@@ -229,12 +229,15 @@ export interface Supplier {
 export interface Purchase {
   id: string;
   supplierId: string;
+  materialId: string | null;
+  quantite: number;
   reference: string;
   description: string;
   montant: number;
   datePurchase: string;
   dateReception: string | null;
   statut: 'commande' | 'livree' | 'annulee';
+  stockUpdated: boolean;
   notes: string;
   createdAt: string;
   updatedAt: string;
