@@ -14,6 +14,7 @@ import Materials from "./pages/Materials";
 import Finances from "./pages/Finances";
 import Suppliers from "./pages/Suppliers";
 import SupplierDetail from "./pages/SupplierDetail";
+import Calendar from "./pages/Calendar";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/finances" element={<Finances />} />
             <Route path="/fournisseurs" element={<Suppliers />} />
             <Route path="/fournisseurs/:id" element={<SupplierDetail />} />
+            <Route path="/calendrier" element={<Calendar />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />
