@@ -289,6 +289,12 @@ export default function Finances() {
 
           {/* Invoices Tab */}
           <TabsContent value="invoices" className="space-y-4 mt-4">
+            <Button asChild className="w-full">
+              <a href="/factures">
+                <FileText className="h-4 w-4 mr-2" /> Gérer les factures
+              </a>
+            </Button>
+
             {devisList.filter(d => d.statut === 'accepte' && !invoices.some(i => i.devisId === d.id)).length > 0 && (
               <Card className="bg-primary/5 border-primary/20">
                 <CardContent className="p-4">
