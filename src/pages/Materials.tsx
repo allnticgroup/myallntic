@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, Search, Edit2, Trash2, Package, AlertTriangle } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Plus, Search, Edit2, Trash2, Package, AlertTriangle, Upload, FileUp } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,14 +12,22 @@ import { useMaterials } from '@/hooks/useData';
 import { MaterialForm } from '@/components/forms/MaterialForm';
 import { Material, MaterialCategory, MATERIAL_CATEGORY_LABELS } from '@/types';
 import { EmptyState } from '@/components/EmptyState';
+import { parseMaterialsPdf, ParsedMaterial } from '@/lib/parseMaterialsPdf';
+import { toast } from 'sonner';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export default function Materials() {
-  const { materials, deleteMaterial } = useMaterials();
+  const { materials, addMaterial, deleteMaterial } = useMaterials();
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<MaterialCategory | 'all'>('all');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
   const [deletingMaterial, setDeletingMaterial] = useState<Material | null>(null);
+  const [isPdfImportOpen, setIsPdfImportOpen] = useState(false);
+  const [parsedMaterials, setParsedMaterials] = useState<ParsedMaterial[]>([]);
+  const [selectedImports, setSelectedImports] = useState<Set<number>>(new Set());
+  const [isParsing, setIsParsing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredMaterials = materials.filter((material) => {
     const matchesSearch = 
@@ -62,16 +70,94 @@ export default function Materials() {
     return colors[category];
   };
 
+  const handlePdfSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      toast.error('Veuillez sélectionner un fichier PDF');
+      return;
+    }
+
+    setIsParsing(true);
+    try {
+      const parsed = await parseMaterialsPdf(file);
+      if (parsed.length === 0) {
+        toast.error('Aucun matériel trouvé dans le PDF');
+        return;
+      }
+      setParsedMaterials(parsed);
+      setSelectedImports(new Set(parsed.map((_, i) => i)));
+      setIsPdfImportOpen(true);
+      toast.success(`${parsed.length} matériel(s) détecté(s)`);
+    } catch (error: any) {
+      toast.error(error.message || 'Erreur lors de la lecture du PDF');
+    } finally {
+      setIsParsing(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleImportSelected = () => {
+    let count = 0;
+    parsedMaterials.forEach((mat, idx) => {
+      if (selectedImports.has(idx)) {
+        addMaterial(mat);
+        count++;
+      }
+    });
+    toast.success(`${count} matériel(s) importé(s)`);
+    setIsPdfImportOpen(false);
+    setParsedMaterials([]);
+    setSelectedImports(new Set());
+  };
+
+  const toggleImportSelection = (idx: number) => {
+    setSelectedImports(prev => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      return next;
+    });
+  };
+
+  const toggleAllImports = () => {
+    if (selectedImports.size === parsedMaterials.length) {
+      setSelectedImports(new Set());
+    } else {
+      setSelectedImports(new Set(parsedMaterials.map((_, i) => i)));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background pb-24">
       <PageHeader 
         title="Matériels & Prix" 
         action={
-          <Button size="sm" onClick={() => setIsFormOpen(true)}>
-            <Plus className="h-4 w-4 mr-1" />
-            Ajouter
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isParsing}
+            >
+              <FileUp className="h-4 w-4 mr-1" />
+              {isParsing ? 'Lecture...' : 'PDF'}
+            </Button>
+            <Button size="sm" onClick={() => setIsFormOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" />
+              Ajouter
+            </Button>
+          </div>
         }
+      />
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf"
+        className="hidden"
+        onChange={handlePdfSelect}
       />
 
       <div className="px-4 space-y-4">
@@ -106,14 +192,20 @@ export default function Materials() {
             title="Aucun matériel"
             description={searchQuery || categoryFilter !== 'all' 
               ? "Aucun matériel ne correspond à votre recherche"
-              : "Ajoutez votre premier matériel pour commencer"
+              : "Ajoutez votre premier matériel ou importez depuis un PDF"
             }
             action={
               !searchQuery && categoryFilter === 'all' ? (
-                <Button onClick={() => setIsFormOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Ajouter un matériel
-                </Button>
+                <div className="flex flex-col gap-2 items-center">
+                  <Button onClick={() => setIsFormOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Ajouter manuellement
+                  </Button>
+                  <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+                    <FileUp className="h-4 w-4 mr-2" />
+                    Importer depuis un PDF
+                  </Button>
+                </div>
               ) : undefined
             }
           />
@@ -169,18 +261,10 @@ export default function Materials() {
                       </div>
                     </div>
                     <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(material)}
-                      >
+                      <Button variant="ghost" size="icon" onClick={() => handleEdit(material)}>
                         <Edit2 className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setDeletingMaterial(material)}
-                      >
+                      <Button variant="ghost" size="icon" onClick={() => setDeletingMaterial(material)}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </div>
@@ -192,6 +276,15 @@ export default function Materials() {
         )}
       </div>
 
+      {/* Floating Add Button */}
+      <button
+        onClick={() => setIsFormOpen(true)}
+        className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:bg-primary/90 transition-colors active:scale-95"
+        aria-label="Ajouter un matériel"
+      >
+        <Plus className="h-6 w-6" />
+      </button>
+
       {/* Add/Edit Dialog */}
       <Dialog open={isFormOpen} onOpenChange={handleFormClose}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
@@ -200,10 +293,81 @@ export default function Materials() {
               {editingMaterial ? 'Modifier le matériel' : 'Nouveau matériel'}
             </DialogTitle>
           </DialogHeader>
-          <MaterialForm
-            material={editingMaterial}
-            onSuccess={handleFormClose}
-          />
+          <MaterialForm material={editingMaterial} onSuccess={handleFormClose} />
+        </DialogContent>
+      </Dialog>
+
+      {/* PDF Import Dialog */}
+      <Dialog open={isPdfImportOpen} onOpenChange={setIsPdfImportOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5" />
+              Import PDF — {parsedMaterials.length} matériel(s) détecté(s)
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <Checkbox
+                  checked={selectedImports.size === parsedMaterials.length}
+                  onCheckedChange={toggleAllImports}
+                />
+                Tout sélectionner
+              </label>
+              <span className="text-sm text-muted-foreground">
+                {selectedImports.size} sélectionné(s)
+              </span>
+            </div>
+
+            <div className="space-y-2 max-h-[50vh] overflow-y-auto">
+              {parsedMaterials.map((mat, idx) => (
+                <Card 
+                  key={idx} 
+                  className={`cursor-pointer transition-colors ${selectedImports.has(idx) ? 'border-primary/50 bg-primary/5' : 'opacity-60'}`}
+                  onClick={() => toggleImportSelection(idx)}
+                >
+                  <CardContent className="p-3">
+                    <div className="flex items-start gap-3">
+                      <Checkbox
+                        checked={selectedImports.has(idx)}
+                        onCheckedChange={() => toggleImportSelection(idx)}
+                        className="mt-0.5"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-sm truncate">{mat.nom}</span>
+                          <Badge variant="outline" className={`text-xs ${getCategoryColor(mat.categorie)}`}>
+                            {MATERIAL_CATEGORY_LABELS[mat.categorie]}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                          <span>Réf: {mat.reference}</span>
+                          {mat.prixUnitaire > 0 && (
+                            <span className="font-semibold text-foreground">
+                              {formatPrice(mat.prixUnitaire)}
+                            </span>
+                          )}
+                          {mat.stockQuantite > 0 && (
+                            <span>Stock: {mat.stockQuantite}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <Button 
+              className="w-full" 
+              onClick={handleImportSelected}
+              disabled={selectedImports.size === 0}
+            >
+              Importer {selectedImports.size} matériel(s)
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
