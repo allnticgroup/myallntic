@@ -62,13 +62,13 @@ interface ColumnMapping {
 }
 
 const COLUMN_PATTERNS: Record<keyof ColumnMapping, RegExp[]> = {
-  nom: [/nom/i, /d[ée]signation/i, /article/i, /produit/i, /mat[ée]riel/i, /libell[ée]/i],
-  reference: [/r[ée]f/i, /code/i, /sku/i, /n[°o]/i],
-  prix: [/prix/i, /p\.?u/i, /tarif/i, /co[uû]t/i, /montant/i, /fcfa/i, /ht/i],
+  nom: [/product\s*name/i, /nom/i, /d[ée]signation/i, /article/i, /produit/i, /mat[ée]riel/i, /libell[ée]/i],
+  reference: [/r[ée]f/i, /code/i, /sku/i, /n[°o]/i, /model/i],
+  prix: [/prix/i, /price/i, /p\.?u/i, /tarif/i, /co[uû]t/i, /montant/i, /fcfa/i, /ht/i],
   quantite: [/qt[ée]/i, /quantit/i, /stock/i, /qte/i, /nbre/i, /nombre/i],
   unite: [/unit[ée]/i, /u\.?m/i, /mesure/i],
   categorie: [/cat[ée]gorie/i, /type/i, /famille/i],
-  description: [/desc/i, /observation/i, /note/i, /commentaire/i, /d[ée]tail/i],
+  description: [/desc/i, /observation/i, /note/i, /commentaire/i, /d[ée]tail/i, /appearance/i, /image/i],
 };
 
 function detectColumns(headerCells: string[]): Partial<ColumnMapping> {
