@@ -98,6 +98,10 @@ export default function Materials() {
     }
   };
 
+  const updateParsedCategory = (idx: number, categorie: MaterialCategory) => {
+    setParsedMaterials(prev => prev.map((m, i) => i === idx ? { ...m, categorie } : m));
+  };
+
   const handleImportSelected = () => {
     let count = 0;
     parsedMaterials.forEach((mat, idx) => {
@@ -336,11 +340,23 @@ export default function Materials() {
                         className="mt-0.5"
                       />
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-medium text-sm truncate">{mat.nom}</span>
-                          <Badge variant="outline" className={`text-xs ${getCategoryColor(mat.categorie)}`}>
-                            {MATERIAL_CATEGORY_LABELS[mat.categorie]}
-                          </Badge>
+                          <Select
+                            value={mat.categorie}
+                            onValueChange={(v) => updateParsedCategory(idx, v as MaterialCategory)}
+                          >
+                            <SelectTrigger className="h-6 w-auto text-xs px-2 py-0" onClick={(e) => e.stopPropagation()}>
+                              <Badge variant="outline" className={`text-xs ${getCategoryColor(mat.categorie)}`}>
+                                {MATERIAL_CATEGORY_LABELS[mat.categorie]}
+                              </Badge>
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(MATERIAL_CATEGORY_LABELS).map(([key, label]) => (
+                                <SelectItem key={key} value={key}>{label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                         <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                           <span>Réf: {mat.reference}</span>
