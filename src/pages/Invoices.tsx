@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, FileText, Download, Trash2, Check, Send, Clock, AlertTriangle, Search, Filter } from 'lucide-react';
+import { Plus, FileText, Download, Trash2, Check, Send, Clock, AlertTriangle, Search, Filter, ChevronDown } from 'lucide-react';
 import { format, addDays, isAfter } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
@@ -28,6 +28,13 @@ import {
 import { useInvoices, useProspects, useDevis } from '@/hooks/useData';
 import { Invoice, InvoiceStatus, INVOICE_STATUS_LABELS } from '@/types';
 import { generateInvoiceDocx } from '@/lib/generateInvoiceDocx';
+import { generateInvoicePdf } from '@/lib/generateInvoicePdf';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 
 export default function Invoices() {
@@ -105,15 +112,20 @@ export default function Invoices() {
     setSelectedDevisId('');
   };
 
+  const handleDownloadDocx = async (invoice: Invoice) => {
+    const prospect = getProspect(invoice.prospectId);
+    const devis = devisList.find((d) => d.id === invoice.devisId);
+    if (!prospect) { toast.error('Client introuvable'); return; }
+    await generateInvoiceDocx(invoice, prospect, devis);
+    toast.success('Document Word téléchargé');
+  };
+
   const handleDownloadPdf = async (invoice: Invoice) => {
     const prospect = getProspect(invoice.prospectId);
     const devis = devisList.find((d) => d.id === invoice.devisId);
-    if (!prospect) {
-      toast.error('Client introuvable');
-      return;
-    }
-    await generateInvoiceDocx(invoice, prospect, devis);
-    toast.success('Document Word téléchargé');
+    if (!prospect) { toast.error('Client introuvable'); return; }
+    await generateInvoicePdf(invoice, prospect, devis);
+    toast.success('Document PDF téléchargé');
   };
 
   const handleStatusChange = (invoiceId: string, newStatus: InvoiceStatus) => {
@@ -256,9 +268,22 @@ export default function Invoices() {
                     </div>
 
                     <div className="flex gap-2 flex-wrap">
-                      <Button size="sm" variant="outline" onClick={() => handleDownloadPdf(invoice)}>
-                        <Download className="h-4 w-4 mr-1" /> Word
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="outline">
+                            <Download className="h-4 w-4 mr-1" />
+                            <ChevronDown className="h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={() => handleDownloadPdf(invoice)}>
+                            <FileText className="h-4 w-4 mr-2" /> PDF
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDownloadDocx(invoice)}>
+                            <FileText className="h-4 w-4 mr-2" /> Word (.docx)
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                       
                       {invoice.statut === 'draft' && (
                         <Button size="sm" variant="secondary" onClick={() => handleStatusChange(invoice.id, 'sent')}>

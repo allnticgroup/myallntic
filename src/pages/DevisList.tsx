@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, CheckCircle2, Clock, XCircle, Download, Pencil, Trash2, Eye, Search } from 'lucide-react';
+import { FileText, CheckCircle2, Clock, XCircle, Download, Pencil, Trash2, Eye, Search, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
@@ -14,6 +14,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +40,7 @@ import {
 import { useDevis, useProspects } from '@/hooks/useData';
 import { Devis, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS } from '@/types';
 import { generateDevisDocx } from '@/lib/generateDevisDocx';
+import { generateDevisPdf } from '@/lib/generateDevisPdf';
 import { exportDevisToCsv } from '@/lib/export';
 import { DevisForm } from '@/components/forms/DevisForm';
 import { DevisPreview } from '@/components/DevisPreview';
@@ -297,20 +304,39 @@ export default function DevisList() {
               <Pencil className="h-4 w-4 mr-2" />
               Modifier
             </Button>
-            <Button
-              onClick={async () => {
-                if (previewingDevis) {
-                  const prospect = getProspect(previewingDevis.prospectId);
-                  if (prospect) {
-                    await generateDevisDocx(previewingDevis, prospect);
-                    setPreviewingDevis(null);
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button>
+                  <Download className="h-4 w-4 mr-2" />
+                  Télécharger
+                  <ChevronDown className="h-4 w-4 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={async () => {
+                  if (previewingDevis) {
+                    const prospect = getProspect(previewingDevis.prospectId);
+                    if (prospect) {
+                      await generateDevisPdf(previewingDevis, prospect);
+                      setPreviewingDevis(null);
+                    }
                   }
-                }
-              }}
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Télécharger Word
-            </Button>
+                }}>
+                  <FileText className="h-4 w-4 mr-2" /> PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={async () => {
+                  if (previewingDevis) {
+                    const prospect = getProspect(previewingDevis.prospectId);
+                    if (prospect) {
+                      await generateDevisDocx(previewingDevis, prospect);
+                      setPreviewingDevis(null);
+                    }
+                  }
+                }}>
+                  <FileText className="h-4 w-4 mr-2" /> Word (.docx)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </DialogFooter>
         </DialogContent>
       </Dialog>
