@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, FileText, Download, Trash2, Check, Send, Clock, AlertTriangle, Search, Filter, ChevronDown } from 'lucide-react';
+import { Plus, FileText, Download, Trash2, Check, Send, Clock, AlertTriangle, Search, Filter, ChevronDown, Eye, Pencil } from 'lucide-react';
 import { format, addDays, isAfter } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
@@ -7,7 +7,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { InvoicePreview } from '@/components/InvoicePreview';
 import {
   Select,
   SelectContent,
@@ -47,6 +48,7 @@ export default function Invoices() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedDevisId, setSelectedDevisId] = useState<string>('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [previewingInvoice, setPreviewingInvoice] = useState<Invoice | null>(null);
 
   // Auto-update overdue invoices
   useMemo(() => {
@@ -268,6 +270,13 @@ export default function Invoices() {
                     </div>
 
                     <div className="flex gap-2 flex-wrap">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setPreviewingInvoice(invoice)}
+                      >
+                        <Eye className="h-4 w-4 mr-1" /> Aperçu
+                      </Button>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button size="sm" variant="outline">
@@ -368,6 +377,51 @@ export default function Invoices() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Invoice Preview Dialog */}
+      <Dialog open={!!previewingInvoice} onOpenChange={() => setPreviewingInvoice(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle>Aperçu de la facture</DialogTitle>
+          </DialogHeader>
+          {previewingInvoice && getProspect(previewingInvoice.prospectId) && (
+            <InvoicePreview
+              invoice={previewingInvoice}
+              prospect={getProspect(previewingInvoice.prospectId)!}
+              devis={devisList.find((d) => d.id === previewingInvoice.devisId)}
+            />
+          )}
+          <DialogFooter className="flex gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button>
+                  <Download className="h-4 w-4 mr-2" />
+                  Télécharger
+                  <ChevronDown className="h-4 w-4 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={async () => {
+                  if (previewingInvoice) {
+                    await handleDownloadPdf(previewingInvoice);
+                    setPreviewingInvoice(null);
+                  }
+                }}>
+                  <FileText className="h-4 w-4 mr-2" /> PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={async () => {
+                  if (previewingInvoice) {
+                    await handleDownloadDocx(previewingInvoice);
+                    setPreviewingInvoice(null);
+                  }
+                }}>
+                  <FileText className="h-4 w-4 mr-2" /> Word (.docx)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
