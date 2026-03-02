@@ -257,7 +257,7 @@ export default function Invoices() {
 
                     <div className="flex gap-2 flex-wrap">
                       <Button size="sm" variant="outline" onClick={() => handleDownloadPdf(invoice)}>
-                        <Download className="h-4 w-4 mr-1" /> PDF
+                        <Download className="h-4 w-4 mr-1" /> Word
                       </Button>
                       
                       {invoice.statut === 'draft' && (

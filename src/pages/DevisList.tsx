@@ -309,7 +309,7 @@ export default function DevisList() {
               }}
             >
               <Download className="h-4 w-4 mr-2" />
-              Télécharger PDF
+              Télécharger Word
             </Button>
           </DialogFooter>
         </DialogContent>
