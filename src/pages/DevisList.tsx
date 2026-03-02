@@ -33,7 +33,7 @@ import {
 } from '@/components/ui/dialog';
 import { useDevis, useProspects } from '@/hooks/useData';
 import { Devis, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS } from '@/types';
-import { generateDevisPdf } from '@/lib/generateDevisPdf';
+import { generateDevisDocx } from '@/lib/generateDevisDocx';
 import { exportDevisToCsv } from '@/lib/export';
 import { DevisForm } from '@/components/forms/DevisForm';
 import { DevisPreview } from '@/components/DevisPreview';
@@ -302,14 +302,14 @@ export default function DevisList() {
                 if (previewingDevis) {
                   const prospect = getProspect(previewingDevis.prospectId);
                   if (prospect) {
-                    await generateDevisPdf(previewingDevis, prospect);
+                    await generateDevisDocx(previewingDevis, prospect);
                     setPreviewingDevis(null);
                   }
                 }
               }}
             >
               <Download className="h-4 w-4 mr-2" />
-              Télécharger PDF
+              Télécharger Word
             </Button>
           </DialogFooter>
         </DialogContent>
