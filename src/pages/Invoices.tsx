@@ -377,6 +377,51 @@ export default function Invoices() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Invoice Preview Dialog */}
+      <Dialog open={!!previewingInvoice} onOpenChange={() => setPreviewingInvoice(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle>Aperçu de la facture</DialogTitle>
+          </DialogHeader>
+          {previewingInvoice && getProspect(previewingInvoice.prospectId) && (
+            <InvoicePreview
+              invoice={previewingInvoice}
+              prospect={getProspect(previewingInvoice.prospectId)!}
+              devis={devisList.find((d) => d.id === previewingInvoice.devisId)}
+            />
+          )}
+          <DialogFooter className="flex gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button>
+                  <Download className="h-4 w-4 mr-2" />
+                  Télécharger
+                  <ChevronDown className="h-4 w-4 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={async () => {
+                  if (previewingInvoice) {
+                    await handleDownloadPdf(previewingInvoice);
+                    setPreviewingInvoice(null);
+                  }
+                }}>
+                  <FileText className="h-4 w-4 mr-2" /> PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={async () => {
+                  if (previewingInvoice) {
+                    await handleDownloadDocx(previewingInvoice);
+                    setPreviewingInvoice(null);
+                  }
+                }}>
+                  <FileText className="h-4 w-4 mr-2" /> Word (.docx)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
