@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useInvoices, useProspects, useDevis } from '@/hooks/useData';
 import { Invoice, InvoiceStatus, INVOICE_STATUS_LABELS } from '@/types';
-import { generateInvoicePdf } from '@/lib/generateInvoicePdf';
+import { generateInvoiceDocx } from '@/lib/generateInvoiceDocx';
 import { toast } from 'sonner';
 
 export default function Invoices() {
@@ -112,8 +112,8 @@ export default function Invoices() {
       toast.error('Client introuvable');
       return;
     }
-    await generateInvoicePdf(invoice, prospect, devis);
-    toast.success('PDF téléchargé');
+    await generateInvoiceDocx(invoice, prospect, devis);
+    toast.success('Document Word téléchargé');
   };
 
   const handleStatusChange = (invoiceId: string, newStatus: InvoiceStatus) => {
