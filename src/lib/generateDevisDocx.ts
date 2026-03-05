@@ -4,13 +4,15 @@ import { Devis, Prospect, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS, MATERIAL_CAT
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-const COMPANY_INFO = {
-  name: 'ALLNTIC',
-  address: 'Abidjan, Côte d\'Ivoire',
-  phone: '+225 07 78 02 33 31',
-  email: 'all.ntic225@gmail.com',
-  website: 'www.allntic.com',
-};
+function getCompanyInfo(devis: Devis) {
+  return {
+    name: devis.entrepriseNom || 'ALLNTIC',
+    address: devis.entrepriseAdresse || 'Abidjan, Côte d\'Ivoire',
+    phone: devis.entrepriseTelephone || '+225 07 78 02 33 31',
+    email: devis.entrepriseEmail || 'all.ntic225@gmail.com',
+    website: devis.entrepriseSite || 'www.allntic.com',
+  };
+}
 
 function formatMontant(montant: number): string {
   return montant.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -37,6 +39,7 @@ function dataCell(text: string, shade?: boolean): TableCell {
 }
 
 export async function generateDevisDocx(devis: Devis, prospect: Prospect) {
+  const COMPANY_INFO = getCompanyInfo(devis);
   const children: (Paragraph | Table)[] = [];
 
   // Header
@@ -102,7 +105,7 @@ export async function generateDevisDocx(devis: Devis, prospect: Prospect) {
 
   // Object
   children.push(new Paragraph({
-    children: [new TextRun({ text: `Objet : ${DEVIS_OPTION_LABELS[devis.option]} - ${DEVIS_STATUS_LABELS[devis.statut]}`, bold: true, size: 20, color: BLUE, font: 'Times New Roman' })],
+    children: [new TextRun({ text: `Objet : ${devis.objet || `${DEVIS_OPTION_LABELS[devis.option]} - ${DEVIS_STATUS_LABELS[devis.statut]}`}`, bold: true, size: 20, color: BLUE, font: 'Times New Roman' })],
     spacing: { before: 300, after: 200 },
   }));
 

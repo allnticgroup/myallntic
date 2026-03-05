@@ -4,14 +4,15 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 // Informations de l'entreprise
-const COMPANY_INFO = {
-  name: 'ALLNTIC',
-  address: 'Abidjan, Côte d\'Ivoire',
-  phone: '+225 07 78 02 33 31',
-  email: 'all.ntic225@gmail.com',
-  email2: 'infos@allntic.com',
-  website: 'www.allntic.com',
-};
+function getCompanyInfo(devis: Devis) {
+  return {
+    name: devis.entrepriseNom || 'ALLNTIC',
+    address: devis.entrepriseAdresse || 'Abidjan, Côte d\'Ivoire',
+    phone: devis.entrepriseTelephone || '+225 07 78 02 33 31',
+    email: devis.entrepriseEmail || 'all.ntic225@gmail.com',
+    website: devis.entrepriseSite || 'www.allntic.com',
+  };
+}
 
 // Prestations de l'entreprise
 const COMPANY_SERVICES = [
@@ -49,10 +50,10 @@ async function loadImageAsBase64(url: string): Promise<string> {
 }
 
 export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
+  const COMPANY_INFO = getCompanyInfo(devis);
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 15;
-  let y = 15;
 
   // ===== EN-TÊTE =====
   // Logo à gauche
@@ -148,8 +149,7 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   doc.setFontSize(9);
   doc.setFont('times', 'bold');
   doc.setTextColor(33, 90, 168);
-  doc.text(`Objet : ${DEVIS_OPTION_LABELS[devis.option]} - ${DEVIS_STATUS_LABELS[devis.statut]}`, margin, y);
-  y += 12;
+  doc.text(`Objet : ${devis.objet || `${DEVIS_OPTION_LABELS[devis.option]} - ${DEVIS_STATUS_LABELS[devis.statut]}`}`, margin, y);
 
   // ===== TABLEAU DES MATÉRIELS =====
   if (devis.lignes && devis.lignes.length > 0) {

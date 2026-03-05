@@ -4,13 +4,15 @@ import { fr } from 'date-fns/locale';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 
-const COMPANY_INFO = {
-  name: 'ALLNTIC',
-  address: 'Abidjan, Côte d\'Ivoire',
-  phone: '+225 07 78 02 33 31',
-  email: 'all.ntic225@gmail.com',
-  website: 'www.allntic.com',
-};
+function getCompanyInfo(devis: Devis) {
+  return {
+    name: devis.entrepriseNom || 'ALLNTIC',
+    address: devis.entrepriseAdresse || 'Abidjan, Côte d\'Ivoire',
+    phone: devis.entrepriseTelephone || '+225 07 78 02 33 31',
+    email: devis.entrepriseEmail || 'all.ntic225@gmail.com',
+    website: devis.entrepriseSite || 'www.allntic.com',
+  };
+}
 
 const COMPANY_SERVICES = [
   'Installation et maintenance',
@@ -30,6 +32,7 @@ interface DevisPreviewProps {
 }
 
 export function DevisPreview({ devis, prospect }: DevisPreviewProps) {
+  const COMPANY_INFO = getCompanyInfo(devis);
   return (
     <div className="bg-white text-gray-800 p-6 rounded-lg shadow-sm border max-h-[70vh] overflow-y-auto">
       {/* En-tête */}
@@ -78,7 +81,7 @@ export function DevisPreview({ devis, prospect }: DevisPreviewProps) {
 
       {/* Objet */}
       <p className="text-sm font-bold text-blue-700 mb-3">
-        Objet : {DEVIS_OPTION_LABELS[devis.option]} - {DEVIS_STATUS_LABELS[devis.statut]}
+        Objet : {devis.objet || `${DEVIS_OPTION_LABELS[devis.option]} - ${DEVIS_STATUS_LABELS[devis.statut]}`}
       </p>
 
       {/* Tableau des matériels */}
