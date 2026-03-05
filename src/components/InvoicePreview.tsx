@@ -1,4 +1,4 @@
-import { Invoice, Prospect, Devis, MATERIAL_CATEGORY_LABELS, INVOICE_STATUS_LABELS } from '@/types';
+import { Invoice, Prospect, Devis, INVOICE_STATUS_LABELS } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Card, CardContent } from '@/components/ui/card';
@@ -81,7 +81,6 @@ export function InvoicePreview({ invoice, prospect, devis }: InvoicePreviewProps
             <thead className="bg-blue-700 text-white">
               <tr>
                 <th className="text-left p-2">Désignation</th>
-                <th className="text-left p-2">Catégorie</th>
                 <th className="text-right p-2">P.U. HT</th>
                 <th className="text-center p-2">Qté</th>
                 <th className="text-right p-2">Total HT</th>
@@ -91,9 +90,6 @@ export function InvoicePreview({ invoice, prospect, devis }: InvoicePreviewProps
               {devis.lignes.map((ligne, index) => (
                 <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                   <td className="p-2 text-gray-700">{ligne.nom}</td>
-                  <td className="p-2 text-gray-500">
-                    {ligne.categorie ? MATERIAL_CATEGORY_LABELS[ligne.categorie] : '-'}
-                  </td>
                   <td className="p-2 text-right text-gray-700">{formatMontant(ligne.prixUnitaire)} F</td>
                   <td className="p-2 text-center text-gray-700">{ligne.quantite}</td>
                   <td className="p-2 text-right text-gray-700">{formatMontant(ligne.total)} F</td>
