@@ -89,7 +89,6 @@ export function DevisPreview({ devis, prospect }: DevisPreviewProps) {
               <tr>
                 <th className="text-left p-2">Désignation</th>
                 <th className="text-left p-2">Réf.</th>
-                <th className="text-left p-2">Catégorie</th>
                 <th className="text-right p-2">P.U. HT</th>
                 <th className="text-center p-2">Qté</th>
                 <th className="text-right p-2">Total HT</th>
@@ -100,9 +99,6 @@ export function DevisPreview({ devis, prospect }: DevisPreviewProps) {
                 <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                   <td className="p-2 text-gray-700">{ligne.nom}</td>
                   <td className="p-2 text-gray-500">{ligne.reference || '-'}</td>
-                  <td className="p-2 text-gray-500">
-                    {ligne.categorie ? MATERIAL_CATEGORY_LABELS[ligne.categorie] : '-'}
-                  </td>
                   <td className="p-2 text-right text-gray-700">{formatMontant(ligne.prixUnitaire)} F</td>
                   <td className="p-2 text-center text-gray-700">{ligne.quantite}</td>
                   <td className="p-2 text-right text-gray-700">{formatMontant(ligne.total)} F</td>

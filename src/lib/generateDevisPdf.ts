@@ -155,14 +155,13 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   if (devis.lignes && devis.lignes.length > 0) {
     // En-têtes du tableau
     const tableWidth = pageWidth - margin * 2;
-    const colWidths = [tableWidth * 0.30, tableWidth * 0.12, tableWidth * 0.15, tableWidth * 0.13, tableWidth * 0.08, tableWidth * 0.12, tableWidth * 0.10];
+    const colWidths = [tableWidth * 0.35, tableWidth * 0.15, tableWidth * 0.18, tableWidth * 0.10, tableWidth * 0.22];
     const colX = [
       margin,
       margin + colWidths[0],
       margin + colWidths[0] + colWidths[1],
       margin + colWidths[0] + colWidths[1] + colWidths[2],
       margin + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3],
-      margin + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4],
     ];
     
     // Header du tableau avec fond bleu
@@ -174,10 +173,9 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
     doc.setTextColor(255, 255, 255);
     doc.text('Désignation', colX[0] + 2, y + 1);
     doc.text('Réf.', colX[1] + 2, y + 1);
-    doc.text('Catégorie', colX[2] + 2, y + 1);
-    doc.text('P.U. HT', colX[3] + 2, y + 1);
-    doc.text('Qté', colX[4] + 2, y + 1);
-    doc.text('Total HT', colX[5] + 2, y + 1);
+    doc.text('P.U. HT', colX[2] + 2, y + 1);
+    doc.text('Qté', colX[3] + 2, y + 1);
+    doc.text('Total HT', colX[4] + 2, y + 1);
     y += 10;
 
     // Lignes du tableau
@@ -204,15 +202,13 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
       
       doc.setFontSize(7);
       doc.setTextColor(50, 50, 50);
-      const nom = ligne.nom.length > 25 ? ligne.nom.substring(0, 25) + '...' : ligne.nom;
-      const ref = ligne.reference ? (ligne.reference.length > 10 ? ligne.reference.substring(0, 10) + '...' : ligne.reference) : '-';
-      const categorie = ligne.categorie ? MATERIAL_CATEGORY_LABELS[ligne.categorie] : '-';
+      const nom = ligne.nom.length > 30 ? ligne.nom.substring(0, 30) + '...' : ligne.nom;
+      const ref = ligne.reference ? (ligne.reference.length > 12 ? ligne.reference.substring(0, 12) + '...' : ligne.reference) : '-';
       doc.text(nom, colX[0] + 2, y + 1);
       doc.text(ref, colX[1] + 2, y + 1);
-      doc.text(categorie, colX[2] + 2, y + 1);
-      doc.text(`${formatMontant(ligne.prixUnitaire)} F`, colX[3] + 2, y + 1);
-      doc.text(ligne.quantite.toString(), colX[4] + 2, y + 1);
-      doc.text(`${formatMontant(ligne.total)} F`, colX[5] + 2, y + 1);
+      doc.text(`${formatMontant(ligne.prixUnitaire)} F`, colX[2] + 2, y + 1);
+      doc.text(ligne.quantite.toString(), colX[3] + 2, y + 1);
+      doc.text(`${formatMontant(ligne.total)} F`, colX[4] + 2, y + 1);
       y += 8;
     });
 
