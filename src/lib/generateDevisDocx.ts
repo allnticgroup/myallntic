@@ -113,7 +113,6 @@ export async function generateDevisDocx(devis: Devis, prospect: Prospect) {
         children: [
           headerCell('Désignation'),
           headerCell('Réf.'),
-          headerCell('Catégorie'),
           headerCell('P.U. HT'),
           headerCell('Qté'),
           headerCell('Total HT'),
@@ -126,7 +125,6 @@ export async function generateDevisDocx(devis: Devis, prospect: Prospect) {
           children: [
             dataCell(ligne.nom, shade),
             dataCell(ligne.reference || '-', shade),
-            dataCell(ligne.categorie ? MATERIAL_CATEGORY_LABELS[ligne.categorie] : '-', shade),
             dataCell(`${formatMontant(ligne.prixUnitaire)} F`, shade),
             dataCell(ligne.quantite.toString(), shade),
             dataCell(`${formatMontant(ligne.total)} F`, shade),
