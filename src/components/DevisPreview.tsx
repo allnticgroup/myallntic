@@ -1,4 +1,4 @@
-import { Devis, Prospect, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS, MATERIAL_CATEGORY_LABELS } from '@/types';
+import { Devis, Prospect, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Card, CardContent } from '@/components/ui/card';
