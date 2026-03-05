@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import { Invoice, Prospect, Devis, MATERIAL_CATEGORY_LABELS } from '@/types';
+import { Invoice, Prospect, Devis } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -136,13 +136,12 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
   // ===== TABLEAU DES LIGNES =====
   if (devis?.lignes && devis.lignes.length > 0) {
     const tableWidth = pageWidth - margin * 2;
-    const colWidths = [tableWidth * 0.35, tableWidth * 0.15, tableWidth * 0.15, tableWidth * 0.10, tableWidth * 0.15];
+    const colWidths = [tableWidth * 0.40, tableWidth * 0.20, tableWidth * 0.15, tableWidth * 0.20];
     const colX = [
       margin,
       margin + colWidths[0],
       margin + colWidths[0] + colWidths[1],
       margin + colWidths[0] + colWidths[1] + colWidths[2],
-      margin + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3],
     ];
 
     doc.setFillColor(33, 90, 168);
@@ -152,10 +151,9 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
     doc.setFont('times', 'bold');
     doc.setTextColor(255, 255, 255);
     doc.text('Désignation', colX[0] + 2, y + 1);
-    doc.text('Catégorie', colX[1] + 2, y + 1);
-    doc.text('P.U. HT', colX[2] + 2, y + 1);
-    doc.text('Qté', colX[3] + 2, y + 1);
-    doc.text('Total HT', colX[4] + 2, y + 1);
+    doc.text('P.U. HT', colX[1] + 2, y + 1);
+    doc.text('Qté', colX[2] + 2, y + 1);
+    doc.text('Total HT', colX[3] + 2, y + 1);
     y += 10;
 
     doc.setFont('times', 'normal');
@@ -179,13 +177,11 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
 
       doc.setFontSize(7);
       doc.setTextColor(50, 50, 50);
-      const nom = ligne.nom.length > 30 ? ligne.nom.substring(0, 30) + '...' : ligne.nom;
-      const categorie = ligne.categorie ? MATERIAL_CATEGORY_LABELS[ligne.categorie] : '-';
+      const nom = ligne.nom.length > 40 ? ligne.nom.substring(0, 40) + '...' : ligne.nom;
       doc.text(nom, colX[0] + 2, y + 1);
-      doc.text(categorie, colX[1] + 2, y + 1);
-      doc.text(`${formatMontant(ligne.prixUnitaire)} F`, colX[2] + 2, y + 1);
-      doc.text(ligne.quantite.toString(), colX[3] + 2, y + 1);
-      doc.text(`${formatMontant(ligne.total)} F`, colX[4] + 2, y + 1);
+      doc.text(`${formatMontant(ligne.prixUnitaire)} F`, colX[1] + 2, y + 1);
+      doc.text(ligne.quantite.toString(), colX[2] + 2, y + 1);
+      doc.text(`${formatMontant(ligne.total)} F`, colX[3] + 2, y + 1);
       y += 8;
     });
 

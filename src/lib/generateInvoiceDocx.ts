@@ -1,6 +1,6 @@
 import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType, AlignmentType, BorderStyle, ShadingType, TableLayoutType } from 'docx';
 import { saveAs } from 'file-saver';
-import { Invoice, Prospect, Devis, MATERIAL_CATEGORY_LABELS } from '@/types';
+import { Invoice, Prospect, Devis } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -110,7 +110,6 @@ export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, 
       new TableRow({
         children: [
           headerCell('Désignation'),
-          headerCell('Catégorie'),
           headerCell('P.U. HT'),
           headerCell('Qté'),
           headerCell('Total HT'),
@@ -122,7 +121,6 @@ export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, 
         return new TableRow({
           children: [
             dataCell(ligne.nom, shade),
-            dataCell(ligne.categorie ? MATERIAL_CATEGORY_LABELS[ligne.categorie] : '-', shade),
             dataCell(`${formatMontant(ligne.prixUnitaire)} F`, shade),
             dataCell(ligne.quantite.toString(), shade),
             dataCell(`${formatMontant(ligne.total)} F`, shade),
