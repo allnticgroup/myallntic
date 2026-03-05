@@ -1,12 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, FileText, CalendarDays, Wallet } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, Package, Wallet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Tableau' },
   { to: '/prospects', icon: Users, label: 'Clients' },
   { to: '/devis', icon: FileText, label: 'Devis' },
-  { to: '/calendrier', icon: CalendarDays, label: 'Calendrier' },
+  { to: '/materiels', icon: Package, label: 'Matériels' },
   { to: '/finances', icon: Wallet, label: 'Finances' },
 ];
 
