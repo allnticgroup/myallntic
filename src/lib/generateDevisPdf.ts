@@ -54,6 +54,7 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 15;
+  let y = 15;
 
   // ===== EN-TÊTE =====
   // Logo à gauche
