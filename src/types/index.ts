@@ -45,6 +45,7 @@ export interface Devis {
   id: string;
   prospectId: string;
   dateDevis: string;
+  objet: string;
   option: DevisOption;
   montant: number;
   lignes: DevisLigne[];
@@ -52,6 +53,11 @@ export interface Devis {
   acompteRecu: boolean;
   montantAcompte: number;
   stockDeduit: boolean;
+  entrepriseNom: string;
+  entrepriseAdresse: string;
+  entrepriseTelephone: string;
+  entrepriseEmail: string;
+  entrepriseSite: string;
   createdAt: string;
   updatedAt: string;
 }

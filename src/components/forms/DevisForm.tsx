@@ -37,10 +37,16 @@ export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormPr
   const [formData, setFormData] = useState({
     prospectId,
     dateDevis: devis?.dateDevis || new Date().toISOString().split('T')[0],
+    objet: devis?.objet || '',
     option: devis?.option || ('Essentiel' as DevisOption),
     statut: devis?.statut || ('envoye' as DevisStatus),
     acompteRecu: devis?.acompteRecu || false,
     montantAcompte: devis?.montantAcompte || 0,
+    entrepriseNom: devis?.entrepriseNom || 'ALLNTIC',
+    entrepriseAdresse: devis?.entrepriseAdresse || 'Abidjan, Côte d\'Ivoire',
+    entrepriseTelephone: devis?.entrepriseTelephone || '+225 07 78 02 33 31',
+    entrepriseEmail: devis?.entrepriseEmail || 'all.ntic225@gmail.com',
+    entrepriseSite: devis?.entrepriseSite || 'www.allntic.com',
   });
 
   const [selectedMaterialId, setSelectedMaterialId] = useState<string>('');
@@ -136,6 +142,43 @@ export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormPr
           onChange={(e) => setFormData({ ...formData, dateDevis: e.target.value })}
           required
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="objet">Objet du devis</Label>
+        <Input
+          id="objet"
+          value={formData.objet}
+          onChange={(e) => setFormData({ ...formData, objet: e.target.value })}
+          placeholder="Ex: Installation vidéosurveillance"
+        />
+      </div>
+
+      {/* Infos entreprise modifiables */}
+      <div className="space-y-3 p-4 rounded-lg bg-muted/50 border border-border">
+        <Label className="text-sm font-medium">Informations de l'entreprise</Label>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <Label htmlFor="entrepriseNom" className="text-xs text-muted-foreground">Nom</Label>
+            <Input id="entrepriseNom" value={formData.entrepriseNom} onChange={(e) => setFormData({ ...formData, entrepriseNom: e.target.value })} />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="entrepriseAdresse" className="text-xs text-muted-foreground">Adresse</Label>
+            <Input id="entrepriseAdresse" value={formData.entrepriseAdresse} onChange={(e) => setFormData({ ...formData, entrepriseAdresse: e.target.value })} />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="entrepriseTelephone" className="text-xs text-muted-foreground">Téléphone</Label>
+            <Input id="entrepriseTelephone" value={formData.entrepriseTelephone} onChange={(e) => setFormData({ ...formData, entrepriseTelephone: e.target.value })} />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="entrepriseEmail" className="text-xs text-muted-foreground">Email</Label>
+            <Input id="entrepriseEmail" value={formData.entrepriseEmail} onChange={(e) => setFormData({ ...formData, entrepriseEmail: e.target.value })} />
+          </div>
+          <div className="col-span-2 space-y-1">
+            <Label htmlFor="entrepriseSite" className="text-xs text-muted-foreground">Site web</Label>
+            <Input id="entrepriseSite" value={formData.entrepriseSite} onChange={(e) => setFormData({ ...formData, entrepriseSite: e.target.value })} />
+          </div>
+        </div>
       </div>
 
       <div className="space-y-2">
