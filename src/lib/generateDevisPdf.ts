@@ -151,6 +151,7 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   doc.setFont('times', 'bold');
   doc.setTextColor(33, 90, 168);
   doc.text(`Objet : ${devis.objet || `${DEVIS_OPTION_LABELS[devis.option]} - ${DEVIS_STATUS_LABELS[devis.statut]}`}`, margin, y);
+  y += 12;
 
   // ===== TABLEAU DES MATÉRIELS =====
   if (devis.lignes && devis.lignes.length > 0) {
