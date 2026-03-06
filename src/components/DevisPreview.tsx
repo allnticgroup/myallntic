@@ -112,6 +112,18 @@ export function DevisPreview({ devis, prospect }: DevisPreviewProps) {
         </div>
       )}
 
+      {/* Main-d'œuvre */}
+      {devis.mainDoeuvre > 0 && (
+        <div className="flex justify-end mb-2">
+          <div className="w-48">
+            <div className="flex justify-between items-center bg-blue-50 text-blue-700 px-3 py-1 text-sm border border-blue-200 rounded">
+              <span className="font-medium">Main-d'œuvre</span>
+              <span>{formatMontant(devis.mainDoeuvre)} F</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Totaux */}
       <div className="flex justify-end mb-4">
         <div className="w-48">

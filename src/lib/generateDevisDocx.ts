@@ -143,6 +143,18 @@ export async function generateDevisDocx(devis: Devis, prospect: Prospect) {
     }));
   }
 
+  // Main-d'œuvre
+  if (devis.mainDoeuvre > 0) {
+    children.push(new Paragraph({
+      alignment: AlignmentType.RIGHT,
+      children: [
+        new TextRun({ text: 'Main-d\'œuvre : ', bold: true, size: 20, color: BLUE, font: 'Times New Roman' }),
+        new TextRun({ text: `${formatMontant(devis.mainDoeuvre)} F`, size: 20, color: GRAY, font: 'Times New Roman' }),
+      ],
+      spacing: { before: 100, after: 80 },
+    }));
+  }
+
   // Totals
   children.push(new Paragraph({ spacing: { before: 200 }, children: [] }));
 
