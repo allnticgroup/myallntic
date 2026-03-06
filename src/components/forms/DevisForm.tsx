@@ -107,7 +107,17 @@ interface DevisFormProps {
 
 export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormProps) {
   const { materials } = useMaterials();
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }), useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }));
   const [lignes, setLignes] = useState<DevisLigne[]>(devis?.lignes || []);
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = parseInt((active.id as string).replace('ligne-', ''));
+      const newIndex = parseInt((over.id as string).replace('ligne-', ''));
+      setLignes((items) => arrayMove(items, oldIndex, newIndex));
+    }
+  };
   const [mainDoeuvre, setMainDoeuvre] = useState<number>(devis?.mainDoeuvre || 0);
   const [formData, setFormData] = useState({
     prospectId,
