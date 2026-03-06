@@ -34,6 +34,7 @@ interface DevisFormProps {
 export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormProps) {
   const { materials } = useMaterials();
   const [lignes, setLignes] = useState<DevisLigne[]>(devis?.lignes || []);
+  const [mainDoeuvre, setMainDoeuvre] = useState<number>(devis?.mainDoeuvre || 0);
   const [formData, setFormData] = useState({
     prospectId,
     dateDevis: devis?.dateDevis || new Date().toISOString().split('T')[0],
@@ -54,8 +55,8 @@ export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormPr
 
   // Calcul automatique du montant total
   const montantTotal = useMemo(() => {
-    return lignes.reduce((sum, ligne) => sum + ligne.total, 0);
-  }, [lignes]);
+    return lignes.reduce((sum, ligne) => sum + ligne.total, 0) + mainDoeuvre;
+  }, [lignes, mainDoeuvre]);
 
   // Grouper les matériaux par catégorie pour un affichage plus clair
   const materialsByCategory = useMemo(() => {
@@ -126,6 +127,7 @@ export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormPr
     onSubmit({
       ...formData,
       lignes,
+      mainDoeuvre,
       montant: montantTotal,
       stockDeduit: false,
     });
@@ -294,6 +296,19 @@ export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormPr
             </div>
           </ScrollArea>
         )}
+
+        {/* Main-d'œuvre */}
+        <div className="space-y-2 pt-2 border-t border-border">
+          <Label htmlFor="mainDoeuvre" className="text-sm">Main-d'œuvre (FCFA)</Label>
+          <Input
+            id="mainDoeuvre"
+            type="number"
+            min={0}
+            value={mainDoeuvre || ''}
+            onChange={(e) => setMainDoeuvre(parseInt(e.target.value) || 0)}
+            placeholder="Ex: 50000"
+          />
+        </div>
 
         {/* Total */}
         <div className="flex justify-between items-center pt-2 border-t border-border">
