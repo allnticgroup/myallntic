@@ -21,7 +21,7 @@ import {
   Material,
 } from '@/types';
 import { useMaterials } from '@/hooks/useData';
-import { Plus, Trash2, Package } from 'lucide-react';
+import { Plus, Trash2, Package, PenLine } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface DevisFormProps {
@@ -271,6 +271,29 @@ export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormPr
             Aucun matériel dans la base. Ajoutez-en dans la section Matériels.
           </p>
         )}
+
+        {/* Ajouter une ligne libre */}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-full"
+          onClick={() => {
+            const newLigne: DevisLigne = {
+              materialId: '',
+              nom: 'Nouvelle ligne',
+              reference: '',
+              categorie: 'autre',
+              quantite: 1,
+              prixUnitaire: 0,
+              total: 0,
+            };
+            setLignes([...lignes, newLigne]);
+          }}
+        >
+          <PenLine className="w-4 h-4 mr-2" />
+          Ajouter une ligne libre
+        </Button>
 
         {/* Liste des lignes du devis */}
         {lignes.length > 0 && (
