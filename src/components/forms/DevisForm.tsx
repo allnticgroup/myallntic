@@ -272,6 +272,29 @@ export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormPr
           </p>
         )}
 
+        {/* Ajouter une ligne libre */}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-full"
+          onClick={() => {
+            const newLigne: DevisLigne = {
+              materialId: '',
+              nom: 'Nouvelle ligne',
+              reference: '',
+              categorie: 'autre',
+              quantite: 1,
+              prixUnitaire: 0,
+              total: 0,
+            };
+            setLignes([...lignes, newLigne]);
+          }}
+        >
+          <PenLine className="w-4 h-4 mr-2" />
+          Ajouter une ligne libre
+        </Button>
+
         {/* Liste des lignes du devis */}
         {lignes.length > 0 && (
           <ScrollArea className="max-h-48">
