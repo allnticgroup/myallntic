@@ -21,8 +21,82 @@ import {
   Material,
 } from '@/types';
 import { useMaterials } from '@/hooks/useData';
-import { Plus, Trash2, Package, PenLine } from 'lucide-react';
+import { Plus, Trash2, Package, PenLine, GripVertical } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+// Composant sortable pour chaque ligne
+interface SortableLigneItemProps {
+  id: string;
+  ligne: DevisLigne;
+  index: number;
+  onUpdateNom: (index: number, nom: string) => void;
+  onUpdatePrix: (index: number, prix: number) => void;
+  onUpdateQuantite: (index: number, quantite: number) => void;
+  onRemove: (index: number) => void;
+}
+
+function SortableLigneItem({ id, ligne, index, onUpdateNom, onUpdatePrix, onUpdateQuantite, onRemove }: SortableLigneItemProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="p-2 rounded-md bg-background border border-border space-y-1">
+      <div className="flex items-center gap-2">
+        <button type="button" className="cursor-grab touch-none text-muted-foreground hover:text-foreground" {...attributes} {...listeners}>
+          <GripVertical className="w-4 h-4" />
+        </button>
+        <Input
+          value={ligne.nom}
+          onChange={(e) => onUpdateNom(index, e.target.value)}
+          className="flex-1 h-8 text-sm font-medium"
+          placeholder="Désignation"
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-destructive hover:text-destructive shrink-0"
+          onClick={() => onRemove(index)}
+        >
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      </div>
+      <div className="flex items-center gap-2 pl-6">
+        <div className="flex-1">
+          <Label className="text-[10px] text-muted-foreground">Prix unit.</Label>
+          <Input type="number" min={0} value={ligne.prixUnitaire} onChange={(e) => onUpdatePrix(index, parseInt(e.target.value) || 0)} className="h-7 text-xs" />
+        </div>
+        <div className="w-16">
+          <Label className="text-[10px] text-muted-foreground">Qté</Label>
+          <Input type="number" min={1} value={ligne.quantite} onChange={(e) => onUpdateQuantite(index, parseInt(e.target.value) || 1)} className="h-7 text-xs text-center" />
+        </div>
+        <div className="w-24 text-right pt-3">
+          <span className="text-sm font-medium">{ligne.total.toLocaleString()} F</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface DevisFormProps {
   prospectId: string;
@@ -33,7 +107,17 @@ interface DevisFormProps {
 
 export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormProps) {
   const { materials } = useMaterials();
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }), useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }));
   const [lignes, setLignes] = useState<DevisLigne[]>(devis?.lignes || []);
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = parseInt((active.id as string).replace('ligne-', ''));
+      const newIndex = parseInt((over.id as string).replace('ligne-', ''));
+      setLignes((items) => arrayMove(items, oldIndex, newIndex));
+    }
+  };
   const [mainDoeuvre, setMainDoeuvre] = useState<number>(devis?.mainDoeuvre || 0);
   const [formData, setFormData] = useState({
     prospectId,
@@ -297,62 +381,29 @@ export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormPr
 
         {/* Liste des lignes du devis */}
         {lignes.length > 0 && (
-          <ScrollArea className="max-h-48">
-            <div className="space-y-2">
-              {lignes.map((ligne, index) => (
-                <div
-                  key={index}
-                  className="p-2 rounded-md bg-background border border-border space-y-1"
-                >
-                  <div className="flex items-center gap-2">
-                    <Input
-                      value={ligne.nom}
-                      onChange={(e) => handleUpdateNom(index, e.target.value)}
-                      className="flex-1 h-8 text-sm font-medium"
-                      placeholder="Désignation"
+          <ScrollArea className="max-h-64">
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext items={lignes.map((_, i) => `ligne-${i}`)} strategy={verticalListSortingStrategy}>
+                <div className="space-y-2">
+                  {lignes.map((ligne, index) => (
+                    <SortableLigneItem
+                      key={`ligne-${index}`}
+                      id={`ligne-${index}`}
+                      ligne={ligne}
+                      index={index}
+                      onUpdateNom={handleUpdateNom}
+                      onUpdatePrix={handleUpdatePrix}
+                      onUpdateQuantite={handleUpdateQuantite}
+                      onRemove={handleRemoveLigne}
                     />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive shrink-0"
-                      onClick={() => handleRemoveLigne(index)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1">
-                      <Label className="text-[10px] text-muted-foreground">Prix unit.</Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        value={ligne.prixUnitaire}
-                        onChange={(e) => handleUpdatePrix(index, parseInt(e.target.value) || 0)}
-                        className="h-7 text-xs"
-                      />
-                    </div>
-                    <div className="w-16">
-                      <Label className="text-[10px] text-muted-foreground">Qté</Label>
-                      <Input
-                        type="number"
-                        min={1}
-                        value={ligne.quantite}
-                        onChange={(e) =>
-                          handleUpdateQuantite(index, parseInt(e.target.value) || 1)
-                        }
-                        className="h-7 text-xs text-center"
-                      />
-                    </div>
-                    <div className="w-24 text-right pt-3">
-                      <span className="text-sm font-medium">
-                        {ligne.total.toLocaleString()} F
-                      </span>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </SortableContext>
+            </DndContext>
           </ScrollArea>
         )}
 
