@@ -21,7 +21,7 @@ import {
   Material,
 } from '@/types';
 import { useMaterials } from '@/hooks/useData';
-import { Plus, Trash2, Package } from 'lucide-react';
+import { Plus, Trash2, Package, PenLine } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface DevisFormProps {
