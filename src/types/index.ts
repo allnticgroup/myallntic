@@ -52,6 +52,7 @@ export interface Devis {
   statut: DevisStatus;
   acompteRecu: boolean;
   montantAcompte: number;
+  mainDoeuvre: number;
   stockDeduit: boolean;
   entrepriseNom: string;
   entrepriseAdresse: string;

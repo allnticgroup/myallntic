@@ -217,6 +217,20 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
     y += 5;
   }
 
+  // ===== MAIN-D'ŒUVRE =====
+  if (devis.mainDoeuvre > 0) {
+    doc.setFillColor(240, 245, 250);
+    doc.rect(margin, y, pageWidth - margin * 2, 8, 'F');
+    doc.setFontSize(8);
+    doc.setFont('times', 'bold');
+    doc.setTextColor(33, 90, 168);
+    doc.text('Main-d\'œuvre', margin + 2, y + 5);
+    doc.setFont('times', 'normal');
+    doc.setTextColor(50, 50, 50);
+    doc.text(`${formatMontant(devis.mainDoeuvre)} F`, pageWidth - margin - 2, y + 5, { align: 'right' });
+    y += 12;
+  }
+
   // ===== TOTAUX À DROITE =====
   const totalsX = pageWidth - margin - 70;
   
