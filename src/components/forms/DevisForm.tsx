@@ -122,6 +122,23 @@ export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormPr
     setLignes(updatedLignes);
   };
 
+  const handleUpdatePrix = (index: number, newPrix: number) => {
+    if (newPrix < 0) return;
+    const updatedLignes = [...lignes];
+    updatedLignes[index] = {
+      ...updatedLignes[index],
+      prixUnitaire: newPrix,
+      total: updatedLignes[index].quantite * newPrix,
+    };
+    setLignes(updatedLignes);
+  };
+
+  const handleUpdateNom = (index: number, newNom: string) => {
+    const updatedLignes = [...lignes];
+    updatedLignes[index] = { ...updatedLignes[index], nom: newNom };
+    setLignes(updatedLignes);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
@@ -262,35 +279,54 @@ export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormPr
               {lignes.map((ligne, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-2 p-2 rounded-md bg-background border border-border"
+                  className="p-2 rounded-md bg-background border border-border space-y-1"
                 >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{ligne.nom}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {ligne.prixUnitaire.toLocaleString()} FCFA × {ligne.quantite}
-                    </p>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={ligne.nom}
+                      onChange={(e) => handleUpdateNom(index, e.target.value)}
+                      className="flex-1 h-8 text-sm font-medium"
+                      placeholder="Désignation"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive shrink-0"
+                      onClick={() => handleRemoveLigne(index)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
-                  <Input
-                    type="number"
-                    min={1}
-                    value={ligne.quantite}
-                    onChange={(e) =>
-                      handleUpdateQuantite(index, parseInt(e.target.value) || 1)
-                    }
-                    className="w-16 h-8 text-center"
-                  />
-                  <span className="text-sm font-medium w-24 text-right">
-                    {ligne.total.toLocaleString()} F
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-destructive hover:text-destructive"
-                    onClick={() => handleRemoveLigne(index)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <Label className="text-[10px] text-muted-foreground">Prix unit.</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={ligne.prixUnitaire}
+                        onChange={(e) => handleUpdatePrix(index, parseInt(e.target.value) || 0)}
+                        className="h-7 text-xs"
+                      />
+                    </div>
+                    <div className="w-16">
+                      <Label className="text-[10px] text-muted-foreground">Qté</Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        value={ligne.quantite}
+                        onChange={(e) =>
+                          handleUpdateQuantite(index, parseInt(e.target.value) || 1)
+                        }
+                        className="h-7 text-xs text-center"
+                      />
+                    </div>
+                    <div className="w-24 text-right pt-3">
+                      <span className="text-sm font-medium">
+                        {ligne.total.toLocaleString()} F
+                      </span>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
