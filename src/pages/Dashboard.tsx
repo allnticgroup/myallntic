@@ -149,12 +149,19 @@ export default function Dashboard() {
   const confirmImport = (mode: 'replace' | 'merge') => {
     if (!pendingImport) return;
 
-    const result = importData(pendingImport, mode);
+    // Sanitize data before import
+    const { sanitized, skipped } = sanitizeImportData(pendingImport);
+    const totalSkipped = skipped.prospects + skipped.devis + skipped.interventions;
+
+    const result = importData(sanitized, mode);
     
     if (result.success) {
-      const message = mode === 'merge' 
+      let message = mode === 'merge' 
         ? `Ajouté: ${result.counts.prospects} prospects, ${result.counts.devis} devis, ${result.counts.interventions} interventions`
         : `Importé: ${result.counts.prospects} prospects, ${result.counts.devis} devis, ${result.counts.interventions} interventions`;
+      if (totalSkipped > 0) {
+        message += ` (${totalSkipped} éléments invalides ignorés)`;
+      }
       toast.success(message);
       setShowConfirmDialog(false);
       setPendingImport(null);
