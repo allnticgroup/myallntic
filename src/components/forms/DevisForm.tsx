@@ -381,7 +381,7 @@ export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormPr
 
         {/* Liste des lignes du devis */}
         {lignes.length > 0 && (
-          <ScrollArea className="max-h-64">
+          <div className="max-h-64 overflow-y-auto rounded-md">
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -404,7 +404,7 @@ export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormPr
                 </div>
               </SortableContext>
             </DndContext>
-          </ScrollArea>
+          </div>
         )}
 
         {/* Main-d'œuvre */}
