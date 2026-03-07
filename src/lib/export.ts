@@ -1,4 +1,5 @@
 import { Prospect, Devis, STATUS_LABELS, STRUCTURE_LABELS, BESOIN_LABELS, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS } from '@/types';
+import { z } from 'zod';
 
 export function exportToJson(data: object, filename: string) {
   const jsonString = JSON.stringify(data, null, 2);
@@ -100,18 +101,113 @@ export interface ImportData {
   };
 }
 
+// Zod schemas for import validation
+const prospectSchema = z.object({
+  id: z.string().min(1),
+  nomStructure: z.string().min(1).max(200),
+  nomDecideur: z.string().max(200).default(''),
+  telephone: z.string().max(50).default(''),
+  typeStructure: z.enum(['PME', 'ONG', 'Ecole', 'Commerce', 'Autre']),
+  besoinPrincipal: z.enum(['Reseau', 'Videosurveillance', 'Controle_acces', 'Maintenance']),
+  statut: z.enum(['prospect', 'audit_prevu', 'audit_realise', 'devis_envoye', 'signe', 'refuse']),
+  notes: z.string().max(5000).default(''),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+const devisLigneSchema = z.object({
+  materialId: z.string(),
+  nom: z.string().max(500),
+  reference: z.string().max(200).default(''),
+  categorie: z.enum(['camera', 'cable', 'enregistreur', 'accessoire', 'reseau', 'autre']),
+  quantite: z.number().min(0),
+  prixUnitaire: z.number().min(0),
+  total: z.number().min(0),
+});
+
+const devisSchema = z.object({
+  id: z.string().min(1),
+  prospectId: z.string().min(1),
+  dateDevis: z.string(),
+  objet: z.string().max(500).default(''),
+  option: z.enum(['Essentiel', 'Pro_Maintenance']),
+  montant: z.number().min(0),
+  lignes: z.array(devisLigneSchema).default([]),
+  statut: z.enum(['envoye', 'accepte', 'refuse']),
+  acompteRecu: z.boolean().default(false),
+  montantAcompte: z.number().min(0).default(0),
+  mainDoeuvre: z.number().min(0).default(0),
+  stockDeduit: z.boolean().default(false),
+  entrepriseNom: z.string().max(200).default(''),
+  entrepriseAdresse: z.string().max(500).default(''),
+  entrepriseTelephone: z.string().max(50).default(''),
+  entrepriseEmail: z.string().max(200).default(''),
+  entrepriseSite: z.string().max(200).default(''),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+const interventionSchema = z.object({
+  id: z.string().min(1),
+  prospectId: z.string().min(1),
+  type: z.enum(['Installation', 'Maintenance']),
+  datePrevue: z.string(),
+  statut: z.enum(['a_faire', 'fait']),
+  notes: z.string().max(5000).default(''),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+const importDataSchema = z.object({
+  exportDate: z.string().optional(),
+  version: z.string().optional(),
+  data: z.object({
+    prospects: z.array(z.unknown()),
+    devis: z.array(z.unknown()),
+    interventions: z.array(z.unknown()),
+  }),
+});
+
 export function validateImportData(data: unknown): data is ImportData {
-  if (!data || typeof data !== 'object') return false;
-  const obj = data as Record<string, unknown>;
-  
-  if (!obj.data || typeof obj.data !== 'object') return false;
-  const dataObj = obj.data as Record<string, unknown>;
-  
-  return (
-    Array.isArray(dataObj.prospects) &&
-    Array.isArray(dataObj.devis) &&
-    Array.isArray(dataObj.interventions)
-  );
+  const result = importDataSchema.safeParse(data);
+  return result.success;
+}
+
+/**
+ * Validates and filters individual items, returning only valid ones.
+ */
+export function sanitizeImportData(data: ImportData): {
+  sanitized: ImportData;
+  skipped: { prospects: number; devis: number; interventions: number };
+} {
+  const validProspects: unknown[] = [];
+  const validDevis: unknown[] = [];
+  const validInterventions: unknown[] = [];
+  let skippedP = 0, skippedD = 0, skippedI = 0;
+
+  for (const item of data.data.prospects) {
+    const r = prospectSchema.safeParse(item);
+    if (r.success) validProspects.push(r.data);
+    else skippedP++;
+  }
+  for (const item of data.data.devis) {
+    const r = devisSchema.safeParse(item);
+    if (r.success) validDevis.push(r.data);
+    else skippedD++;
+  }
+  for (const item of data.data.interventions) {
+    const r = interventionSchema.safeParse(item);
+    if (r.success) validInterventions.push(r.data);
+    else skippedI++;
+  }
+
+  return {
+    sanitized: {
+      ...data,
+      data: { prospects: validProspects, devis: validDevis, interventions: validInterventions },
+    },
+    skipped: { prospects: skippedP, devis: skippedD, interventions: skippedI },
+  };
 }
 
 export function importData(

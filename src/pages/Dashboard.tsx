@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useProspects, useDevis, useInterventions } from '@/hooks/useData';
-import { exportToJson, getAllData, generateExportFilename, readJsonFile, validateImportData, importData, ImportData } from '@/lib/export';
+import { exportToJson, getAllData, generateExportFilename, readJsonFile, validateImportData, importData, sanitizeImportData, ImportData } from '@/lib/export';
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
@@ -149,12 +149,19 @@ export default function Dashboard() {
   const confirmImport = (mode: 'replace' | 'merge') => {
     if (!pendingImport) return;
 
-    const result = importData(pendingImport, mode);
+    // Sanitize data before import
+    const { sanitized, skipped } = sanitizeImportData(pendingImport);
+    const totalSkipped = skipped.prospects + skipped.devis + skipped.interventions;
+
+    const result = importData(sanitized, mode);
     
     if (result.success) {
-      const message = mode === 'merge' 
+      let message = mode === 'merge' 
         ? `Ajouté: ${result.counts.prospects} prospects, ${result.counts.devis} devis, ${result.counts.interventions} interventions`
         : `Importé: ${result.counts.prospects} prospects, ${result.counts.devis} devis, ${result.counts.interventions} interventions`;
+      if (totalSkipped > 0) {
+        message += ` (${totalSkipped} éléments invalides ignorés)`;
+      }
       toast.success(message);
       setShowConfirmDialog(false);
       setPendingImport(null);
