@@ -152,6 +152,13 @@ export default function Interventions() {
                           {isOverdue && ' (en retard)'}
                         </div>
 
+                        {employee && (
+                          <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
+                            <User className="h-3 w-3" />
+                            {employee.prenom} {employee.nom}
+                          </div>
+                        )}
+
                         {intervention.notes && (
                           <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
                             {intervention.notes}
