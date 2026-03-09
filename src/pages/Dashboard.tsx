@@ -34,6 +34,15 @@ export default function Dashboard() {
   const [pendingImport, setPendingImport] = useState<ImportData | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [importMode, setImportMode] = useState<'replace' | 'merge'>('replace');
+  const [lastExportDate, setLastExportDate] = useState<string | null>(() => 
+    localStorage.getItem('lastExportDate')
+  );
+
+  const daysSinceExport = lastExportDate 
+    ? differenceInDays(new Date(), new Date(lastExportDate))
+    : null;
+  
+  const showExportReminder = daysSinceExport === null || daysSinceExport >= 7;
 
   const activeProspects = prospects.filter(
     (p) => !['signe', 'refuse'].includes(p.statut)
