@@ -213,12 +213,28 @@ export default function EmployeeDetail() {
           <CardContent className="pt-6">
             {/* Header with Avatar */}
             <div className="flex flex-col items-center text-center mb-6">
-              <Avatar className="h-20 w-20 mb-3">
-                <AvatarImage src={employee.photo} alt={`${employee.prenom} ${employee.nom}`} />
-                <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">
-                  {getInitials(employee.prenom, employee.nom)}
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative group mb-3">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={employee.photo} alt={`${employee.prenom} ${employee.nom}`} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">
+                    {getInitials(employee.prenom, employee.nom)}
+                  </AvatarFallback>
+                </Avatar>
+                <button
+                  type="button"
+                  onClick={() => photoInputRef.current?.click()}
+                  className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                >
+                  <Camera className="h-5 w-5 text-white" />
+                </button>
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+              </div>
               <h2 className="text-xl font-semibold">{employee.prenom} {employee.nom}</h2>
               {employee.poste && (
                 <p className="text-sm text-muted-foreground">{employee.poste}</p>
