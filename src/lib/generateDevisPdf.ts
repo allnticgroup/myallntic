@@ -72,7 +72,7 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   doc.setFontSize(7);
   doc.setFont('times', 'normal');
   doc.setTextColor(100, 100, 100);
-  const servicesText = '• ' + COMPANY_SERVICES.join(' • ');
+  const servicesText = '• ' + COMPANY_INFO.services.join(' • ');
   const servicesLines = doc.splitTextToSize(servicesText, 80);
   doc.text(servicesLines, margin + 30, y + 16);
 
