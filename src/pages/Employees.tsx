@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, UserCheck, Phone, Mail, Banknote, MapPin, Briefcase } from 'lucide-react';
+import { Plus, Search, UserCheck, Phone, Banknote, MapPin, Briefcase, FlaskConical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -36,6 +36,26 @@ import { useEmployees, useSalaries } from '@/hooks/useData';
 import { EMPLOYEE_ROLE_LABELS, CONTRACT_TYPE_LABELS, Employee } from '@/types';
 import { toast } from 'sonner';
 
+const TEST_EMPLOYEE: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'> = {
+  prenom: 'Kouassi',
+  nom: 'Diabaté',
+  telephone: '+225 07 12 34 56 78',
+  email: 'k.diabate@allntic.com',
+  poste: 'Technicien Réseau Senior',
+  role: 'technicien',
+  statut: 'actif',
+  dateEmbauche: '2022-03-15',
+  adresse: '12 Rue des Cocotiers, Cocody',
+  ville: 'Abidjan',
+  typeContrat: 'cdi',
+  salaireBase: 350000,
+  dateFinContrat: undefined,
+  numeroSecuriteSociale: 'CI-2022-0045-K',
+  contactUrgence: 'Awa Diabaté (Épouse)',
+  telephoneUrgence: '+225 05 98 76 54 32',
+  notes: 'Employé exemplaire, certifié Cisco. Responsable des installations réseau à Cocody et Plateau.',
+};
+
 export default function Employees() {
   const { employees, addEmployee, updateEmployee, deleteEmployee } = useEmployees();
   const { getTotalSalariesForEmployee } = useSalaries();
@@ -66,6 +86,11 @@ export default function Employees() {
     toast.success('Employé ajouté');
   };
 
+  const handleAddTestEmployee = () => {
+    addEmployee(TEST_EMPLOYEE);
+    toast.success('Employé test ajouté avec toutes les informations');
+  };
+
   const handleUpdate = (data: Parameters<typeof addEmployee>[0]) => {
     if (editingEmployee) {
       updateEmployee(editingEmployee.id, data);
@@ -88,10 +113,16 @@ export default function Employees() {
         title="Employés"
         subtitle={`${employees.length} employé${employees.length > 1 ? 's' : ''}`}
         action={
-          <Button size="sm" onClick={() => setShowForm(true)}>
-            <Plus className="h-4 w-4 mr-1" />
-            Nouveau
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={handleAddTestEmployee}>
+              <FlaskConical className="h-4 w-4 mr-1" />
+              Test
+            </Button>
+            <Button size="sm" onClick={() => setShowForm(true)}>
+              <Plus className="h-4 w-4 mr-1" />
+              Nouveau
+            </Button>
+          </div>
         }
       />
 
