@@ -44,6 +44,7 @@ const App = () => (
             <Route path="/factures" element={<Invoices />} />
             <Route path="/employes" element={<Employees />} />
             <Route path="/employes/:id" element={<EmployeeDetail />} />
+            <Route path="/parametres" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />

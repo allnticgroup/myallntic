@@ -23,6 +23,7 @@ const menuItems = [
   { to: '/materiels', icon: Package, label: 'Matériels' },
   { to: '/finances', icon: Wallet, label: 'Finances' },
   { to: '/calendrier', icon: CalendarDays, label: 'Calendrier' },
+  { to: '/parametres', icon: Settings, label: 'Paramètres' },
 ];
 
 export function BottomNav() {
