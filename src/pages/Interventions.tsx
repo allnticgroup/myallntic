@@ -16,6 +16,7 @@ type FilterType = 'all' | 'a_faire' | 'fait';
 export default function Interventions() {
   const { interventions, updateIntervention } = useInterventions();
   const { getProspect } = useProspects();
+  const { getEmployee } = useEmployees();
   const [filter, setFilter] = useState<FilterType>('a_faire');
 
   const filteredInterventions = interventions
