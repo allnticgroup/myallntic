@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, UserCheck, Phone, Mail, Banknote } from 'lucide-react';
+import { Plus, Search, UserCheck, Phone, Mail, Banknote, MapPin, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Dialog,
   DialogContent,
@@ -32,7 +33,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { EmployeeForm } from '@/components/forms/EmployeeForm';
 import { useEmployees, useSalaries } from '@/hooks/useData';
-import { EMPLOYEE_ROLE_LABELS, Employee } from '@/types';
+import { EMPLOYEE_ROLE_LABELS, CONTRACT_TYPE_LABELS, Employee } from '@/types';
 import { toast } from 'sonner';
 
 export default function Employees() {
@@ -46,6 +47,10 @@ export default function Employees() {
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('fr-FR').format(amount) + ' FCFA';
+
+  const getInitials = (prenom: string, nom: string) => {
+    return `${prenom.charAt(0)}${nom.charAt(0)}`.toUpperCase();
+  };
 
   const filtered = employees.filter((e) => {
     const matchesSearch =
@@ -90,7 +95,8 @@ export default function Employees() {
         }
       />
 
-      <div className="container max-w-lg mx-auto px-4 py-6 space-y-6">
+      <div className="container max-w-lg mx-auto px-4 py-6 space-y-4">
+        {/* Search & Filter */}
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -114,6 +120,7 @@ export default function Employees() {
           </Select>
         </div>
 
+        {/* Employee List */}
         {filtered.length === 0 ? (
           <EmptyState
             icon={UserCheck}
@@ -126,46 +133,84 @@ export default function Employees() {
               const totalSalary = getTotalSalariesForEmployee(emp.id);
               return (
                 <Link key={emp.id} to={`/employes/${emp.id}`}>
-                  <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                    <CardHeader className="pb-2">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle className="text-base">{emp.prenom} {emp.nom}</CardTitle>
-                          {emp.poste && (
-                            <p className="text-sm text-muted-foreground">{emp.poste}</p>
+                  <Card className="hover:shadow-md transition-all hover:border-primary/20 cursor-pointer">
+                    <CardContent className="p-4">
+                      <div className="flex gap-4">
+                        {/* Avatar */}
+                        <Avatar className="h-14 w-14 shrink-0">
+                          <AvatarImage src={emp.photo} alt={`${emp.prenom} ${emp.nom}`} />
+                          <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                            {getInitials(emp.prenom, emp.nom)}
+                          </AvatarFallback>
+                        </Avatar>
+
+                        {/* Info */}
+                        <div className="flex-1 min-w-0 space-y-2">
+                          {/* Name & Status */}
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <h3 className="font-semibold text-base truncate">
+                                {emp.prenom} {emp.nom}
+                              </h3>
+                              {emp.poste && (
+                                <p className="text-sm text-muted-foreground truncate">{emp.poste}</p>
+                              )}
+                            </div>
+                            <Badge 
+                              variant={emp.statut === 'actif' ? 'default' : 'secondary'}
+                              className="shrink-0"
+                            >
+                              {emp.statut === 'actif' ? 'Actif' : 'Inactif'}
+                            </Badge>
+                          </div>
+
+                          {/* Badges */}
+                          <div className="flex flex-wrap gap-1.5">
+                            <Badge variant="outline" className="text-xs">
+                              {EMPLOYEE_ROLE_LABELS[emp.role]}
+                            </Badge>
+                            {emp.typeContrat && (
+                              <Badge variant="outline" className="text-xs">
+                                {CONTRACT_TYPE_LABELS[emp.typeContrat]}
+                              </Badge>
+                            )}
+                          </div>
+
+                          {/* Contact & Location */}
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                            {emp.telephone && (
+                              <span className="flex items-center gap-1">
+                                <Phone className="h-3 w-3" />
+                                {emp.telephone}
+                              </span>
+                            )}
+                            {emp.ville && (
+                              <span className="flex items-center gap-1">
+                                <MapPin className="h-3 w-3" />
+                                {emp.ville}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Salary Info */}
+                          {(emp.salaireBase || totalSalary > 0) && (
+                            <div className="flex items-center gap-4 pt-2 border-t text-xs">
+                              {emp.salaireBase && (
+                                <span className="flex items-center gap-1 text-muted-foreground">
+                                  <Briefcase className="h-3 w-3" />
+                                  Base: {formatCurrency(emp.salaireBase)}
+                                </span>
+                              )}
+                              {totalSalary > 0 && (
+                                <span className="flex items-center gap-1 font-medium text-primary">
+                                  <Banknote className="h-3 w-3" />
+                                  Versé: {formatCurrency(totalSalary)}
+                                </span>
+                              )}
+                            </div>
                           )}
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant={emp.statut === 'actif' ? 'default' : 'secondary'}>
-                            {emp.statut === 'actif' ? 'Actif' : 'Inactif'}
-                          </Badge>
-                          <Badge variant="outline">
-                            {EMPLOYEE_ROLE_LABELS[emp.role]}
-                          </Badge>
-                        </div>
                       </div>
-                    </CardHeader>
-                    <CardContent className="pb-4">
-                      <div className="space-y-1 text-sm text-muted-foreground">
-                        {emp.telephone && (
-                          <div className="flex items-center gap-2">
-                            <Phone className="h-3 w-3" />
-                            <span>{emp.telephone}</span>
-                          </div>
-                        )}
-                        {emp.email && (
-                          <div className="flex items-center gap-2">
-                            <Mail className="h-3 w-3" />
-                            <span>{emp.email}</span>
-                          </div>
-                        )}
-                      </div>
-                      {totalSalary > 0 && (
-                        <div className="mt-3 pt-3 border-t flex items-center gap-2 text-sm">
-                          <Banknote className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">Total versé : {formatCurrency(totalSalary)}</span>
-                        </div>
-                      )}
                     </CardContent>
                   </Card>
                 </Link>
