@@ -66,6 +66,7 @@ export interface Devis {
 export interface Intervention {
   id: string;
   prospectId: string;
+  employeeId?: string; // Employé assigné à l'intervention
   type: InterventionType;
   datePrevue: string;
   statut: InterventionStatus;
@@ -316,5 +317,28 @@ export const SALARY_TYPE_LABELS: Record<SalaryType, string> = {
   prime: 'Prime',
   avance: 'Avance',
   remboursement: 'Remboursement',
+  autre: 'Autre',
+};
+
+// Types pour les documents employés
+export type EmployeeDocumentType = 'contrat' | 'piece_identite' | 'diplome' | 'attestation' | 'autre';
+
+export interface EmployeeDocument {
+  id: string;
+  employeeId: string;
+  nom: string;
+  type: EmployeeDocumentType;
+  dateDocument: string;
+  dateExpiration?: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const EMPLOYEE_DOCUMENT_TYPE_LABELS: Record<EmployeeDocumentType, string> = {
+  contrat: 'Contrat',
+  piece_identite: 'Pièce d\'identité',
+  diplome: 'Diplôme',
+  attestation: 'Attestation',
   autre: 'Autre',
 };

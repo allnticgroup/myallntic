@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Wrench, CheckCircle2, Clock, Calendar } from 'lucide-react';
+import { Wrench, CheckCircle2, Clock, Calendar, User } from 'lucide-react';
 import { format, isToday, isTomorrow, isPast } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useInterventions, useProspects } from '@/hooks/useData';
+import { useInterventions, useProspects, useEmployees } from '@/hooks/useData';
 import { INTERVENTION_TYPE_LABELS, InterventionStatus } from '@/types';
 import { cn } from '@/lib/utils';
 
@@ -16,6 +16,7 @@ type FilterType = 'all' | 'a_faire' | 'fait';
 export default function Interventions() {
   const { interventions, updateIntervention } = useInterventions();
   const { getProspect } = useProspects();
+  const { getEmployee } = useEmployees();
   const [filter, setFilter] = useState<FilterType>('a_faire');
 
   const filteredInterventions = interventions
@@ -82,6 +83,7 @@ export default function Interventions() {
           <div className="space-y-3">
             {filteredInterventions.map((intervention) => {
               const prospect = getProspect(intervention.prospectId);
+              const employee = intervention.employeeId ? getEmployee(intervention.employeeId) : null;
               const date = new Date(intervention.datePrevue);
               const isOverdue = isPast(date) && intervention.statut === 'a_faire';
 
@@ -149,6 +151,13 @@ export default function Interventions() {
                           {getDateLabel(intervention.datePrevue)}
                           {isOverdue && ' (en retard)'}
                         </div>
+
+                        {employee && (
+                          <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
+                            <User className="h-3 w-3" />
+                            {employee.prenom} {employee.nom}
+                          </div>
+                        )}
 
                         {intervention.notes && (
                           <p className="text-xs text-muted-foreground mt-2 line-clamp-2">

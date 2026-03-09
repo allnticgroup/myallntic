@@ -1,5 +1,5 @@
 import { useLocalStorage } from './useLocalStorage';
-import { Prospect, Devis, Intervention, Material, Payment, Expense, Invoice, Supplier, Purchase, Employee, Salary } from '@/types';
+import { Prospect, Devis, Intervention, Material, Payment, Expense, Invoice, Supplier, Purchase, Employee, Salary, EmployeeDocument } from '@/types';
 
 export function useProspects() {
   const [prospects, setProspects] = useLocalStorage<Prospect[]>('allntic_prospects', []);
@@ -101,12 +101,16 @@ export function useInterventions() {
   const getInterventionsForProspect = (prospectId: string) =>
     interventions.filter((i) => i.prospectId === prospectId);
 
+  const getInterventionsForEmployee = (employeeId: string) =>
+    interventions.filter((i) => i.employeeId === employeeId);
+
   return {
     interventions,
     addIntervention,
     updateIntervention,
     deleteIntervention,
     getInterventionsForProspect,
+    getInterventionsForEmployee,
   };
 }
 
@@ -425,4 +429,37 @@ export function useSalaries() {
       .reduce((sum, s) => sum + s.montant, 0);
 
   return { salaries, addSalary, updateSalary, deleteSalary, getSalariesForEmployee, getTotalSalariesForEmployee, getTotalSalariesByPeriod };
+}
+
+export function useEmployeeDocuments() {
+  const [documents, setDocuments] = useLocalStorage<EmployeeDocument[]>('allntic_employee_documents', []);
+
+  const addDocument = (doc: Omit<EmployeeDocument, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const now = new Date().toISOString();
+    const newDoc: EmployeeDocument = {
+      ...doc,
+      id: crypto.randomUUID(),
+      createdAt: now,
+      updatedAt: now,
+    };
+    setDocuments((prev) => [...prev, newDoc]);
+    return newDoc;
+  };
+
+  const updateDocument = (id: string, updates: Partial<EmployeeDocument>) => {
+    setDocuments((prev) =>
+      prev.map((d) =>
+        d.id === id ? { ...d, ...updates, updatedAt: new Date().toISOString() } : d
+      )
+    );
+  };
+
+  const deleteDocument = (id: string) => {
+    setDocuments((prev) => prev.filter((d) => d.id !== id));
+  };
+
+  const getDocumentsForEmployee = (employeeId: string) =>
+    documents.filter((d) => d.employeeId === employeeId);
+
+  return { documents, addDocument, updateDocument, deleteDocument, getDocumentsForEmployee };
 }
