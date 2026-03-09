@@ -66,6 +66,7 @@ export interface Devis {
 export interface Intervention {
   id: string;
   prospectId: string;
+  employeeId?: string; // Employé assigné à l'intervention
   type: InterventionType;
   datePrevue: string;
   statut: InterventionStatus;
