@@ -125,6 +125,9 @@ export default function Dashboard() {
     const data = getAllData();
     const filename = generateExportFilename();
     exportToJson(data, filename);
+    const now = new Date().toISOString();
+    localStorage.setItem('lastExportDate', now);
+    setLastExportDate(now);
     toast.success('Sauvegarde téléchargée');
   };
 
