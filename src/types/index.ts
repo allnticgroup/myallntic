@@ -267,6 +267,7 @@ export const PURCHASE_STATUS_LABELS: Record<Purchase['statut'], string> = {
 // Types pour les employés
 export type EmployeeRole = 'technicien' | 'commercial' | 'administratif' | 'manager' | 'autre';
 export type EmployeeStatus = 'actif' | 'inactif';
+export type ContractType = 'cdi' | 'cdd' | 'stage' | 'freelance' | 'interim' | 'autre';
 
 export interface Employee {
   id: string;
@@ -279,6 +280,19 @@ export interface Employee {
   statut: EmployeeStatus;
   dateEmbauche: string;
   notes: string;
+  // Nouveaux champs
+  photo?: string; // Base64 de la photo de profil
+  adresse: string;
+  ville: string;
+  typeContrat: ContractType;
+  salaireBase: number;
+  dateFinContrat?: string;
+  photoIdentite?: string; // Base64 de la pièce d'identité
+  cvData?: string; // Base64 du CV
+  cvFileName?: string;
+  numeroSecuriteSociale?: string;
+  contactUrgence?: string;
+  telephoneUrgence?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -294,6 +308,15 @@ export const EMPLOYEE_ROLE_LABELS: Record<EmployeeRole, string> = {
 export const EMPLOYEE_STATUS_LABELS: Record<EmployeeStatus, string> = {
   actif: 'Actif',
   inactif: 'Inactif',
+};
+
+export const CONTRACT_TYPE_LABELS: Record<ContractType, string> = {
+  cdi: 'CDI',
+  cdd: 'CDD',
+  stage: 'Stage',
+  freelance: 'Freelance',
+  interim: 'Intérim',
+  autre: 'Autre',
 };
 
 // Types pour les salaires
