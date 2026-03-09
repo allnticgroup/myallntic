@@ -22,8 +22,14 @@ function formatMontant(montant: number): string {
   return montant.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
+interface InvoicePreviewProps {
+  invoice: Invoice;
+  prospect: Prospect;
+  devis?: Devis;
+}
+
 export function InvoicePreview({ invoice, prospect, devis }: InvoicePreviewProps) {
-  return (
+  const COMPANY_INFO = getCompanyInfo();
     <div className="bg-white text-gray-800 p-6 rounded-lg shadow-sm border max-h-[70vh] overflow-y-auto">
       {/* En-tête */}
       <div className="flex justify-between items-start mb-4">
