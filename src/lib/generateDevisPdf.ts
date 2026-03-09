@@ -2,26 +2,22 @@ import jsPDF from 'jspdf';
 import { Devis, Prospect, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS, MATERIAL_CATEGORY_LABELS } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { getCompanySettings } from './companySettings';
 
 // Informations de l'entreprise
 function getCompanyInfo(devis: Devis) {
+  const settings = getCompanySettings();
   return {
-    name: devis.entrepriseNom || 'ALLNTIC',
-    address: devis.entrepriseAdresse || 'Abidjan, Côte d\'Ivoire',
-    phone: devis.entrepriseTelephone || '+225 07 78 02 33 31',
-    email: devis.entrepriseEmail || 'all.ntic225@gmail.com',
-    website: devis.entrepriseSite || 'www.allntic.com',
+    name: devis.entrepriseNom || settings.nom,
+    address: devis.entrepriseAdresse || settings.adresse,
+    phone: devis.entrepriseTelephone || settings.telephone,
+    email: devis.entrepriseEmail || settings.email,
+    website: devis.entrepriseSite || settings.siteWeb,
+    logo: settings.logo,
+    services: settings.services,
+    tauxTVA: settings.tauxTVA,
   };
 }
-
-// Prestations de l'entreprise
-const COMPANY_SERVICES = [
-  'Installation et maintenance',
-  'Réseaux et câblage',
-  'Vidéosurveillance',
-  'Solutions de sécurité',
-  'Développement web',
-];
 
 // Fonction pour formater les montants avec des points
 function formatMontant(montant: number): string {
