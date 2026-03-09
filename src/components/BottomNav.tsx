@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Truck, UserCheck, Menu, FileText, Package, Wallet, CalendarDays, Receipt, Wrench, X } from 'lucide-react';
+import { LayoutDashboard, Users, Truck, UserCheck, Menu, FileText, Package, Wallet, CalendarDays, Receipt, Wrench, X, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Sheet,
