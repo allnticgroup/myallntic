@@ -65,7 +65,7 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
   doc.setFontSize(7);
   doc.setFont('times', 'normal');
   doc.setTextColor(100, 100, 100);
-  doc.text('Installation • Maintenance • Réseaux • Vidéosurveillance', margin + 30, y + 16);
+  doc.text('• ' + COMPANY_INFO.services.join(' • '), margin + 30, y + 16);
 
   // FACTURE en haut à droite
   doc.setFontSize(28);
