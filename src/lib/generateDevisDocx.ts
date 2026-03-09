@@ -3,14 +3,17 @@ import { saveAs } from 'file-saver';
 import { Devis, Prospect, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS, MATERIAL_CATEGORY_LABELS } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { getCompanySettings } from './companySettings';
 
 function getCompanyInfo(devis: Devis) {
+  const settings = getCompanySettings();
   return {
-    name: devis.entrepriseNom || 'ALLNTIC',
-    address: devis.entrepriseAdresse || 'Abidjan, Côte d\'Ivoire',
-    phone: devis.entrepriseTelephone || '+225 07 78 02 33 31',
-    email: devis.entrepriseEmail || 'all.ntic225@gmail.com',
-    website: devis.entrepriseSite || 'www.allntic.com',
+    name: devis.entrepriseNom || settings.nom,
+    address: devis.entrepriseAdresse || settings.adresse,
+    phone: devis.entrepriseTelephone || settings.telephone,
+    email: devis.entrepriseEmail || settings.email,
+    website: devis.entrepriseSite || settings.siteWeb,
+    services: settings.services,
   };
 }
 
@@ -54,7 +57,7 @@ export async function generateDevisDocx(devis: Devis, prospect: Prospect) {
   }));
 
   children.push(new Paragraph({
-    children: [new TextRun({ text: 'Installation • Maintenance • Réseaux • Vidéosurveillance', size: 16, color: '646464', font: 'Times New Roman', italics: true })],
+    children: [new TextRun({ text: '• ' + COMPANY_INFO.services.join(' • '), size: 16, color: '646464', font: 'Times New Roman', italics: true })],
     spacing: { after: 80 },
   }));
 

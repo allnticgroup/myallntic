@@ -64,6 +64,8 @@ export default function Employees() {
   const [deletingEmployee, setDeletingEmployee] = useState<Employee | null>(null);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [contractFilter, setContractFilter] = useState<string>('all');
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('fr-FR').format(amount) + ' FCFA';
@@ -77,8 +79,10 @@ export default function Employees() {
       `${e.prenom} ${e.nom}`.toLowerCase().includes(search.toLowerCase()) ||
       e.poste.toLowerCase().includes(search.toLowerCase());
     const matchesRole = roleFilter === 'all' || e.role === roleFilter;
-    return matchesSearch && matchesRole;
-  });
+    const matchesStatus = statusFilter === 'all' || e.statut === statusFilter;
+    const matchesContract = contractFilter === 'all' || e.typeContrat === contractFilter;
+    return matchesSearch && matchesRole && matchesStatus && matchesContract;
+  }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const handleAdd = (data: Parameters<typeof addEmployee>[0]) => {
     addEmployee(data);
@@ -127,28 +131,53 @@ export default function Employees() {
       />
 
       <div className="container max-w-lg mx-auto px-4 py-6 space-y-4">
-        {/* Search & Filter */}
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Rechercher..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
+        {/* Search & Filters */}
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Rôle" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous rôles</SelectItem>
+                {Object.entries(EMPLOYEE_ROLE_LABELS).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <Select value={roleFilter} onValueChange={setRoleFilter}>
-            <SelectTrigger className="w-32">
-              <SelectValue placeholder="Rôle" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous</SelectItem>
-              {Object.entries(EMPLOYEE_ROLE_LABELS).map(([value, label]) => (
-                <SelectItem key={value} value={value}>{label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="flex-1">
+                <SelectValue placeholder="Statut" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous statuts</SelectItem>
+                <SelectItem value="actif">Actif</SelectItem>
+                <SelectItem value="inactif">Inactif</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={contractFilter} onValueChange={setContractFilter}>
+              <SelectTrigger className="flex-1">
+                <SelectValue placeholder="Contrat" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous contrats</SelectItem>
+                {Object.entries(CONTRACT_TYPE_LABELS).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Employee List */}

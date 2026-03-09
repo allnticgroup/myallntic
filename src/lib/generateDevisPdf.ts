@@ -2,26 +2,22 @@ import jsPDF from 'jspdf';
 import { Devis, Prospect, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS, MATERIAL_CATEGORY_LABELS } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { getCompanySettings } from './companySettings';
 
 // Informations de l'entreprise
 function getCompanyInfo(devis: Devis) {
+  const settings = getCompanySettings();
   return {
-    name: devis.entrepriseNom || 'ALLNTIC',
-    address: devis.entrepriseAdresse || 'Abidjan, Côte d\'Ivoire',
-    phone: devis.entrepriseTelephone || '+225 07 78 02 33 31',
-    email: devis.entrepriseEmail || 'all.ntic225@gmail.com',
-    website: devis.entrepriseSite || 'www.allntic.com',
+    name: devis.entrepriseNom || settings.nom,
+    address: devis.entrepriseAdresse || settings.adresse,
+    phone: devis.entrepriseTelephone || settings.telephone,
+    email: devis.entrepriseEmail || settings.email,
+    website: devis.entrepriseSite || settings.siteWeb,
+    logo: settings.logo,
+    services: settings.services,
+    tauxTVA: settings.tauxTVA,
   };
 }
-
-// Prestations de l'entreprise
-const COMPANY_SERVICES = [
-  'Installation et maintenance',
-  'Réseaux et câblage',
-  'Vidéosurveillance',
-  'Solutions de sécurité',
-  'Développement web',
-];
 
 // Fonction pour formater les montants avec des points
 function formatMontant(montant: number): string {
@@ -57,9 +53,10 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   let y = 15;
 
   // ===== EN-TÊTE =====
-  // Logo à gauche
+  // Logo à gauche - use custom logo if available
   try {
-    const logoBase64 = await loadImageAsBase64('/logo.png');
+    const logoSrc = COMPANY_INFO.logo || '/logo.png';
+    const logoBase64 = COMPANY_INFO.logo || await loadImageAsBase64('/logo.png');
     doc.addImage(logoBase64, 'PNG', margin, y, 25, 25);
   } catch (e) {
     console.log('Logo non chargé:', e);
@@ -75,7 +72,7 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   doc.setFontSize(7);
   doc.setFont('times', 'normal');
   doc.setTextColor(100, 100, 100);
-  const servicesText = '• ' + COMPANY_SERVICES.join(' • ');
+  const servicesText = '• ' + COMPANY_INFO.services.join(' • ');
   const servicesLines = doc.splitTextToSize(servicesText, 80);
   doc.text(servicesLines, margin + 30, y + 16);
 

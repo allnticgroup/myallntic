@@ -18,6 +18,7 @@ import Calendar from "./pages/Calendar";
 import Invoices from "./pages/Invoices";
 import Employees from "./pages/Employees";
 import EmployeeDetail from "./pages/EmployeeDetail";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/factures" element={<Invoices />} />
             <Route path="/employes" element={<Employees />} />
             <Route path="/employes/:id" element={<EmployeeDetail />} />
+            <Route path="/parametres" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />

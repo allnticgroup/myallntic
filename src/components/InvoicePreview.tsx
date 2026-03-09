@@ -3,14 +3,20 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { getCompanySettings } from '@/lib/companySettings';
 
-const COMPANY_INFO = {
-  name: 'ALLNTIC',
-  address: 'Abidjan, Côte d\'Ivoire',
-  phone: '+225 07 78 02 33 31',
-  email: 'all.ntic225@gmail.com',
-  website: 'www.allntic.com',
-};
+function getCompanyInfo() {
+  const settings = getCompanySettings();
+  return {
+    name: settings.nom,
+    address: settings.adresse,
+    phone: settings.telephone,
+    email: settings.email,
+    website: settings.siteWeb,
+    logo: settings.logo,
+    services: settings.services,
+  };
+}
 
 function formatMontant(montant: number): string {
   return montant.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -23,16 +29,17 @@ interface InvoicePreviewProps {
 }
 
 export function InvoicePreview({ invoice, prospect, devis }: InvoicePreviewProps) {
+  const COMPANY_INFO = getCompanyInfo();
   return (
     <div className="bg-white text-gray-800 p-6 rounded-lg shadow-sm border max-h-[70vh] overflow-y-auto">
       {/* En-tête */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-start gap-3">
-          <img src="/logo.png" alt="Logo" className="w-12 h-12 object-contain" />
+          <img src={COMPANY_INFO.logo || '/logo.png'} alt="Logo" className="w-12 h-12 object-contain" />
           <div>
             <h2 className="text-lg font-bold text-blue-700">{COMPANY_INFO.name}</h2>
             <p className="text-xs text-gray-500 italic">
-              Installation • Maintenance • Réseaux • Vidéosurveillance
+              • {COMPANY_INFO.services.join(' • ')}
             </p>
           </div>
         </div>

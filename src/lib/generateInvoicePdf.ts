@@ -2,14 +2,20 @@ import jsPDF from 'jspdf';
 import { Invoice, Prospect, Devis } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { getCompanySettings } from './companySettings';
 
-const COMPANY_INFO = {
-  name: 'ALLNTIC',
-  address: 'Abidjan, Côte d\'Ivoire',
-  phone: '+225 07 78 02 33 31',
-  email: 'all.ntic225@gmail.com',
-  website: 'www.allntic.com',
-};
+function getCompanyInfo() {
+  const settings = getCompanySettings();
+  return {
+    name: settings.nom,
+    address: settings.adresse,
+    phone: settings.telephone,
+    email: settings.email,
+    website: settings.siteWeb,
+    logo: settings.logo,
+    services: settings.services,
+  };
+}
 
 function formatMontant(montant: number): string {
   return montant.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -37,6 +43,7 @@ async function loadImageAsBase64(url: string): Promise<string> {
 }
 
 export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, devis?: Devis) {
+  const COMPANY_INFO = getCompanyInfo();
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 15;
@@ -44,7 +51,7 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
 
   // ===== EN-TÊTE =====
   try {
-    const logoBase64 = await loadImageAsBase64('/logo.png');
+    const logoBase64 = COMPANY_INFO.logo || await loadImageAsBase64('/logo.png');
     doc.addImage(logoBase64, 'PNG', margin, y, 25, 25);
   } catch (e) {
     console.log('Logo non chargé:', e);
@@ -58,7 +65,7 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
   doc.setFontSize(7);
   doc.setFont('times', 'normal');
   doc.setTextColor(100, 100, 100);
-  doc.text('Installation • Maintenance • Réseaux • Vidéosurveillance', margin + 30, y + 16);
+  doc.text('• ' + COMPANY_INFO.services.join(' • '), margin + 30, y + 16);
 
   // FACTURE en haut à droite
   doc.setFontSize(28);

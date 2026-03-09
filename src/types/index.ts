@@ -365,3 +365,53 @@ export const EMPLOYEE_DOCUMENT_TYPE_LABELS: Record<EmployeeDocumentType, string>
   attestation: 'Attestation',
   autre: 'Autre',
 };
+
+// Types pour les paramètres entreprise
+export interface CompanySettings {
+  nom: string;
+  adresse: string;
+  ville: string;
+  telephone: string;
+  email: string;
+  siteWeb: string;
+  logo?: string; // Base64
+  numeroFiscal?: string;
+  tauxTVA: number; // en pourcentage, 0 = pas de TVA
+  services: string[];
+}
+
+// Types pour l'audit log
+export type AuditAction = 'create' | 'update' | 'delete';
+export type AuditEntity = 'prospect' | 'devis' | 'intervention' | 'material' | 'payment' | 'expense' | 'invoice' | 'supplier' | 'purchase' | 'employee' | 'salary' | 'employee_document' | 'company_settings';
+
+export interface AuditLogEntry {
+  id: string;
+  action: AuditAction;
+  entity: AuditEntity;
+  entityId: string;
+  entityLabel: string;
+  timestamp: string;
+  details?: string;
+}
+
+export const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
+  create: 'Création',
+  update: 'Modification',
+  delete: 'Suppression',
+};
+
+export const AUDIT_ENTITY_LABELS: Record<AuditEntity, string> = {
+  prospect: 'Prospect',
+  devis: 'Devis',
+  intervention: 'Intervention',
+  material: 'Matériel',
+  payment: 'Paiement',
+  expense: 'Dépense',
+  invoice: 'Facture',
+  supplier: 'Fournisseur',
+  purchase: 'Achat',
+  employee: 'Employé',
+  salary: 'Salaire',
+  employee_document: 'Document employé',
+  company_settings: 'Paramètres entreprise',
+};
