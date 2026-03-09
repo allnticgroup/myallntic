@@ -3,24 +3,20 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { getCompanySettings } from '@/lib/companySettings';
 
 function getCompanyInfo(devis: Devis) {
+  const settings = getCompanySettings();
   return {
-    name: devis.entrepriseNom || 'ALLNTIC',
-    address: devis.entrepriseAdresse || 'Abidjan, Côte d\'Ivoire',
-    phone: devis.entrepriseTelephone || '+225 07 78 02 33 31',
-    email: devis.entrepriseEmail || 'all.ntic225@gmail.com',
-    website: devis.entrepriseSite || 'www.allntic.com',
+    name: devis.entrepriseNom || settings.nom,
+    address: devis.entrepriseAdresse || settings.adresse,
+    phone: devis.entrepriseTelephone || settings.telephone,
+    email: devis.entrepriseEmail || settings.email,
+    website: devis.entrepriseSite || settings.siteWeb,
+    logo: settings.logo,
+    services: settings.services,
   };
 }
-
-const COMPANY_SERVICES = [
-  'Installation et maintenance',
-  'Réseaux et câblage',
-  'Vidéosurveillance',
-  'Solutions de sécurité',
-  'Développement web',
-];
 
 function formatMontant(montant: number): string {
   return montant.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
