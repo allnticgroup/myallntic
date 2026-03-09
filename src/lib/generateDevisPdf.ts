@@ -217,49 +217,61 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
     y += 5;
   }
 
-  // ===== MAIN-D'ŒUVRE =====
-  if (devis.mainDoeuvre > 0) {
+  // ===== TOTAUX À DROITE =====
+  const totalsX = pageWidth - margin - 70;
+
+  // Total Matériel + Main-d'œuvre si applicable
+  if (devis.lignes && devis.lignes.length > 0 && devis.mainDoeuvre > 0) {
+    const totalMateriel = devis.montant - devis.mainDoeuvre;
+
+    // Total Matériel
     doc.setFillColor(240, 245, 250);
-    doc.rect(margin, y, pageWidth - margin * 2, 8, 'F');
+    doc.rect(totalsX, y, 38, 8, 'F');
+    doc.setDrawColor(33, 90, 168);
+    doc.rect(totalsX, y, 38, 8, 'S');
     doc.setFontSize(8);
     doc.setFont('times', 'bold');
     doc.setTextColor(33, 90, 168);
-    doc.text('Main-d\'œuvre', margin + 2, y + 5);
-    doc.setFont('times', 'normal');
+    doc.text('Total Matériel', totalsX + 2, y + 5);
+    doc.setFillColor(255, 255, 255);
+    doc.rect(totalsX + 38, y, 32, 8, 'F');
+    doc.setDrawColor(180, 180, 180);
+    doc.rect(totalsX + 38, y, 32, 8, 'S');
     doc.setTextColor(50, 50, 50);
-    doc.text(`${formatMontant(devis.mainDoeuvre)} F`, pageWidth - margin - 2, y + 5, { align: 'right' });
-    y += 12;
+    doc.setFont('times', 'normal');
+    doc.text(`${formatMontant(totalMateriel)} F`, totalsX + 68, y + 5, { align: 'right' });
+    y += 9;
+
+    // Main-d'œuvre
+    doc.setFillColor(240, 245, 250);
+    doc.rect(totalsX, y, 38, 8, 'F');
+    doc.setDrawColor(33, 90, 168);
+    doc.rect(totalsX, y, 38, 8, 'S');
+    doc.setFontSize(8);
+    doc.setFont('times', 'bold');
+    doc.setTextColor(33, 90, 168);
+    doc.text('Main-d\'œuvre', totalsX + 2, y + 5);
+    doc.setFillColor(255, 255, 255);
+    doc.rect(totalsX + 38, y, 32, 8, 'F');
+    doc.setDrawColor(180, 180, 180);
+    doc.rect(totalsX + 38, y, 32, 8, 'S');
+    doc.setTextColor(50, 50, 50);
+    doc.setFont('times', 'normal');
+    doc.text(`${formatMontant(devis.mainDoeuvre)} F`, totalsX + 68, y + 5, { align: 'right' });
+    y += 10;
   }
 
-  // ===== TOTAUX À DROITE =====
-  const totalsX = pageWidth - margin - 70;
-  
-  // Total HT
+  // Total
   doc.setFillColor(33, 90, 168);
-  doc.rect(totalsX, y, 35, 8, 'F');
-  doc.setFontSize(9);
-  doc.setFont('times', 'bold');
-  doc.setTextColor(255, 255, 255);
-  doc.text('Total HT', totalsX + 3, y + 5);
-  doc.setFillColor(255, 255, 255);
-  doc.rect(totalsX + 35, y, 35, 8, 'F');
-  doc.setDrawColor(180, 180, 180);
-  doc.rect(totalsX + 35, y, 35, 8, 'S');
-  doc.setTextColor(50, 50, 50);
-  doc.text(`${formatMontant(devis.montant)} F`, totalsX + 68, y + 5, { align: 'right' });
-  y += 10;
-
-  // Net à payer
-  doc.setFillColor(33, 90, 168);
-  doc.rect(totalsX, y, 35, 10, 'F');
+  doc.rect(totalsX, y, 38, 10, 'F');
   doc.setFontSize(10);
   doc.setFont('times', 'bold');
   doc.setTextColor(255, 255, 255);
-  doc.text('Net à payer', totalsX + 3, y + 7);
+  doc.text('Total', totalsX + 3, y + 7);
   doc.setFillColor(255, 255, 255);
-  doc.rect(totalsX + 35, y, 35, 10, 'F');
+  doc.rect(totalsX + 38, y, 32, 10, 'F');
   doc.setDrawColor(33, 90, 168);
-  doc.rect(totalsX + 35, y, 35, 10, 'S');
+  doc.rect(totalsX + 38, y, 32, 10, 'S');
   doc.setTextColor(33, 90, 168);
   doc.setFontSize(11);
   doc.text(`${formatMontant(devis.montant)} F`, totalsX + 68, y + 7, { align: 'right' });

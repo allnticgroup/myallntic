@@ -143,34 +143,33 @@ export async function generateDevisDocx(devis: Devis, prospect: Prospect) {
     }));
   }
 
-  // Main-d'œuvre
-  if (devis.mainDoeuvre > 0) {
+  // Totals
+  children.push(new Paragraph({ spacing: { before: 200 }, children: [] }));
+
+  if (devis.lignes && devis.lignes.length > 0 && devis.mainDoeuvre > 0) {
+    children.push(new Paragraph({
+      alignment: AlignmentType.RIGHT,
+      children: [
+        new TextRun({ text: 'Total Matériel : ', bold: true, size: 20, color: BLUE, font: 'Times New Roman' }),
+        new TextRun({ text: `${formatMontant(devis.montant - devis.mainDoeuvre)} F`, size: 20, color: GRAY, font: 'Times New Roman' }),
+      ],
+      spacing: { after: 60 },
+    }));
+
     children.push(new Paragraph({
       alignment: AlignmentType.RIGHT,
       children: [
         new TextRun({ text: 'Main-d\'œuvre : ', bold: true, size: 20, color: BLUE, font: 'Times New Roman' }),
         new TextRun({ text: `${formatMontant(devis.mainDoeuvre)} F`, size: 20, color: GRAY, font: 'Times New Roman' }),
       ],
-      spacing: { before: 100, after: 80 },
+      spacing: { after: 80 },
     }));
   }
 
-  // Totals
-  children.push(new Paragraph({ spacing: { before: 200 }, children: [] }));
-
   children.push(new Paragraph({
     alignment: AlignmentType.RIGHT,
     children: [
-      new TextRun({ text: 'Total HT : ', bold: true, size: 20, color: BLUE, font: 'Times New Roman' }),
-      new TextRun({ text: `${formatMontant(devis.montant)} F`, size: 20, color: GRAY, font: 'Times New Roman' }),
-    ],
-    spacing: { after: 80 },
-  }));
-
-  children.push(new Paragraph({
-    alignment: AlignmentType.RIGHT,
-    children: [
-      new TextRun({ text: 'Net à payer : ', bold: true, size: 24, color: BLUE, font: 'Times New Roman' }),
+      new TextRun({ text: 'Total : ', bold: true, size: 24, color: BLUE, font: 'Times New Roman' }),
       new TextRun({ text: `${formatMontant(devis.montant)} F`, bold: true, size: 24, color: BLUE, font: 'Times New Roman' }),
     ],
     spacing: { after: 200 },

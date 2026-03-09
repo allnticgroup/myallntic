@@ -147,17 +147,8 @@ export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, 
   children.push(new Paragraph({
     alignment: AlignmentType.RIGHT,
     children: [
-      new TextRun({ text: 'Total HT : ', bold: true, size: 20, color: BLUE, font: 'Times New Roman' }),
-      new TextRun({ text: `${formatMontant(invoice.montantHT)} F`, size: 20, color: GRAY, font: 'Times New Roman' }),
-    ],
-    spacing: { after: 80 },
-  }));
-
-  children.push(new Paragraph({
-    alignment: AlignmentType.RIGHT,
-    children: [
-      new TextRun({ text: 'Net à payer : ', bold: true, size: 24, color: BLUE, font: 'Times New Roman' }),
-      new TextRun({ text: `${formatMontant(invoice.montantTTC)} F`, bold: true, size: 24, color: BLUE, font: 'Times New Roman' }),
+      new TextRun({ text: 'Total HT : ', bold: true, size: 24, color: BLUE, font: 'Times New Roman' }),
+      new TextRun({ text: `${formatMontant(invoice.montantHT)} F`, bold: true, size: 24, color: BLUE, font: 'Times New Roman' }),
     ],
     spacing: { after: 200 },
   }));

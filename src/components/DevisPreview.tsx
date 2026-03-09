@@ -112,27 +112,23 @@ export function DevisPreview({ devis, prospect }: DevisPreviewProps) {
         </div>
       )}
 
-      {/* Main-d'œuvre */}
-      {devis.mainDoeuvre > 0 && (
-        <div className="flex justify-end mb-2">
-          <div className="w-48">
-            <div className="flex justify-between items-center bg-blue-50 text-blue-700 px-3 py-1 text-sm border border-blue-200 rounded">
-              <span className="font-medium">Main-d'œuvre</span>
-              <span>{formatMontant(devis.mainDoeuvre)} F</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Totaux */}
+      {/* Totaux avec main-d'œuvre */}
       <div className="flex justify-end mb-4">
-        <div className="w-48">
-          <div className="flex justify-between items-center bg-blue-700 text-white px-3 py-1 text-sm">
-            <span className="font-bold">Total HT</span>
-            <span>{formatMontant(devis.montant)} F</span>
-          </div>
-          <div className="flex justify-between items-center bg-blue-700 text-white px-3 py-2 text-sm mt-1">
-            <span className="font-bold">Net à payer</span>
+        <div className="w-56">
+          {devis.lignes && devis.lignes.length > 0 && devis.mainDoeuvre > 0 && (
+            <>
+              <div className="flex justify-between items-center bg-blue-50 text-blue-700 px-3 py-1 text-sm border border-blue-200 rounded mb-1">
+                <span className="font-medium">Total Matériel</span>
+                <span>{formatMontant(devis.montant - devis.mainDoeuvre)} F</span>
+              </div>
+              <div className="flex justify-between items-center bg-blue-50 text-blue-700 px-3 py-1 text-sm border border-blue-200 rounded mb-1">
+                <span className="font-medium">Main-d'œuvre</span>
+                <span>{formatMontant(devis.mainDoeuvre)} F</span>
+              </div>
+            </>
+          )}
+          <div className="flex justify-between items-center bg-blue-700 text-white px-3 py-2 text-sm">
+            <span className="font-bold">Total</span>
             <span className="font-bold">{formatMontant(devis.montant)} F</span>
           </div>
         </div>
