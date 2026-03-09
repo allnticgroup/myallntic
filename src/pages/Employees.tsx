@@ -113,10 +113,16 @@ export default function Employees() {
         title="Employés"
         subtitle={`${employees.length} employé${employees.length > 1 ? 's' : ''}`}
         action={
-          <Button size="sm" onClick={() => setShowForm(true)}>
-            <Plus className="h-4 w-4 mr-1" />
-            Nouveau
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={handleAddTestEmployee}>
+              <FlaskConical className="h-4 w-4 mr-1" />
+              Test
+            </Button>
+            <Button size="sm" onClick={() => setShowForm(true)}>
+              <Plus className="h-4 w-4 mr-1" />
+              Nouveau
+            </Button>
+          </div>
         }
       />
 
