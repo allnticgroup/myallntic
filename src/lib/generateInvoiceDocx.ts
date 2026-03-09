@@ -3,14 +3,19 @@ import { saveAs } from 'file-saver';
 import { Invoice, Prospect, Devis } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { getCompanySettings } from './companySettings';
 
-const COMPANY_INFO = {
-  name: 'ALLNTIC',
-  address: 'Abidjan, Côte d\'Ivoire',
-  phone: '+225 07 78 02 33 31',
-  email: 'all.ntic225@gmail.com',
-  website: 'www.allntic.com',
-};
+function getCompanyInfo() {
+  const settings = getCompanySettings();
+  return {
+    name: settings.nom,
+    address: settings.adresse,
+    phone: settings.telephone,
+    email: settings.email,
+    website: settings.siteWeb,
+    services: settings.services,
+  };
+}
 
 function formatMontant(montant: number): string {
   return montant.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
