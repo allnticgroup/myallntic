@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, TrendingUp, TrendingDown, Wallet, Receipt, CreditCard, Trash2, Edit2, FileText } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Wallet, Receipt, CreditCard, Trash2, Edit2, FileText, Users, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
@@ -11,10 +11,11 @@ import { Badge } from '@/components/ui/badge';
 import { StatCard } from '@/components/StatCard';
 import { PaymentForm } from '@/components/forms/PaymentForm';
 import { ExpenseForm } from '@/components/forms/ExpenseForm';
-import { usePayments, useExpenses, useInvoices, useProspects, useDevis } from '@/hooks/useData';
-import { Payment, Expense, Invoice, PAYMENT_MODE_LABELS, EXPENSE_CATEGORY_LABELS, INVOICE_STATUS_LABELS } from '@/types';
+import { usePayments, useExpenses, useInvoices, useProspects, useDevis, useSalaries, useEmployees } from '@/hooks/useData';
+import { Payment, Expense, Invoice, PAYMENT_MODE_LABELS, EXPENSE_CATEGORY_LABELS, INVOICE_STATUS_LABELS, SALARY_TYPE_LABELS, CONTRACT_TYPE_LABELS } from '@/types';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from 'recharts';
 import { toast } from 'sonner';
+import { generateBulletinPdf } from '@/lib/generateBulletinPdf';
 
 export default function Finances() {
   const { payments, addPayment, updatePayment, deletePayment } = usePayments();
