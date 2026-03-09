@@ -36,7 +36,8 @@ export default function Finances() {
   // Stats
   const totalRevenue = payments.reduce((sum, p) => sum + p.montant, 0);
   const totalExpenses = expenses.reduce((sum, e) => sum + e.montant, 0);
-  const balance = totalRevenue - totalExpenses;
+  const totalSalaries = salaries.reduce((sum, s) => sum + s.montant, 0);
+  const balance = totalRevenue - totalExpenses - totalSalaries;
   const pendingInvoices = invoices.filter(i => i.statut === 'sent' || i.statut === 'overdue').length;
 
   // Chart data: Revenue vs Expenses by month
