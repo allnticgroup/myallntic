@@ -64,6 +64,8 @@ export default function Employees() {
   const [deletingEmployee, setDeletingEmployee] = useState<Employee | null>(null);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [contractFilter, setContractFilter] = useState<string>('all');
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('fr-FR').format(amount) + ' FCFA';
@@ -77,8 +79,10 @@ export default function Employees() {
       `${e.prenom} ${e.nom}`.toLowerCase().includes(search.toLowerCase()) ||
       e.poste.toLowerCase().includes(search.toLowerCase());
     const matchesRole = roleFilter === 'all' || e.role === roleFilter;
-    return matchesSearch && matchesRole;
-  });
+    const matchesStatus = statusFilter === 'all' || e.statut === statusFilter;
+    const matchesContract = contractFilter === 'all' || e.typeContrat === contractFilter;
+    return matchesSearch && matchesRole && matchesStatus && matchesContract;
+  }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const handleAdd = (data: Parameters<typeof addEmployee>[0]) => {
     addEmployee(data);
