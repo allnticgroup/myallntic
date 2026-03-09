@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Wrench, CheckCircle2, Clock, Calendar } from 'lucide-react';
+import { Wrench, CheckCircle2, Clock, Calendar, User } from 'lucide-react';
 import { format, isToday, isTomorrow, isPast } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useInterventions, useProspects } from '@/hooks/useData';
+import { useInterventions, useProspects, useEmployees } from '@/hooks/useData';
 import { INTERVENTION_TYPE_LABELS, InterventionStatus } from '@/types';
 import { cn } from '@/lib/utils';
 
