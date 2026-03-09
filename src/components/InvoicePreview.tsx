@@ -81,9 +81,9 @@ export function InvoicePreview({ invoice, prospect, devis }: InvoicePreviewProps
             <thead className="bg-blue-700 text-white">
               <tr>
                 <th className="text-left p-2">Désignation</th>
-                <th className="text-right p-2">P.U. HT</th>
+                <th className="text-right p-2 min-w-[110px]">P.U. HT</th>
                 <th className="text-center p-2">Qté</th>
-                <th className="text-right p-2">Total HT</th>
+                <th className="text-right p-2 min-w-[120px]">Total HT</th>
               </tr>
             </thead>
             <tbody>
