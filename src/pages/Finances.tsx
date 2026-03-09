@@ -189,9 +189,10 @@ export default function Finances() {
 
           {/* Dashboard Tab */}
           <TabsContent value="dashboard" className="space-y-4 mt-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <StatCard icon={TrendingUp} label="Revenus" value={`${(totalRevenue / 1000).toFixed(0)}k`} variant="success" />
               <StatCard icon={TrendingDown} label="Dépenses" value={`${(totalExpenses / 1000).toFixed(0)}k`} variant="warning" />
+              <StatCard icon={Users} label="Salaires" value={`${(totalSalaries / 1000).toFixed(0)}k`} variant="default" />
             </div>
 
             <Card className={`${balance >= 0 ? 'bg-gradient-to-br from-success/10 to-success/5 border-success/20' : 'bg-gradient-to-br from-destructive/10 to-destructive/5 border-destructive/20'}`}>
