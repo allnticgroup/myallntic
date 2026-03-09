@@ -37,11 +37,15 @@ import { toast } from 'sonner';
 
 export default function Employees() {
   const { employees, addEmployee, updateEmployee, deleteEmployee } = useEmployees();
+  const { getTotalSalariesForEmployee } = useSalaries();
   const [showForm, setShowForm] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [deletingEmployee, setDeletingEmployee] = useState<Employee | null>(null);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
+
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat('fr-FR').format(amount) + ' FCFA';
 
   const filtered = employees.filter((e) => {
     const matchesSearch =
