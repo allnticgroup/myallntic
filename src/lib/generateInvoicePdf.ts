@@ -43,6 +43,7 @@ async function loadImageAsBase64(url: string): Promise<string> {
 }
 
 export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, devis?: Devis) {
+  const COMPANY_INFO = getCompanyInfo();
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 15;
@@ -50,7 +51,7 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
 
   // ===== EN-TÊTE =====
   try {
-    const logoBase64 = await loadImageAsBase64('/logo.png');
+    const logoBase64 = COMPANY_INFO.logo || await loadImageAsBase64('/logo.png');
     doc.addImage(logoBase64, 'PNG', margin, y, 25, 25);
   } catch (e) {
     console.log('Logo non chargé:', e);
