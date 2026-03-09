@@ -344,6 +344,113 @@ export default function Finances() {
             )}
           </TabsContent>
 
+          {/* Salaries Tab */}
+          <TabsContent value="salaries" className="space-y-4 mt-4">
+            {/* Period Navigator */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <Button variant="ghost" size="icon" onClick={() => navigatePeriod('prev')}>
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                  <div className="text-center">
+                    <p className="font-semibold capitalize">
+                      {format(new Date(selectedPeriode + '-01'), 'MMMM yyyy', { locale: fr })}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Total: {totalSalariesPeriod.toLocaleString('fr-FR')} FCFA
+                    </p>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => navigatePeriod('next')}>
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Summary by employee */}
+            {(() => {
+              const employeesWithSalaries = employees.filter(emp => 
+                salariesByPeriod.some(s => s.employeeId === emp.id)
+              );
+
+              if (employeesWithSalaries.length === 0) {
+                return (
+                  <Card>
+                    <CardContent className="p-6 text-center text-muted-foreground">
+                      <Users className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                      <p>Aucun salaire versé ce mois</p>
+                      <p className="text-xs mt-1">Les salaires sont ajoutés depuis la fiche employé</p>
+                    </CardContent>
+                  </Card>
+                );
+              }
+
+              return (
+                <div className="space-y-3">
+                  {employeesWithSalaries.map(employee => {
+                    const empSalaries = salariesByPeriod.filter(s => s.employeeId === employee.id);
+                    const empTotal = empSalaries.reduce((sum, s) => sum + s.montant, 0);
+
+                    return (
+                      <Card key={employee.id}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              {employee.photo ? (
+                                <img 
+                                  src={employee.photo} 
+                                  alt={`${employee.prenom} ${employee.nom}`}
+                                  className="w-10 h-10 rounded-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                  <Users className="h-5 w-5 text-primary" />
+                                </div>
+                              )}
+                              <div>
+                                <p className="font-medium">{employee.prenom} {employee.nom}</p>
+                                <p className="text-xs text-muted-foreground">{employee.poste}</p>
+                              </div>
+                            </div>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleGenerateBulletin(employee.id)}
+                            >
+                              <Download className="h-4 w-4 mr-1" /> Bulletin
+                            </Button>
+                          </div>
+
+                          <div className="space-y-2">
+                            {empSalaries.map(sal => (
+                              <div key={sal.id} className="flex items-center justify-between text-sm">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline" className="text-xs">
+                                    {SALARY_TYPE_LABELS[sal.type]}
+                                  </Badge>
+                                  <span className="text-muted-foreground">
+                                    {format(new Date(sal.datePaiement), 'dd/MM', { locale: fr })}
+                                  </span>
+                                </div>
+                                <span className="font-medium">{sal.montant.toLocaleString('fr-FR')} FCFA</span>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="border-t mt-3 pt-3 flex justify-between items-center">
+                            <span className="text-sm font-medium">Total</span>
+                            <span className="font-bold text-primary">{empTotal.toLocaleString('fr-FR')} FCFA</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+          </TabsContent>
+
           {/* Invoices Tab */}
           <TabsContent value="invoices" className="space-y-4 mt-4">
             <Button asChild className="w-full">
