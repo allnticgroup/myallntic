@@ -294,3 +294,27 @@ export const EMPLOYEE_STATUS_LABELS: Record<EmployeeStatus, string> = {
   actif: 'Actif',
   inactif: 'Inactif',
 };
+
+// Types pour les salaires
+export type SalaryType = 'salaire' | 'prime' | 'avance' | 'remboursement' | 'autre';
+
+export interface Salary {
+  id: string;
+  employeeId: string;
+  montant: number;
+  type: SalaryType;
+  periode: string; // Format: "2024-03" pour mars 2024
+  datePaiement: string;
+  modePaiement: 'especes' | 'virement' | 'cheque' | 'mobile_money';
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const SALARY_TYPE_LABELS: Record<SalaryType, string> = {
+  salaire: 'Salaire',
+  prime: 'Prime',
+  avance: 'Avance',
+  remboursement: 'Remboursement',
+  autre: 'Autre',
+};

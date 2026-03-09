@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Plus, Search, UserCheck, Phone, Mail, Pencil, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Plus, Search, UserCheck, Phone, Mail, Banknote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,17 +31,21 @@ import {
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { EmployeeForm } from '@/components/forms/EmployeeForm';
-import { useEmployees } from '@/hooks/useData';
+import { useEmployees, useSalaries } from '@/hooks/useData';
 import { EMPLOYEE_ROLE_LABELS, Employee } from '@/types';
 import { toast } from 'sonner';
 
 export default function Employees() {
   const { employees, addEmployee, updateEmployee, deleteEmployee } = useEmployees();
+  const { getTotalSalariesForEmployee } = useSalaries();
   const [showForm, setShowForm] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [deletingEmployee, setDeletingEmployee] = useState<Employee | null>(null);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
+
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat('fr-FR').format(amount) + ' FCFA';
 
   const filtered = employees.filter((e) => {
     const matchesSearch =
@@ -118,52 +122,55 @@ export default function Employees() {
           />
         ) : (
           <div className="space-y-3">
-            {filtered.map((emp) => (
-              <Card key={emp.id} className="relative group hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-base">{emp.prenom} {emp.nom}</CardTitle>
-                      {emp.poste && (
-                        <p className="text-sm text-muted-foreground">{emp.poste}</p>
+            {filtered.map((emp) => {
+              const totalSalary = getTotalSalariesForEmployee(emp.id);
+              return (
+                <Link key={emp.id} to={`/employes/${emp.id}`}>
+                  <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-base">{emp.prenom} {emp.nom}</CardTitle>
+                          {emp.poste && (
+                            <p className="text-sm text-muted-foreground">{emp.poste}</p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={emp.statut === 'actif' ? 'default' : 'secondary'}>
+                            {emp.statut === 'actif' ? 'Actif' : 'Inactif'}
+                          </Badge>
+                          <Badge variant="outline">
+                            {EMPLOYEE_ROLE_LABELS[emp.role]}
+                          </Badge>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pb-4">
+                      <div className="space-y-1 text-sm text-muted-foreground">
+                        {emp.telephone && (
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-3 w-3" />
+                            <span>{emp.telephone}</span>
+                          </div>
+                        )}
+                        {emp.email && (
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-3 w-3" />
+                            <span>{emp.email}</span>
+                          </div>
+                        )}
+                      </div>
+                      {totalSalary > 0 && (
+                        <div className="mt-3 pt-3 border-t flex items-center gap-2 text-sm">
+                          <Banknote className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">Total versé : {formatCurrency(totalSalary)}</span>
+                        </div>
                       )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={emp.statut === 'actif' ? 'default' : 'secondary'}>
-                        {emp.statut === 'actif' ? 'Actif' : 'Inactif'}
-                      </Badge>
-                      <Badge variant="outline">
-                        {EMPLOYEE_ROLE_LABELS[emp.role]}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="space-y-1 text-sm text-muted-foreground">
-                    {emp.telephone && (
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-3 w-3" />
-                        <span>{emp.telephone}</span>
-                      </div>
-                    )}
-                    {emp.email && (
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-3 w-3" />
-                        <span>{emp.email}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button variant="secondary" size="icon" className="h-7 w-7" onClick={() => setEditingEmployee(emp)}>
-                      <Pencil className="h-3 w-3" />
-                    </Button>
-                    <Button variant="destructive" size="icon" className="h-7 w-7" onClick={() => setDeletingEmployee(emp)}>
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>

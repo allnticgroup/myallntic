@@ -1,5 +1,5 @@
 import { useLocalStorage } from './useLocalStorage';
-import { Prospect, Devis, Intervention, Material, Payment, Expense, Invoice, Supplier, Purchase, Employee } from '@/types';
+import { Prospect, Devis, Intervention, Material, Payment, Expense, Invoice, Supplier, Purchase, Employee, Salary } from '@/types';
 
 export function useProspects() {
   const [prospects, setProspects] = useLocalStorage<Prospect[]>('allntic_prospects', []);
@@ -382,4 +382,47 @@ export function useEmployees() {
   const getEmployee = (id: string) => employees.find((e) => e.id === id);
 
   return { employees, addEmployee, updateEmployee, deleteEmployee, getEmployee };
+}
+
+export function useSalaries() {
+  const [salaries, setSalaries] = useLocalStorage<Salary[]>('allntic_salaries', []);
+
+  const addSalary = (salary: Omit<Salary, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const now = new Date().toISOString();
+    const newSalary: Salary = {
+      ...salary,
+      id: crypto.randomUUID(),
+      createdAt: now,
+      updatedAt: now,
+    };
+    setSalaries((prev) => [...prev, newSalary]);
+    return newSalary;
+  };
+
+  const updateSalary = (id: string, updates: Partial<Salary>) => {
+    setSalaries((prev) =>
+      prev.map((s) =>
+        s.id === id ? { ...s, ...updates, updatedAt: new Date().toISOString() } : s
+      )
+    );
+  };
+
+  const deleteSalary = (id: string) => {
+    setSalaries((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  const getSalariesForEmployee = (employeeId: string) =>
+    salaries.filter((s) => s.employeeId === employeeId);
+
+  const getTotalSalariesForEmployee = (employeeId: string) =>
+    salaries
+      .filter((s) => s.employeeId === employeeId)
+      .reduce((sum, s) => sum + s.montant, 0);
+
+  const getTotalSalariesByPeriod = (periode: string) =>
+    salaries
+      .filter((s) => s.periode === periode)
+      .reduce((sum, s) => sum + s.montant, 0);
+
+  return { salaries, addSalary, updateSalary, deleteSalary, getSalariesForEmployee, getTotalSalariesForEmployee, getTotalSalariesByPeriod };
 }
