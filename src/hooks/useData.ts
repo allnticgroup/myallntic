@@ -430,3 +430,36 @@ export function useSalaries() {
 
   return { salaries, addSalary, updateSalary, deleteSalary, getSalariesForEmployee, getTotalSalariesForEmployee, getTotalSalariesByPeriod };
 }
+
+export function useEmployeeDocuments() {
+  const [documents, setDocuments] = useLocalStorage<EmployeeDocument[]>('allntic_employee_documents', []);
+
+  const addDocument = (doc: Omit<EmployeeDocument, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const now = new Date().toISOString();
+    const newDoc: EmployeeDocument = {
+      ...doc,
+      id: crypto.randomUUID(),
+      createdAt: now,
+      updatedAt: now,
+    };
+    setDocuments((prev) => [...prev, newDoc]);
+    return newDoc;
+  };
+
+  const updateDocument = (id: string, updates: Partial<EmployeeDocument>) => {
+    setDocuments((prev) =>
+      prev.map((d) =>
+        d.id === id ? { ...d, ...updates, updatedAt: new Date().toISOString() } : d
+      )
+    );
+  };
+
+  const deleteDocument = (id: string) => {
+    setDocuments((prev) => prev.filter((d) => d.id !== id));
+  };
+
+  const getDocumentsForEmployee = (employeeId: string) =>
+    documents.filter((d) => d.employeeId === employeeId);
+
+  return { documents, addDocument, updateDocument, deleteDocument, getDocumentsForEmployee };
+}
