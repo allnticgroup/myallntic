@@ -271,6 +271,22 @@ export default function Dashboard() {
       />
 
       <main className="p-4 space-y-6 max-w-lg mx-auto">
+        {/* Export Reminder */}
+        {showExportReminder && (
+          <Alert className="bg-warning/10 border-warning/30 animate-fade-in">
+            <Download className="h-4 w-4 text-warning" />
+            <AlertDescription className="flex items-center justify-between gap-2">
+              <span className="text-sm">
+                {daysSinceExport === null 
+                  ? "Pensez à sauvegarder vos données régulièrement"
+                  : `Dernière sauvegarde il y a ${daysSinceExport} jours`}
+              </span>
+              <Button size="sm" variant="outline" onClick={handleExport} className="shrink-0">
+                Exporter
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-3">
           <StatCard
