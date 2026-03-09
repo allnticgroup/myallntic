@@ -262,3 +262,35 @@ export const PURCHASE_STATUS_LABELS: Record<Purchase['statut'], string> = {
   livree: 'Livrée',
   annulee: 'Annulée',
 };
+
+// Types pour les employés
+export type EmployeeRole = 'technicien' | 'commercial' | 'administratif' | 'manager' | 'autre';
+export type EmployeeStatus = 'actif' | 'inactif';
+
+export interface Employee {
+  id: string;
+  nom: string;
+  prenom: string;
+  telephone: string;
+  email: string;
+  poste: string;
+  role: EmployeeRole;
+  statut: EmployeeStatus;
+  dateEmbauche: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const EMPLOYEE_ROLE_LABELS: Record<EmployeeRole, string> = {
+  technicien: 'Technicien',
+  commercial: 'Commercial',
+  administratif: 'Administratif',
+  manager: 'Manager',
+  autre: 'Autre',
+};
+
+export const EMPLOYEE_STATUS_LABELS: Record<EmployeeStatus, string> = {
+  actif: 'Actif',
+  inactif: 'Inactif',
+};
