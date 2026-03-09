@@ -86,6 +86,11 @@ export default function Employees() {
     toast.success('Employé ajouté');
   };
 
+  const handleAddTestEmployee = () => {
+    addEmployee(TEST_EMPLOYEE);
+    toast.success('Employé test ajouté avec toutes les informations');
+  };
+
   const handleUpdate = (data: Parameters<typeof addEmployee>[0]) => {
     if (editingEmployee) {
       updateEmployee(editingEmployee.id, data);
