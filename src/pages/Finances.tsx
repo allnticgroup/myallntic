@@ -23,12 +23,15 @@ export default function Finances() {
   const { invoices, addInvoice, updateInvoice, deleteInvoice, generateInvoiceNumber } = useInvoices();
   const { prospects } = useProspects();
   const { devisList } = useDevis();
+  const { salaries } = useSalaries();
+  const { employees } = useEmployees();
 
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [editingPayment, setEditingPayment] = useState<Payment | undefined>();
   const [editingExpense, setEditingExpense] = useState<Expense | undefined>();
+  const [selectedPeriode, setSelectedPeriode] = useState(new Date().toISOString().slice(0, 7));
 
   // Stats
   const totalRevenue = payments.reduce((sum, p) => sum + p.montant, 0);
