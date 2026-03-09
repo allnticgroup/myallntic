@@ -31,7 +31,7 @@ import {
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { EmployeeForm } from '@/components/forms/EmployeeForm';
-import { useEmployees } from '@/hooks/useData';
+import { useEmployees, useSalaries } from '@/hooks/useData';
 import { EMPLOYEE_ROLE_LABELS, Employee } from '@/types';
 import { toast } from 'sonner';
 
