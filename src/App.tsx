@@ -16,6 +16,7 @@ import Suppliers from "./pages/Suppliers";
 import SupplierDetail from "./pages/SupplierDetail";
 import Calendar from "./pages/Calendar";
 import Invoices from "./pages/Invoices";
+import Employees from "./pages/Employees";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/fournisseurs/:id" element={<SupplierDetail />} />
             <Route path="/calendrier" element={<Calendar />} />
             <Route path="/factures" element={<Invoices />} />
+            <Route path="/employes" element={<Employees />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />

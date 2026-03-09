@@ -351,3 +351,35 @@ export function usePurchases() {
 
   return { purchases, addPurchase, updatePurchase, deletePurchase, getPurchasesForSupplier, getTotalPurchasesForSupplier };
 }
+
+export function useEmployees() {
+  const [employees, setEmployees] = useLocalStorage<Employee[]>('allntic_employees', []);
+
+  const addEmployee = (employee: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const now = new Date().toISOString();
+    const newEmployee: Employee = {
+      ...employee,
+      id: crypto.randomUUID(),
+      createdAt: now,
+      updatedAt: now,
+    };
+    setEmployees((prev) => [...prev, newEmployee]);
+    return newEmployee;
+  };
+
+  const updateEmployee = (id: string, updates: Partial<Employee>) => {
+    setEmployees((prev) =>
+      prev.map((e) =>
+        e.id === id ? { ...e, ...updates, updatedAt: new Date().toISOString() } : e
+      )
+    );
+  };
+
+  const deleteEmployee = (id: string) => {
+    setEmployees((prev) => prev.filter((e) => e.id !== id));
+  };
+
+  const getEmployee = (id: string) => employees.find((e) => e.id === id);
+
+  return { employees, addEmployee, updateEmployee, deleteEmployee, getEmployee };
+}
