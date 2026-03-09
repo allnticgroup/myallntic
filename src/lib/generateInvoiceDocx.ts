@@ -42,6 +42,7 @@ function dataCell(text: string, shade?: boolean): TableCell {
 }
 
 export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, devis?: Devis) {
+  const COMPANY_INFO = getCompanyInfo();
   const children: (Paragraph | Table)[] = [];
   const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
   const borders = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder };
