@@ -18,7 +18,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useProspects, useDevis, useInterventions } from '@/hooks/useData';
 import { exportToJson, getAllData, generateExportFilename, readJsonFile, validateImportData, importData, sanitizeImportData, ImportData } from '@/lib/export';
-import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, differenceInDays } from 'date-fns';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { fr } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
 import { STATUS_LABELS, ProspectStatus } from '@/types';
