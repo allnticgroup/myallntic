@@ -53,9 +53,10 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   let y = 15;
 
   // ===== EN-TÊTE =====
-  // Logo à gauche
+  // Logo à gauche - use custom logo if available
   try {
-    const logoBase64 = await loadImageAsBase64('/logo.png');
+    const logoSrc = COMPANY_INFO.logo || '/logo.png';
+    const logoBase64 = COMPANY_INFO.logo || await loadImageAsBase64('/logo.png');
     doc.addImage(logoBase64, 'PNG', margin, y, 25, 25);
   } catch (e) {
     console.log('Logo non chargé:', e);
