@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Phone, Mail, Briefcase, Calendar, Plus, Pencil, Trash2, Banknote, Wrench, FileText, AlertCircle } from 'lucide-react';
+import { Phone, Mail, Briefcase, Calendar, Plus, Pencil, Trash2, Banknote, Wrench, FileText, AlertCircle, MapPin, User, Shield, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
@@ -35,6 +37,7 @@ import {
   INTERVENTION_TYPE_LABELS,
   INTERVENTION_STATUS_LABELS,
   EMPLOYEE_DOCUMENT_TYPE_LABELS,
+  CONTRACT_TYPE_LABELS,
   Salary,
   EmployeeDocument
 } from '@/types';
@@ -155,6 +158,10 @@ export default function EmployeeDetail() {
     return format(date, 'MMMM yyyy', { locale: fr });
   };
 
+  const getInitials = (prenom: string, nom: string) => {
+    return `${prenom.charAt(0)}${nom.charAt(0)}`.toUpperCase();
+  };
+
   const isDocumentExpired = (dateExpiration?: string) => {
     if (!dateExpiration) return false;
     return new Date(dateExpiration) < new Date();
@@ -186,7 +193,7 @@ export default function EmployeeDetail() {
         }
       />
 
-      <div className="container max-w-lg mx-auto px-4 py-6 space-y-6">
+      <div className="container max-w-lg mx-auto px-4 py-6 space-y-4">
         {/* Expiring documents alert */}
         {expiringDocs.length > 0 && (
           <Card className="border-warning bg-warning/10">
@@ -201,41 +208,122 @@ export default function EmployeeDetail() {
           </Card>
         )}
 
-        {/* Info Card */}
+        {/* Profile Card */}
         <Card>
-          <CardHeader className="pb-3">
-            <div className="flex justify-between items-start">
-              <CardTitle className="text-lg">Informations</CardTitle>
-              <Badge variant={employee.statut === 'actif' ? 'default' : 'secondary'}>
-                {employee.statut === 'actif' ? 'Actif' : 'Inactif'}
-              </Badge>
+          <CardContent className="pt-6">
+            {/* Header with Avatar */}
+            <div className="flex flex-col items-center text-center mb-6">
+              <Avatar className="h-20 w-20 mb-3">
+                <AvatarImage src={employee.photo} alt={`${employee.prenom} ${employee.nom}`} />
+                <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">
+                  {getInitials(employee.prenom, employee.nom)}
+                </AvatarFallback>
+              </Avatar>
+              <h2 className="text-xl font-semibold">{employee.prenom} {employee.nom}</h2>
+              {employee.poste && (
+                <p className="text-sm text-muted-foreground">{employee.poste}</p>
+              )}
+              <div className="flex flex-wrap justify-center gap-2 mt-3">
+                <Badge variant={employee.statut === 'actif' ? 'default' : 'secondary'}>
+                  {employee.statut === 'actif' ? 'Actif' : 'Inactif'}
+                </Badge>
+                <Badge variant="outline">{EMPLOYEE_ROLE_LABELS[employee.role]}</Badge>
+                {employee.typeContrat && (
+                  <Badge variant="outline">{CONTRACT_TYPE_LABELS[employee.typeContrat]}</Badge>
+                )}
+              </div>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {employee.telephone && (
-              <div className="flex items-center gap-3 text-sm">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-                <a href={`tel:${employee.telephone}`} className="text-primary">{employee.telephone}</a>
-              </div>
-            )}
-            {employee.email && (
-              <div className="flex items-center gap-3 text-sm">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <a href={`mailto:${employee.email}`} className="text-primary">{employee.email}</a>
-              </div>
-            )}
-            <div className="flex items-center gap-3 text-sm">
-              <Briefcase className="h-4 w-4 text-muted-foreground" />
-              <span>{EMPLOYEE_ROLE_LABELS[employee.role]}</span>
+
+            <Separator className="my-4" />
+
+            {/* Contact Info */}
+            <div className="space-y-3">
+              {employee.telephone && (
+                <a href={`tel:${employee.telephone}`} className="flex items-center gap-3 text-sm hover:text-primary transition-colors">
+                  <div className="flex items-center justify-center h-8 w-8 rounded-full bg-muted">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <span>{employee.telephone}</span>
+                </a>
+              )}
+              {employee.email && (
+                <a href={`mailto:${employee.email}`} className="flex items-center gap-3 text-sm hover:text-primary transition-colors">
+                  <div className="flex items-center justify-center h-8 w-8 rounded-full bg-muted">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <span className="truncate">{employee.email}</span>
+                </a>
+              )}
+              {(employee.adresse || employee.ville) && (
+                <div className="flex items-center gap-3 text-sm">
+                  <div className="flex items-center justify-center h-8 w-8 rounded-full bg-muted">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <span>{[employee.adresse, employee.ville].filter(Boolean).join(', ')}</span>
+                </div>
+              )}
             </div>
-            {employee.dateEmbauche && (
-              <div className="flex items-center gap-3 text-sm">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span>Embauché le {format(new Date(employee.dateEmbauche), 'dd MMMM yyyy', { locale: fr })}</span>
-              </div>
+
+            {/* Contract Details */}
+            {(employee.dateEmbauche || employee.dateFinContrat || employee.salaireBase) && (
+              <>
+                <Separator className="my-4" />
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  {employee.dateEmbauche && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Date d'embauche</p>
+                      <p className="font-medium">{format(new Date(employee.dateEmbauche), 'dd MMM yyyy', { locale: fr })}</p>
+                    </div>
+                  )}
+                  {employee.dateFinContrat && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Fin de contrat</p>
+                      <p className="font-medium">{format(new Date(employee.dateFinContrat), 'dd MMM yyyy', { locale: fr })}</p>
+                    </div>
+                  )}
+                  {employee.salaireBase && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Salaire de base</p>
+                      <p className="font-medium text-primary">{formatCurrency(employee.salaireBase)}</p>
+                    </div>
+                  )}
+                  {employee.numeroSecuriteSociale && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">N° Sécu. Sociale</p>
+                      <p className="font-medium">{employee.numeroSecuriteSociale}</p>
+                    </div>
+                  )}
+                </div>
+              </>
             )}
+
+            {/* Emergency Contact */}
+            {(employee.contactUrgenceNom || employee.contactUrgenceTel) && (
+              <>
+                <Separator className="my-4" />
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                    <Shield className="h-3 w-3" />
+                    Contact d'urgence
+                  </p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">{employee.contactUrgenceNom || 'Non renseigné'}</span>
+                    {employee.contactUrgenceTel && (
+                      <a href={`tel:${employee.contactUrgenceTel}`} className="text-sm text-primary hover:underline">
+                        {employee.contactUrgenceTel}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Notes */}
             {employee.notes && (
-              <p className="text-sm text-muted-foreground pt-2 border-t">{employee.notes}</p>
+              <>
+                <Separator className="my-4" />
+                <p className="text-sm text-muted-foreground">{employee.notes}</p>
+              </>
             )}
           </CardContent>
         </Card>
@@ -265,7 +353,7 @@ export default function EmployeeDetail() {
                   <div>
                     <CardTitle className="text-base">Salaires & Paiements</CardTitle>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Total versé : <span className="font-semibold text-foreground">{formatCurrency(totalPaid)}</span>
+                      Total versé : <span className="font-semibold text-primary">{formatCurrency(totalPaid)}</span>
                     </p>
                   </div>
                   <Button size="sm" onClick={() => setShowSalaryForm(true)}>
