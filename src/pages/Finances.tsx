@@ -77,6 +77,56 @@ export default function Finances() {
     }));
   }, [expenses]);
 
+  // Salaries by selected period
+  const salariesByPeriod = useMemo(() => {
+    return salaries.filter(s => s.periode === selectedPeriode);
+  }, [salaries, selectedPeriode]);
+
+  const totalSalariesPeriod = salariesByPeriod.reduce((sum, s) => sum + s.montant, 0);
+
+  // Get employee name
+  const getEmployeeName = (employeeId: string) => {
+    const emp = employees.find(e => e.id === employeeId);
+    return emp ? `${emp.prenom} ${emp.nom}` : 'Employé inconnu';
+  };
+
+  const getEmployee = (employeeId: string) => {
+    return employees.find(e => e.id === employeeId);
+  };
+
+  // Navigate period
+  const navigatePeriod = (direction: 'prev' | 'next') => {
+    const [year, month] = selectedPeriode.split('-').map(Number);
+    const date = new Date(year, month - 1);
+    if (direction === 'prev') {
+      date.setMonth(date.getMonth() - 1);
+    } else {
+      date.setMonth(date.getMonth() + 1);
+    }
+    setSelectedPeriode(format(date, 'yyyy-MM'));
+  };
+
+  // Generate bulletin
+  const handleGenerateBulletin = (employeeId: string) => {
+    const employee = employees.find(e => e.id === employeeId);
+    if (!employee) return;
+    
+    const employeeSalaries = salariesByPeriod.filter(s => s.employeeId === employeeId);
+    
+    generateBulletinPdf({
+      employee,
+      salaries: employeeSalaries,
+      periode: selectedPeriode,
+      entreprise: {
+        nom: 'ALLNTIC',
+        adresse: 'Dakar, Sénégal',
+        telephone: '+221 77 000 00 00',
+      },
+    });
+    
+    toast.success('Bulletin de salaire généré');
+  };
+
   const handleAddPayment = (data: Omit<Payment, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (editingPayment) {
       updatePayment(editingPayment.id, data);
