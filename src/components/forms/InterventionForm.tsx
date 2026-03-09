@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useEmployees } from '@/hooks/useData';
 import {
   Intervention,
   InterventionType,
@@ -31,8 +32,12 @@ export function InterventionForm({
   onSubmit,
   onCancel,
 }: InterventionFormProps) {
+  const { employees } = useEmployees();
+  const activeEmployees = employees.filter(e => e.statut === 'actif');
+
   const [formData, setFormData] = useState({
     prospectId,
+    employeeId: intervention?.employeeId || '',
     type: intervention?.type || ('Installation' as InterventionType),
     datePrevue: intervention?.datePrevue || new Date().toISOString().split('T')[0],
     statut: intervention?.statut || ('a_faire' as InterventionStatus),
@@ -41,7 +46,10 @@ export function InterventionForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    onSubmit({
+      ...formData,
+      employeeId: formData.employeeId || undefined,
+    });
   };
 
   return (
@@ -61,6 +69,28 @@ export function InterventionForm({
             {Object.entries(INTERVENTION_TYPE_LABELS).map(([key, label]) => (
               <SelectItem key={key} value={key}>
                 {label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Technicien assigné</Label>
+        <Select
+          value={formData.employeeId}
+          onValueChange={(value) =>
+            setFormData({ ...formData, employeeId: value === 'none' ? '' : value })
+          }
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Sélectionner un employé" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">Non assigné</SelectItem>
+            {activeEmployees.map((emp) => (
+              <SelectItem key={emp.id} value={emp.id}>
+                {emp.prenom} {emp.nom} - {emp.poste || emp.role}
               </SelectItem>
             ))}
           </SelectContent>
