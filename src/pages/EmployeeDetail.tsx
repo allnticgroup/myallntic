@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Phone, Mail, Briefcase, Calendar, Plus, Pencil, Trash2, Banknote, Wrench, FileText, AlertCircle, MapPin, User, Shield, CreditCard } from 'lucide-react';
+import { Phone, Mail, Briefcase, Calendar, Plus, Pencil, Trash2, Banknote, Wrench, FileText, AlertCircle, MapPin, User, Shield, CreditCard, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
