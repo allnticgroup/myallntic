@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Phone, Mail, Briefcase, Calendar, Plus, Pencil, Trash2, Banknote, Wrench, FileText, AlertCircle, MapPin, User, Shield, CreditCard } from 'lucide-react';
+import { Phone, Mail, Briefcase, Calendar, Plus, Pencil, Trash2, Banknote, Wrench, FileText, AlertCircle, MapPin, User, Shield, CreditCard, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -60,6 +60,24 @@ export default function EmployeeDetail() {
   const [showDocumentForm, setShowDocumentForm] = useState(false);
   const [editingDocument, setEditingDocument] = useState<EmployeeDocument | null>(null);
   const [deletingDocument, setDeletingDocument] = useState<EmployeeDocument | null>(null);
+
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('La photo ne doit pas dépasser 2 Mo');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      updateEmployee(employee!.id, { photo: reader.result as string });
+      toast.success('Photo de profil mise à jour');
+    };
+    reader.onerror = () => toast.error('Erreur lors du chargement de la photo');
+    reader.readAsDataURL(file);
+  };
 
   const employee = getEmployee(id || '');
   const employeeSalaries = getSalariesForEmployee(id || '').sort(
@@ -213,12 +231,28 @@ export default function EmployeeDetail() {
           <CardContent className="pt-6">
             {/* Header with Avatar */}
             <div className="flex flex-col items-center text-center mb-6">
-              <Avatar className="h-20 w-20 mb-3">
-                <AvatarImage src={employee.photo} alt={`${employee.prenom} ${employee.nom}`} />
-                <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">
-                  {getInitials(employee.prenom, employee.nom)}
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative group mb-3">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={employee.photo} alt={`${employee.prenom} ${employee.nom}`} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">
+                    {getInitials(employee.prenom, employee.nom)}
+                  </AvatarFallback>
+                </Avatar>
+                <button
+                  type="button"
+                  onClick={() => photoInputRef.current?.click()}
+                  className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                >
+                  <Camera className="h-5 w-5 text-white" />
+                </button>
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+              </div>
               <h2 className="text-xl font-semibold">{employee.prenom} {employee.nom}</h2>
               {employee.poste && (
                 <p className="text-sm text-muted-foreground">{employee.poste}</p>
