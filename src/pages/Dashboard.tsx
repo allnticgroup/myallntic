@@ -18,7 +18,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useProspects, useDevis, useInterventions } from '@/hooks/useData';
 import { exportToJson, getAllData, generateExportFilename, readJsonFile, validateImportData, importData, sanitizeImportData, ImportData } from '@/lib/export';
-import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, differenceInDays } from 'date-fns';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { fr } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
 import { STATUS_LABELS, ProspectStatus } from '@/types';
@@ -33,6 +34,15 @@ export default function Dashboard() {
   const [pendingImport, setPendingImport] = useState<ImportData | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [importMode, setImportMode] = useState<'replace' | 'merge'>('replace');
+  const [lastExportDate, setLastExportDate] = useState<string | null>(() => 
+    localStorage.getItem('lastExportDate')
+  );
+
+  const daysSinceExport = lastExportDate 
+    ? differenceInDays(new Date(), new Date(lastExportDate))
+    : null;
+  
+  const showExportReminder = daysSinceExport === null || daysSinceExport >= 7;
 
   const activeProspects = prospects.filter(
     (p) => !['signe', 'refuse'].includes(p.statut)
@@ -115,6 +125,9 @@ export default function Dashboard() {
     const data = getAllData();
     const filename = generateExportFilename();
     exportToJson(data, filename);
+    const now = new Date().toISOString();
+    localStorage.setItem('lastExportDate', now);
+    setLastExportDate(now);
     toast.success('Sauvegarde téléchargée');
   };
 
@@ -258,6 +271,22 @@ export default function Dashboard() {
       />
 
       <main className="p-4 space-y-6 max-w-lg mx-auto">
+        {/* Export Reminder */}
+        {showExportReminder && (
+          <Alert className="bg-warning/10 border-warning/30 animate-fade-in">
+            <Download className="h-4 w-4 text-warning" />
+            <AlertDescription className="flex items-center justify-between gap-2">
+              <span className="text-sm">
+                {daysSinceExport === null 
+                  ? "Pensez à sauvegarder vos données régulièrement"
+                  : `Dernière sauvegarde il y a ${daysSinceExport} jours`}
+              </span>
+              <Button size="sm" variant="outline" onClick={handleExport} className="shrink-0">
+                Exporter
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-3">
           <StatCard
