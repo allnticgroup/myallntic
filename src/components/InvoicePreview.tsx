@@ -30,6 +30,7 @@ interface InvoicePreviewProps {
 
 export function InvoicePreview({ invoice, prospect, devis }: InvoicePreviewProps) {
   const COMPANY_INFO = getCompanyInfo();
+  return (
     <div className="bg-white text-gray-800 p-6 rounded-lg shadow-sm border max-h-[70vh] overflow-y-auto">
       {/* En-tête */}
       <div className="flex justify-between items-start mb-4">
