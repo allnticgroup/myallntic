@@ -61,6 +61,24 @@ export default function EmployeeDetail() {
   const [editingDocument, setEditingDocument] = useState<EmployeeDocument | null>(null);
   const [deletingDocument, setDeletingDocument] = useState<EmployeeDocument | null>(null);
 
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('La photo ne doit pas dépasser 2 Mo');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      updateEmployee(employee!.id, { photo: reader.result as string });
+      toast.success('Photo de profil mise à jour');
+    };
+    reader.onerror = () => toast.error('Erreur lors du chargement de la photo');
+    reader.readAsDataURL(file);
+  };
+
   const employee = getEmployee(id || '');
   const employeeSalaries = getSalariesForEmployee(id || '').sort(
     (a, b) => new Date(b.datePaiement).getTime() - new Date(a.datePaiement).getTime()
