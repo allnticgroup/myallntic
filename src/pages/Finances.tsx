@@ -179,10 +179,11 @@ export default function Finances() {
 
       <main className="p-4 space-y-4 max-w-lg mx-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="dashboard" className="text-xs">Tableau</TabsTrigger>
-            <TabsTrigger value="payments" className="text-xs">Paiements</TabsTrigger>
+            <TabsTrigger value="payments" className="text-xs">Revenus</TabsTrigger>
             <TabsTrigger value="expenses" className="text-xs">Dépenses</TabsTrigger>
+            <TabsTrigger value="salaries" className="text-xs">Salaires</TabsTrigger>
             <TabsTrigger value="invoices" className="text-xs">Factures</TabsTrigger>
           </TabsList>
 
