@@ -83,6 +83,7 @@ export default function Interventions() {
           <div className="space-y-3">
             {filteredInterventions.map((intervention) => {
               const prospect = getProspect(intervention.prospectId);
+              const employee = intervention.employeeId ? getEmployee(intervention.employeeId) : null;
               const date = new Date(intervention.datePrevue);
               const isOverdue = isPast(date) && intervention.statut === 'a_faire';
 
