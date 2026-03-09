@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Plus, Search, UserCheck, Phone, Mail, Pencil, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Plus, Search, UserCheck, Phone, Mail, Banknote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
