@@ -18,6 +18,7 @@ import Calendar from "./pages/Calendar";
 import Invoices from "./pages/Invoices";
 import Employees from "./pages/Employees";
 import EmployeeDetail from "./pages/EmployeeDetail";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
