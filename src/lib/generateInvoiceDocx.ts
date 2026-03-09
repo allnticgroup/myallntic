@@ -58,7 +58,7 @@ export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, 
   }));
 
   children.push(new Paragraph({
-    children: [new TextRun({ text: 'Installation • Maintenance • Réseaux • Vidéosurveillance', size: 16, color: '646464', font: 'Times New Roman', italics: true })],
+    children: [new TextRun({ text: '• ' + COMPANY_INFO.services.join(' • '), size: 16, color: '646464', font: 'Times New Roman', italics: true })],
     spacing: { after: 80 },
   }));
 
