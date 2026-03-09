@@ -197,33 +197,19 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
   const totalsX = pageWidth - margin - 70;
 
   doc.setFillColor(33, 90, 168);
-  doc.rect(totalsX, y, 35, 8, 'F');
-  doc.setFontSize(9);
-  doc.setFont('times', 'bold');
-  doc.setTextColor(255, 255, 255);
-  doc.text('Total HT', totalsX + 3, y + 5);
-  doc.setFillColor(255, 255, 255);
-  doc.rect(totalsX + 35, y, 35, 8, 'F');
-  doc.setDrawColor(180, 180, 180);
-  doc.rect(totalsX + 35, y, 35, 8, 'S');
-  doc.setTextColor(50, 50, 50);
-  doc.text(`${formatMontant(invoice.montantHT)} F`, totalsX + 68, y + 5, { align: 'right' });
-  y += 10;
-
-  doc.setFillColor(33, 90, 168);
   doc.rect(totalsX, y, 35, 10, 'F');
   doc.setFontSize(10);
   doc.setFont('times', 'bold');
   doc.setTextColor(255, 255, 255);
-  doc.text('Net à payer', totalsX + 3, y + 7);
+  doc.text('Total HT', totalsX + 3, y + 7);
   doc.setFillColor(255, 255, 255);
   doc.rect(totalsX + 35, y, 35, 10, 'F');
   doc.setDrawColor(33, 90, 168);
   doc.rect(totalsX + 35, y, 35, 10, 'S');
   doc.setTextColor(33, 90, 168);
   doc.setFontSize(11);
-  doc.text(`${formatMontant(invoice.montantTTC)} F`, totalsX + 68, y + 7, { align: 'right' });
-  y += 20;
+  doc.text(`${formatMontant(invoice.montantHT)} F`, totalsX + 68, y + 7, { align: 'right' });
+  y += 15;
 
   // ===== INFORMATIONS DE PAIEMENT =====
   if (y > 230) {

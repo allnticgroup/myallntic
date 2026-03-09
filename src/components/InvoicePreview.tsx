@@ -105,13 +105,9 @@ export function InvoicePreview({ invoice, prospect, devis }: InvoicePreviewProps
       {/* Totaux */}
       <div className="flex justify-end mb-4">
         <div className="w-48">
-          <div className="flex justify-between items-center bg-blue-700 text-white px-3 py-1 text-sm">
+          <div className="flex justify-between items-center bg-blue-700 text-white px-3 py-2 text-sm">
             <span className="font-bold">Total HT</span>
-            <span>{formatMontant(invoice.montantHT)} F</span>
-          </div>
-          <div className="flex justify-between items-center bg-blue-700 text-white px-3 py-2 text-sm mt-1">
-            <span className="font-bold">Net à payer</span>
-            <span className="font-bold">{formatMontant(invoice.montantTTC)} F</span>
+            <span className="font-bold">{formatMontant(invoice.montantHT)} F</span>
           </div>
         </div>
       </div>
