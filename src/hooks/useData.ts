@@ -101,12 +101,16 @@ export function useInterventions() {
   const getInterventionsForProspect = (prospectId: string) =>
     interventions.filter((i) => i.prospectId === prospectId);
 
+  const getInterventionsForEmployee = (employeeId: string) =>
+    interventions.filter((i) => i.employeeId === employeeId);
+
   return {
     interventions,
     addIntervention,
     updateIntervention,
     deleteIntervention,
     getInterventionsForProspect,
+    getInterventionsForEmployee,
   };
 }
 
