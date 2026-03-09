@@ -1,5 +1,5 @@
 import { useLocalStorage } from './useLocalStorage';
-import { Prospect, Devis, Intervention, Material, Payment, Expense, Invoice, Supplier, Purchase, Employee, Salary } from '@/types';
+import { Prospect, Devis, Intervention, Material, Payment, Expense, Invoice, Supplier, Purchase, Employee, Salary, EmployeeDocument } from '@/types';
 
 export function useProspects() {
   const [prospects, setProspects] = useLocalStorage<Prospect[]>('allntic_prospects', []);
