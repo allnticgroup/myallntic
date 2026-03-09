@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, TrendingUp, TrendingDown, Wallet, Receipt, CreditCard, Trash2, Edit2, FileText } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Wallet, Receipt, CreditCard, Trash2, Edit2, FileText, Users, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
@@ -11,10 +11,11 @@ import { Badge } from '@/components/ui/badge';
 import { StatCard } from '@/components/StatCard';
 import { PaymentForm } from '@/components/forms/PaymentForm';
 import { ExpenseForm } from '@/components/forms/ExpenseForm';
-import { usePayments, useExpenses, useInvoices, useProspects, useDevis } from '@/hooks/useData';
-import { Payment, Expense, Invoice, PAYMENT_MODE_LABELS, EXPENSE_CATEGORY_LABELS, INVOICE_STATUS_LABELS } from '@/types';
+import { usePayments, useExpenses, useInvoices, useProspects, useDevis, useSalaries, useEmployees } from '@/hooks/useData';
+import { Payment, Expense, Invoice, PAYMENT_MODE_LABELS, EXPENSE_CATEGORY_LABELS, INVOICE_STATUS_LABELS, SALARY_TYPE_LABELS, CONTRACT_TYPE_LABELS } from '@/types';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from 'recharts';
 import { toast } from 'sonner';
+import { generateBulletinPdf } from '@/lib/generateBulletinPdf';
 
 export default function Finances() {
   const { payments, addPayment, updatePayment, deletePayment } = usePayments();
@@ -22,17 +23,21 @@ export default function Finances() {
   const { invoices, addInvoice, updateInvoice, deleteInvoice, generateInvoiceNumber } = useInvoices();
   const { prospects } = useProspects();
   const { devisList } = useDevis();
+  const { salaries } = useSalaries();
+  const { employees } = useEmployees();
 
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [editingPayment, setEditingPayment] = useState<Payment | undefined>();
   const [editingExpense, setEditingExpense] = useState<Expense | undefined>();
+  const [selectedPeriode, setSelectedPeriode] = useState(new Date().toISOString().slice(0, 7));
 
   // Stats
   const totalRevenue = payments.reduce((sum, p) => sum + p.montant, 0);
   const totalExpenses = expenses.reduce((sum, e) => sum + e.montant, 0);
-  const balance = totalRevenue - totalExpenses;
+  const totalSalaries = salaries.reduce((sum, s) => sum + s.montant, 0);
+  const balance = totalRevenue - totalExpenses - totalSalaries;
   const pendingInvoices = invoices.filter(i => i.statut === 'sent' || i.statut === 'overdue').length;
 
   // Chart data: Revenue vs Expenses by month
@@ -71,6 +76,56 @@ export default function Finances() {
       value: amount,
     }));
   }, [expenses]);
+
+  // Salaries by selected period
+  const salariesByPeriod = useMemo(() => {
+    return salaries.filter(s => s.periode === selectedPeriode);
+  }, [salaries, selectedPeriode]);
+
+  const totalSalariesPeriod = salariesByPeriod.reduce((sum, s) => sum + s.montant, 0);
+
+  // Get employee name
+  const getEmployeeName = (employeeId: string) => {
+    const emp = employees.find(e => e.id === employeeId);
+    return emp ? `${emp.prenom} ${emp.nom}` : 'Employé inconnu';
+  };
+
+  const getEmployee = (employeeId: string) => {
+    return employees.find(e => e.id === employeeId);
+  };
+
+  // Navigate period
+  const navigatePeriod = (direction: 'prev' | 'next') => {
+    const [year, month] = selectedPeriode.split('-').map(Number);
+    const date = new Date(year, month - 1);
+    if (direction === 'prev') {
+      date.setMonth(date.getMonth() - 1);
+    } else {
+      date.setMonth(date.getMonth() + 1);
+    }
+    setSelectedPeriode(format(date, 'yyyy-MM'));
+  };
+
+  // Generate bulletin
+  const handleGenerateBulletin = (employeeId: string) => {
+    const employee = employees.find(e => e.id === employeeId);
+    if (!employee) return;
+    
+    const employeeSalaries = salariesByPeriod.filter(s => s.employeeId === employeeId);
+    
+    generateBulletinPdf({
+      employee,
+      salaries: employeeSalaries,
+      periode: selectedPeriode,
+      entreprise: {
+        nom: 'ALLNTIC',
+        adresse: 'Dakar, Sénégal',
+        telephone: '+221 77 000 00 00',
+      },
+    });
+    
+    toast.success('Bulletin de salaire généré');
+  };
 
   const handleAddPayment = (data: Omit<Payment, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (editingPayment) {
@@ -124,18 +179,20 @@ export default function Finances() {
 
       <main className="p-4 space-y-4 max-w-lg mx-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="dashboard" className="text-xs">Tableau</TabsTrigger>
-            <TabsTrigger value="payments" className="text-xs">Paiements</TabsTrigger>
+            <TabsTrigger value="payments" className="text-xs">Revenus</TabsTrigger>
             <TabsTrigger value="expenses" className="text-xs">Dépenses</TabsTrigger>
+            <TabsTrigger value="salaries" className="text-xs">Salaires</TabsTrigger>
             <TabsTrigger value="invoices" className="text-xs">Factures</TabsTrigger>
           </TabsList>
 
           {/* Dashboard Tab */}
           <TabsContent value="dashboard" className="space-y-4 mt-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <StatCard icon={TrendingUp} label="Revenus" value={`${(totalRevenue / 1000).toFixed(0)}k`} variant="success" />
               <StatCard icon={TrendingDown} label="Dépenses" value={`${(totalExpenses / 1000).toFixed(0)}k`} variant="warning" />
+              <StatCard icon={Users} label="Salaires" value={`${(totalSalaries / 1000).toFixed(0)}k`} variant="default" />
             </div>
 
             <Card className={`${balance >= 0 ? 'bg-gradient-to-br from-success/10 to-success/5 border-success/20' : 'bg-gradient-to-br from-destructive/10 to-destructive/5 border-destructive/20'}`}>
@@ -285,6 +342,113 @@ export default function Finances() {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* Salaries Tab */}
+          <TabsContent value="salaries" className="space-y-4 mt-4">
+            {/* Period Navigator */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <Button variant="ghost" size="icon" onClick={() => navigatePeriod('prev')}>
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                  <div className="text-center">
+                    <p className="font-semibold capitalize">
+                      {format(new Date(selectedPeriode + '-01'), 'MMMM yyyy', { locale: fr })}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Total: {totalSalariesPeriod.toLocaleString('fr-FR')} FCFA
+                    </p>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => navigatePeriod('next')}>
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Summary by employee */}
+            {(() => {
+              const employeesWithSalaries = employees.filter(emp => 
+                salariesByPeriod.some(s => s.employeeId === emp.id)
+              );
+
+              if (employeesWithSalaries.length === 0) {
+                return (
+                  <Card>
+                    <CardContent className="p-6 text-center text-muted-foreground">
+                      <Users className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                      <p>Aucun salaire versé ce mois</p>
+                      <p className="text-xs mt-1">Les salaires sont ajoutés depuis la fiche employé</p>
+                    </CardContent>
+                  </Card>
+                );
+              }
+
+              return (
+                <div className="space-y-3">
+                  {employeesWithSalaries.map(employee => {
+                    const empSalaries = salariesByPeriod.filter(s => s.employeeId === employee.id);
+                    const empTotal = empSalaries.reduce((sum, s) => sum + s.montant, 0);
+
+                    return (
+                      <Card key={employee.id}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              {employee.photo ? (
+                                <img 
+                                  src={employee.photo} 
+                                  alt={`${employee.prenom} ${employee.nom}`}
+                                  className="w-10 h-10 rounded-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                  <Users className="h-5 w-5 text-primary" />
+                                </div>
+                              )}
+                              <div>
+                                <p className="font-medium">{employee.prenom} {employee.nom}</p>
+                                <p className="text-xs text-muted-foreground">{employee.poste}</p>
+                              </div>
+                            </div>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleGenerateBulletin(employee.id)}
+                            >
+                              <Download className="h-4 w-4 mr-1" /> Bulletin
+                            </Button>
+                          </div>
+
+                          <div className="space-y-2">
+                            {empSalaries.map(sal => (
+                              <div key={sal.id} className="flex items-center justify-between text-sm">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline" className="text-xs">
+                                    {SALARY_TYPE_LABELS[sal.type]}
+                                  </Badge>
+                                  <span className="text-muted-foreground">
+                                    {format(new Date(sal.datePaiement), 'dd/MM', { locale: fr })}
+                                  </span>
+                                </div>
+                                <span className="font-medium">{sal.montant.toLocaleString('fr-FR')} FCFA</span>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="border-t mt-3 pt-3 flex justify-between items-center">
+                            <span className="text-sm font-medium">Total</span>
+                            <span className="font-bold text-primary">{empTotal.toLocaleString('fr-FR')} FCFA</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </TabsContent>
 
           {/* Invoices Tab */}
