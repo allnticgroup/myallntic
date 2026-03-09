@@ -296,9 +296,8 @@ export default function EmployeeDetail() {
                 </div>
               </>
             )}
-
             {/* Emergency Contact */}
-            {(employee.contactUrgenceNom || employee.contactUrgenceTel) && (
+            {(employee.contactUrgence || employee.telephoneUrgence) && (
               <>
                 <Separator className="my-4" />
                 <div className="bg-muted/50 rounded-lg p-3">
@@ -307,10 +306,10 @@ export default function EmployeeDetail() {
                     Contact d'urgence
                   </p>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">{employee.contactUrgenceNom || 'Non renseigné'}</span>
-                    {employee.contactUrgenceTel && (
-                      <a href={`tel:${employee.contactUrgenceTel}`} className="text-sm text-primary hover:underline">
-                        {employee.contactUrgenceTel}
+                    <span className="text-sm font-medium">{employee.contactUrgence || 'Non renseigné'}</span>
+                    {employee.telephoneUrgence && (
+                      <a href={`tel:${employee.telephoneUrgence}`} className="text-sm text-primary hover:underline">
+                        {employee.telephoneUrgence}
                       </a>
                     )}
                   </div>
