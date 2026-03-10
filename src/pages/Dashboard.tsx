@@ -32,7 +32,12 @@ export default function Dashboard() {
   const { prospects } = useProspects();
   const { devisList } = useDevis();
   const { interventions } = useInterventions();
+  const { materials } = useMaterials();
+  const { clients } = useClients();
+  const { ventes } = useVentes();
+  const { projects } = useProjects();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showSearch, setShowSearch] = useState(false);
   const [pendingImport, setPendingImport] = useState<ImportData | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [importMode, setImportMode] = useState<'replace' | 'merge'>('replace');
