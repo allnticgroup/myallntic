@@ -262,11 +262,16 @@ export default function Dashboard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <GlobalSearch open={showSearch} onOpenChange={setShowSearch} />
+
       <PageHeader 
         title="ALLNTIC" 
         subtitle="Tableau de bord"
         action={
           <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => setShowSearch(true)}>
+              <Search className="h-4 w-4" />
+            </Button>
             <Button size="sm" variant="outline" onClick={handleImportClick}>
               <Upload className="h-4 w-4" />
             </Button>
