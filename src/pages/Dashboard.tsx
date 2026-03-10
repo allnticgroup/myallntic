@@ -1,6 +1,6 @@
 import { useRef, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, FileText, Wrench, TrendingUp, Clock, CheckCircle2, Download, Upload, AlertTriangle, Search, ShoppingCart, FolderKanban, Package, Boxes } from 'lucide-react';
+import { Users, FileText, Wrench, TrendingUp, Clock, CheckCircle2, Download, Upload, AlertTriangle, Search, ShoppingCart, FolderKanban, Package, Boxes, UserCheck } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { StatCard } from '@/components/StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
