@@ -1,6 +1,6 @@
 import { useRef, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, FileText, Wrench, TrendingUp, Clock, CheckCircle2, Download, Upload, AlertTriangle } from 'lucide-react';
+import { Users, FileText, Wrench, TrendingUp, Clock, CheckCircle2, Download, Upload, AlertTriangle, Search, ShoppingCart, FolderKanban, Package, Boxes } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { StatCard } from '@/components/StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +16,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useProspects, useDevis, useInterventions } from '@/hooks/useData';
+import { useProspects, useDevis, useInterventions, useMaterials } from '@/hooks/useData';
+import { useClients, useVentes, useProjects } from '@/hooks/useErpData';
 import { exportToJson, getAllData, generateExportFilename, readJsonFile, validateImportData, importData, sanitizeImportData, ImportData } from '@/lib/export';
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, differenceInDays } from 'date-fns';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -25,6 +26,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pi
 import { STATUS_LABELS, ProspectStatus } from '@/types';
 import { UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
+import { GlobalSearch } from '@/components/GlobalSearch';
 
 export default function Dashboard() {
   const { prospects } = useProspects();
