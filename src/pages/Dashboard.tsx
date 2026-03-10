@@ -1,6 +1,6 @@
 import { useRef, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, FileText, Wrench, TrendingUp, Clock, CheckCircle2, Download, Upload, AlertTriangle } from 'lucide-react';
+import { Users, FileText, Wrench, TrendingUp, Clock, CheckCircle2, Download, Upload, AlertTriangle, Search, ShoppingCart, FolderKanban, Package, Boxes, UserCheck } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { StatCard } from '@/components/StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +16,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useProspects, useDevis, useInterventions } from '@/hooks/useData';
+import { useProspects, useDevis, useInterventions, useMaterials } from '@/hooks/useData';
+import { useClients, useVentes, useProjects } from '@/hooks/useErpData';
 import { exportToJson, getAllData, generateExportFilename, readJsonFile, validateImportData, importData, sanitizeImportData, ImportData } from '@/lib/export';
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, differenceInDays } from 'date-fns';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -25,12 +26,18 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pi
 import { STATUS_LABELS, ProspectStatus } from '@/types';
 import { UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
+import { GlobalSearch } from '@/components/GlobalSearch';
 
 export default function Dashboard() {
   const { prospects } = useProspects();
   const { devisList } = useDevis();
   const { interventions } = useInterventions();
+  const { materials } = useMaterials();
+  const { clients } = useClients();
+  const { ventes } = useVentes();
+  const { projects } = useProjects();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showSearch, setShowSearch] = useState(false);
   const [pendingImport, setPendingImport] = useState<ImportData | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [importMode, setImportMode] = useState<'replace' | 'merge'>('replace');
@@ -255,11 +262,16 @@ export default function Dashboard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <GlobalSearch open={showSearch} onOpenChange={setShowSearch} />
+
       <PageHeader 
         title="ALLNTIC" 
         subtitle="Tableau de bord"
         action={
           <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => setShowSearch(true)}>
+              <Search className="h-4 w-4" />
+            </Button>
             <Button size="sm" variant="outline" onClick={handleImportClick}>
               <Upload className="h-4 w-4" />
             </Button>
@@ -462,28 +474,35 @@ export default function Dashboard() {
           </Card>
         )}
 
-        {/* Quick Actions */}
+        {/* Additional KPIs */}
         <div className="grid grid-cols-2 gap-3">
-          <Link to="/prospects">
-            <Card className="transition-smooth hover:shadow-md hover:border-primary/30">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Users className="h-5 w-5 text-primary" />
-                </div>
-                <span className="font-medium text-sm">Prospects</span>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link to="/interventions">
-            <Card className="transition-smooth hover:shadow-md hover:border-primary/30">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-accent/10">
-                  <Wrench className="h-5 w-5 text-accent" />
-                </div>
-                <span className="font-medium text-sm">Travaux</span>
-              </CardContent>
-            </Card>
-          </Link>
+          <StatCard icon={ShoppingCart} label="Ventes" value={ventes.filter(v => v.statut === 'validee').length} variant="success" />
+          <StatCard icon={UserCheck} label="Clients" value={clients.length} variant="primary" />
+          <StatCard icon={FolderKanban} label="Projets actifs" value={projects.filter(p => p.statut === 'en_cours').length} />
+          <StatCard icon={Boxes} label="Stock critique" value={materials.filter(m => m.stockQuantite <= m.stockMinimum).length} variant="warning" />
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { to: '/clients', icon: Users, label: 'Clients', color: 'primary' },
+            { to: '/ventes', icon: ShoppingCart, label: 'Ventes', color: 'success' },
+            { to: '/stock', icon: Boxes, label: 'Stock', color: 'warning' },
+            { to: '/projets', icon: FolderKanban, label: 'Projets', color: 'accent' },
+            { to: '/rapports', icon: TrendingUp, label: 'Rapports', color: 'primary' },
+            { to: '/interventions', icon: Wrench, label: 'Travaux', color: 'accent' },
+          ].map(item => (
+            <Link key={item.to} to={item.to}>
+              <Card className="transition-smooth hover:shadow-md hover:border-primary/30">
+                <CardContent className="p-3 flex flex-col items-center gap-2">
+                  <div className={`p-2 rounded-lg bg-${item.color}/10`}>
+                    <item.icon className={`h-5 w-5 text-${item.color}`} />
+                  </div>
+                  <span className="font-medium text-xs">{item.label}</span>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
         </div>
       </main>
     </div>

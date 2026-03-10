@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Truck, UserCheck, Menu, FileText, Package, Wallet, CalendarDays, Receipt, Wrench, X, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, UserCheck, ShoppingCart, Menu, FileText, Package, Wallet, CalendarDays, Receipt, Wrench, Settings, FolderKanban, BarChart3, Truck, Boxes } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Sheet,
@@ -11,17 +11,22 @@ import {
 
 const mainNavItems = [
   { to: '/', icon: LayoutDashboard, label: 'Tableau' },
-  { to: '/prospects', icon: Users, label: 'Clients' },
-  { to: '/fournisseurs', icon: Truck, label: 'Fournisseurs' },
-  { to: '/employes', icon: UserCheck, label: 'Employés' },
+  { to: '/clients', icon: UserCheck, label: 'Clients' },
+  { to: '/ventes', icon: ShoppingCart, label: 'Ventes' },
+  { to: '/stock', icon: Boxes, label: 'Stock' },
 ];
 
 const menuItems = [
+  { to: '/prospects', icon: Users, label: 'Prospects' },
   { to: '/devis', icon: FileText, label: 'Devis' },
   { to: '/factures', icon: Receipt, label: 'Factures' },
+  { to: '/fournisseurs', icon: Truck, label: 'Fournisseurs' },
   { to: '/interventions', icon: Wrench, label: 'Interventions' },
+  { to: '/projets', icon: FolderKanban, label: 'Projets' },
   { to: '/materiels', icon: Package, label: 'Matériels' },
   { to: '/finances', icon: Wallet, label: 'Finances' },
+  { to: '/rapports', icon: BarChart3, label: 'Rapports' },
+  { to: '/employes', icon: Users, label: 'Employés' },
   { to: '/calendrier', icon: CalendarDays, label: 'Calendrier' },
   { to: '/parametres', icon: Settings, label: 'Paramètres' },
 ];
@@ -54,7 +59,6 @@ export function BottomNav() {
               <span className="text-xs font-medium">{label}</span>
             </Link>
           ))}
-          {/* Hamburger menu button */}
           <button
             onClick={() => setMenuOpen(true)}
             className={cn(
@@ -70,7 +74,6 @@ export function BottomNav() {
         </div>
       </nav>
 
-      {/* Menu Sheet */}
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
         <SheetContent side="bottom" className="rounded-t-xl pb-8">
           <SheetHeader className="mb-4">
