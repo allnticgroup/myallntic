@@ -99,6 +99,32 @@ export default function Ventes() {
     }
   };
 
+  const hasInvoice = (venteId: string) => invoices.some(i => i.venteId === venteId);
+
+  const handleGenerateInvoice = (vente: Vente) => {
+    if (hasInvoice(vente.id)) {
+      toast.info('Une facture existe déjà pour cette vente');
+      navigate('/factures');
+      return;
+    }
+    const today = new Date();
+    addInvoice({
+      numero: generateInvoiceNumber(),
+      devisId: '',
+      prospectId: '',
+      venteId: vente.id,
+      clientId: vente.clientId,
+      source: 'vente',
+      montantHT: vente.total,
+      montantTTC: vente.total,
+      dateEmission: today.toISOString(),
+      dateEcheance: addDays(today, 30).toISOString(),
+      statut: 'draft',
+    });
+    toast.success(`Facture générée pour la vente ${vente.code}`);
+    navigate('/factures');
+  };
+
   return (
     <div className="min-h-screen pb-20">
       <PageHeader title="Ventes" subtitle={`${ventes.length} vente${ventes.length > 1 ? 's' : ''}`}
