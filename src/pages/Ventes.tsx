@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Plus, Search, ShoppingCart, Trash2, CheckCircle2, XCircle } from 'lucide-react';
-import { format } from 'date-fns';
+import { Plus, Search, ShoppingCart, Trash2, CheckCircle2, XCircle, FileText } from 'lucide-react';
+import { format, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
@@ -13,8 +13,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useClients, useVentes, useStockMovements } from '@/hooks/useErpData';
-import { useMaterials } from '@/hooks/useData';
+import { useMaterials, useInvoices } from '@/hooks/useData';
 import { Vente, VenteStatus, VENTE_STATUS_LABELS } from '@/types/erp';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 export default function Ventes() {
