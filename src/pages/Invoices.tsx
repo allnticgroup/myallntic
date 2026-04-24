@@ -256,14 +256,17 @@ export default function Invoices() {
         ) : (
           <div className="space-y-3">
             {filteredInvoices.map((invoice) => {
-              const prospect = getProspect(invoice.prospectId);
+              const clientName = getInvoiceClientName(invoice);
               return (
                 <Card key={invoice.id}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <p className="font-semibold">{invoice.numero}</p>
-                        <p className="text-sm text-muted-foreground">{prospect?.nomStructure || 'Client inconnu'}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {clientName || 'Client inconnu'}
+                          {invoice.source === 'vente' && <span className="ml-1 text-xs">(Vente)</span>}
+                        </p>
                       </div>
                       <Badge variant={getStatusVariant(invoice.statut)} className="flex items-center gap-1">
                         {getStatusIcon(invoice.statut)}
