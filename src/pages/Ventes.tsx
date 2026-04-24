@@ -176,9 +176,20 @@ export default function Ventes() {
                             </Button>
                           )}
                           {vente.statut === 'validee' && (
-                            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => handleCancel(vente)}>
-                              <XCircle className="h-3 w-3 mr-1" />Annuler
-                            </Button>
+                            <>
+                              {hasInvoice(vente.id) ? (
+                                <Badge variant="secondary" className="h-7 text-xs px-2 flex items-center">
+                                  <FileText className="h-3 w-3 mr-1" />Facturée
+                                </Badge>
+                              ) : (
+                                <Button size="sm" variant="default" className="h-7 text-xs" onClick={() => handleGenerateInvoice(vente)}>
+                                  <FileText className="h-3 w-3 mr-1" />Facture
+                                </Button>
+                              )}
+                              <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => handleCancel(vente)}>
+                                <XCircle className="h-3 w-3 mr-1" />Annuler
+                              </Button>
+                            </>
                           )}
                           {vente.statut !== 'validee' && (
                             <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => setDeletingVente(vente)}>
