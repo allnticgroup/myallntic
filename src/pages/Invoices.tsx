@@ -27,6 +27,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useInvoices, useProspects, useDevis } from '@/hooks/useData';
+import { useClients } from '@/hooks/useErpData';
 import { Invoice, InvoiceStatus, INVOICE_STATUS_LABELS } from '@/types';
 import { generateInvoiceDocx } from '@/lib/generateInvoiceDocx';
 import { generateInvoicePdf } from '@/lib/generateInvoicePdf';
@@ -42,6 +43,14 @@ export default function Invoices() {
   const { invoices, addInvoice, updateInvoice, deleteInvoice, generateInvoiceNumber } = useInvoices();
   const { prospects, getProspect } = useProspects();
   const { devisList } = useDevis();
+  const { getClient } = useClients();
+
+  const getInvoiceClientName = (invoice: Invoice) => {
+    if (invoice.source === 'vente' && invoice.clientId) {
+      return getClient(invoice.clientId)?.nom;
+    }
+    return getProspect(invoice.prospectId)?.nomStructure;
+  };
   
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<InvoiceStatus | 'all'>('all');
@@ -73,16 +82,16 @@ export default function Invoices() {
   const filteredInvoices = useMemo(() => {
     return invoices
       .filter((invoice) => {
-        const prospect = getProspect(invoice.prospectId);
+        const clientName = getInvoiceClientName(invoice) || '';
         const matchesSearch =
           searchQuery === '' ||
           invoice.numero.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          prospect?.nomStructure.toLowerCase().includes(searchQuery.toLowerCase());
+          clientName.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesStatus = statusFilter === 'all' || invoice.statut === statusFilter;
         return matchesSearch && matchesStatus;
       })
       .sort((a, b) => new Date(b.dateEmission).getTime() - new Date(a.dateEmission).getTime());
-  }, [invoices, searchQuery, statusFilter, getProspect]);
+  }, [invoices, searchQuery, statusFilter, getProspect, getClient]);
 
   // Stats
   const stats = useMemo(() => {
@@ -115,6 +124,10 @@ export default function Invoices() {
   };
 
   const handleDownloadDocx = async (invoice: Invoice) => {
+    if (invoice.source === 'vente') {
+      toast.info('Téléchargement Word indisponible pour les factures issues de ventes');
+      return;
+    }
     const prospect = getProspect(invoice.prospectId);
     const devis = devisList.find((d) => d.id === invoice.devisId);
     if (!prospect) { toast.error('Client introuvable'); return; }
@@ -123,6 +136,10 @@ export default function Invoices() {
   };
 
   const handleDownloadPdf = async (invoice: Invoice) => {
+    if (invoice.source === 'vente') {
+      toast.info('Téléchargement PDF indisponible pour les factures issues de ventes');
+      return;
+    }
     const prospect = getProspect(invoice.prospectId);
     const devis = devisList.find((d) => d.id === invoice.devisId);
     if (!prospect) { toast.error('Client introuvable'); return; }
@@ -247,14 +264,17 @@ export default function Invoices() {
         ) : (
           <div className="space-y-3">
             {filteredInvoices.map((invoice) => {
-              const prospect = getProspect(invoice.prospectId);
+              const clientName = getInvoiceClientName(invoice);
               return (
                 <Card key={invoice.id}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <p className="font-semibold">{invoice.numero}</p>
-                        <p className="text-sm text-muted-foreground">{prospect?.nomStructure || 'Client inconnu'}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {clientName || 'Client inconnu'}
+                          {invoice.source === 'vente' && <span className="ml-1 text-xs">(Vente)</span>}
+                        </p>
                       </div>
                       <Badge variant={getStatusVariant(invoice.statut)} className="flex items-center gap-1">
                         {getStatusIcon(invoice.statut)}

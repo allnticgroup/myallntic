@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Plus, Search, ShoppingCart, Trash2, CheckCircle2, XCircle } from 'lucide-react';
-import { format } from 'date-fns';
+import { Plus, Search, ShoppingCart, Trash2, CheckCircle2, XCircle, FileText } from 'lucide-react';
+import { format, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
@@ -13,15 +13,18 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useClients, useVentes, useStockMovements } from '@/hooks/useErpData';
-import { useMaterials } from '@/hooks/useData';
+import { useMaterials, useInvoices } from '@/hooks/useData';
 import { Vente, VenteStatus, VENTE_STATUS_LABELS } from '@/types/erp';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 export default function Ventes() {
+  const navigate = useNavigate();
   const { clients, getClient } = useClients();
   const { ventes, addVente, updateVente, deleteVente } = useVentes();
   const { materials, updateMaterial } = useMaterials();
   const { addMovement } = useStockMovements();
+  const { invoices, addInvoice, generateInvoiceNumber } = useInvoices();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<VenteStatus | 'all'>('all');
   const [showForm, setShowForm] = useState(false);
@@ -96,6 +99,32 @@ export default function Ventes() {
     }
   };
 
+  const hasInvoice = (venteId: string) => invoices.some(i => i.venteId === venteId);
+
+  const handleGenerateInvoice = (vente: Vente) => {
+    if (hasInvoice(vente.id)) {
+      toast.info('Une facture existe déjà pour cette vente');
+      navigate('/factures');
+      return;
+    }
+    const today = new Date();
+    addInvoice({
+      numero: generateInvoiceNumber(),
+      devisId: '',
+      prospectId: '',
+      venteId: vente.id,
+      clientId: vente.clientId,
+      source: 'vente',
+      montantHT: vente.total,
+      montantTTC: vente.total,
+      dateEmission: today.toISOString(),
+      dateEcheance: addDays(today, 30).toISOString(),
+      statut: 'draft',
+    });
+    toast.success(`Facture générée pour la vente ${vente.code}`);
+    navigate('/factures');
+  };
+
   return (
     <div className="min-h-screen pb-20">
       <PageHeader title="Ventes" subtitle={`${ventes.length} vente${ventes.length > 1 ? 's' : ''}`}
@@ -147,9 +176,20 @@ export default function Ventes() {
                             </Button>
                           )}
                           {vente.statut === 'validee' && (
-                            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => handleCancel(vente)}>
-                              <XCircle className="h-3 w-3 mr-1" />Annuler
-                            </Button>
+                            <>
+                              {hasInvoice(vente.id) ? (
+                                <Badge variant="secondary" className="h-7 text-xs px-2 flex items-center">
+                                  <FileText className="h-3 w-3 mr-1" />Facturée
+                                </Badge>
+                              ) : (
+                                <Button size="sm" variant="default" className="h-7 text-xs" onClick={() => handleGenerateInvoice(vente)}>
+                                  <FileText className="h-3 w-3 mr-1" />Facture
+                                </Button>
+                              )}
+                              <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => handleCancel(vente)}>
+                                <XCircle className="h-3 w-3 mr-1" />Annuler
+                              </Button>
+                            </>
                           )}
                           {vente.statut !== 'validee' && (
                             <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => setDeletingVente(vente)}>

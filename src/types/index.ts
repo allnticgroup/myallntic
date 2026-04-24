@@ -176,11 +176,16 @@ export interface Expense {
   updatedAt: string;
 }
 
+export type InvoiceSource = 'devis' | 'vente';
+
 export interface Invoice {
   id: string;
   numero: string;
-  devisId: string;
-  prospectId: string;
+  devisId: string; // empty string when source = 'vente'
+  prospectId: string; // empty string when source = 'vente'
+  venteId?: string;
+  clientId?: string;
+  source?: InvoiceSource;
   montantHT: number;
   montantTTC: number;
   dateEmission: string;
