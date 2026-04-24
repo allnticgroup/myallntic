@@ -82,16 +82,16 @@ export default function Invoices() {
   const filteredInvoices = useMemo(() => {
     return invoices
       .filter((invoice) => {
-        const prospect = getProspect(invoice.prospectId);
+        const clientName = getInvoiceClientName(invoice) || '';
         const matchesSearch =
           searchQuery === '' ||
           invoice.numero.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          prospect?.nomStructure.toLowerCase().includes(searchQuery.toLowerCase());
+          clientName.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesStatus = statusFilter === 'all' || invoice.statut === statusFilter;
         return matchesSearch && matchesStatus;
       })
       .sort((a, b) => new Date(b.dateEmission).getTime() - new Date(a.dateEmission).getTime());
-  }, [invoices, searchQuery, statusFilter, getProspect]);
+  }, [invoices, searchQuery, statusFilter, getProspect, getClient]);
 
   // Stats
   const stats = useMemo(() => {
