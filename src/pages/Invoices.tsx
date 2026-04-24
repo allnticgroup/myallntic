@@ -27,6 +27,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useInvoices, useProspects, useDevis } from '@/hooks/useData';
+import { useClients } from '@/hooks/useErpData';
 import { Invoice, InvoiceStatus, INVOICE_STATUS_LABELS } from '@/types';
 import { generateInvoiceDocx } from '@/lib/generateInvoiceDocx';
 import { generateInvoicePdf } from '@/lib/generateInvoicePdf';
