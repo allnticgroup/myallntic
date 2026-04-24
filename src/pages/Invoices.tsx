@@ -43,6 +43,14 @@ export default function Invoices() {
   const { invoices, addInvoice, updateInvoice, deleteInvoice, generateInvoiceNumber } = useInvoices();
   const { prospects, getProspect } = useProspects();
   const { devisList } = useDevis();
+  const { getClient } = useClients();
+
+  const getInvoiceClientName = (invoice: Invoice) => {
+    if (invoice.source === 'vente' && invoice.clientId) {
+      return getClient(invoice.clientId)?.nom;
+    }
+    return getProspect(invoice.prospectId)?.nomStructure;
+  };
   
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<InvoiceStatus | 'all'>('all');
