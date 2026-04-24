@@ -124,6 +124,10 @@ export default function Invoices() {
   };
 
   const handleDownloadDocx = async (invoice: Invoice) => {
+    if (invoice.source === 'vente') {
+      toast.info('Téléchargement Word indisponible pour les factures issues de ventes');
+      return;
+    }
     const prospect = getProspect(invoice.prospectId);
     const devis = devisList.find((d) => d.id === invoice.devisId);
     if (!prospect) { toast.error('Client introuvable'); return; }
@@ -132,6 +136,10 @@ export default function Invoices() {
   };
 
   const handleDownloadPdf = async (invoice: Invoice) => {
+    if (invoice.source === 'vente') {
+      toast.info('Téléchargement PDF indisponible pour les factures issues de ventes');
+      return;
+    }
     const prospect = getProspect(invoice.prospectId);
     const devis = devisList.find((d) => d.id === invoice.devisId);
     if (!prospect) { toast.error('Client introuvable'); return; }
