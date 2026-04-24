@@ -19,10 +19,12 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 export default function Ventes() {
+  const navigate = useNavigate();
   const { clients, getClient } = useClients();
   const { ventes, addVente, updateVente, deleteVente } = useVentes();
   const { materials, updateMaterial } = useMaterials();
   const { addMovement } = useStockMovements();
+  const { invoices, addInvoice, generateInvoiceNumber } = useInvoices();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<VenteStatus | 'all'>('all');
   const [showForm, setShowForm] = useState(false);
