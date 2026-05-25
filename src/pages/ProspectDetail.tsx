@@ -457,6 +457,22 @@ export default function ProspectDetail() {
           </div>
         </SheetContent>
       </Sheet>
+
+      <AlertDialog open={showConvert} onOpenChange={setShowConvert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Convertir en client ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Un nouveau client sera créé à partir de "{prospect.nomStructure}". Le prospect sera conservé pour l'historique commercial.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConvertToClient}>Convertir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+
