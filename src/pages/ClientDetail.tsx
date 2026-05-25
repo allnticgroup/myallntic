@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Phone, Mail, MapPin, Edit, Trash2, ShoppingCart } from 'lucide-react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Phone, Mail, MapPin, Edit, Trash2, ShoppingCart, Target } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
@@ -11,19 +11,24 @@ import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useClients, useVentes } from '@/hooks/useErpData';
+import { useProspects } from '@/hooks/useData';
+import { useProspectClientSync } from '@/hooks/useProspectClientSync';
 import { VENTE_STATUS_LABELS } from '@/types/erp';
 import { toast } from 'sonner';
 
 export default function ClientDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getClient, updateClient, deleteClient } = useClients();
+  const { getClient, deleteClient } = useClients();
   const { getVentesForClient } = useVentes();
+  const { prospects } = useProspects();
+  const { syncedUpdateClient, unlinkProspectFromClient } = useProspectClientSync();
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
 
   const client = id ? getClient(id) : undefined;
   const ventes = id ? getVentesForClient(id) : [];
+  const linkedProspect = client?.prospectId ? prospects.find(p => p.id === client.prospectId) : undefined;
 
   if (!client) {
     return (
@@ -50,6 +55,19 @@ export default function ClientDetail() {
         }
       />
       <main className="p-4 space-y-4 max-w-lg mx-auto">
+        {linkedProspect && (
+          <Link to={`/prospects/${linkedProspect.id}`}>
+            <Card className="bg-primary/5 border-primary/20 hover:bg-primary/10 transition-smooth">
+              <CardContent className="p-3 flex items-center gap-3">
+                <Target className="h-4 w-4 text-primary" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-muted-foreground">Prospect d'origine (synchronisé)</p>
+                  <p className="text-sm font-medium truncate">{linkedProspect.nomStructure}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        )}
         <Card>
           <CardContent className="p-4 space-y-3">
             {client.telephone && (
@@ -113,7 +131,7 @@ export default function ClientDetail() {
         <SheetContent side="bottom" className="h-[90vh] rounded-t-xl">
           <SheetHeader className="mb-4"><SheetTitle>Modifier le client</SheetTitle></SheetHeader>
           <div className="overflow-y-auto max-h-[calc(90vh-100px)]">
-            <ClientForm client={client} onSubmit={(data) => { updateClient(client.id, data); setShowEdit(false); toast.success('Client modifié'); }} onCancel={() => setShowEdit(false)} />
+            <ClientForm client={client} onSubmit={(data) => { syncedUpdateClient(client.id, data); setShowEdit(false); toast.success('Client modifié'); }} onCancel={() => setShowEdit(false)} />
           </div>
         </SheetContent>
       </Sheet>
@@ -135,7 +153,7 @@ export default function ClientDetail() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={() => { deleteClient(client.id); navigate('/clients'); toast.success('Client supprimé'); }} className="bg-destructive text-destructive-foreground">Supprimer</AlertDialogAction>
+            <AlertDialogAction onClick={() => { unlinkProspectFromClient(client.id); deleteClient(client.id); navigate('/clients'); toast.success('Client supprimé'); }} className="bg-destructive text-destructive-foreground">Supprimer</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

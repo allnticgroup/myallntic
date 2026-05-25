@@ -27,6 +27,7 @@ export interface Prospect {
   besoinPrincipal: BesoinType;
   statut: ProspectStatus;
   notes: string;
+  clientId?: string; // lien vers le client lié (après conversion)
   createdAt: string;
   updatedAt: string;
 }

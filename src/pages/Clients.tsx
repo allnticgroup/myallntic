@@ -11,12 +11,14 @@ import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useClients, useVentes } from '@/hooks/useErpData';
+import { useProspectClientSync } from '@/hooks/useProspectClientSync';
 import { Client } from '@/types/erp';
 import { Users } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Clients() {
-  const { clients, addClient, updateClient, deleteClient } = useClients();
+  const { clients, addClient, deleteClient } = useClients();
+  const { syncedUpdateClient, unlinkProspectFromClient } = useProspectClientSync();
   const { getVentesForClient } = useVentes();
   const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -36,7 +38,7 @@ export default function Clients() {
 
   const handleUpdate = (data: Parameters<typeof addClient>[0]) => {
     if (editingClient) {
-      updateClient(editingClient.id, data);
+      syncedUpdateClient(editingClient.id, data);
       setEditingClient(null);
       toast.success('Client modifié');
     }
@@ -44,6 +46,7 @@ export default function Clients() {
 
   const handleDelete = () => {
     if (deletingClient) {
+      unlinkProspectFromClient(deletingClient.id);
       deleteClient(deletingClient.id);
       setDeletingClient(null);
       toast.success('Client supprimé');
