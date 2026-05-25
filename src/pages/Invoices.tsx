@@ -26,11 +26,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useInvoices, useProspects, useDevis } from '@/hooks/useData';
-import { useClients } from '@/hooks/useErpData';
-import { Invoice, InvoiceStatus, INVOICE_STATUS_LABELS } from '@/types';
+import { useInvoices, useProspects, useDevis, useMaterials } from '@/hooks/useData';
+import { useClients, useVentes } from '@/hooks/useErpData';
+import { Invoice, InvoiceStatus, INVOICE_STATUS_LABELS, Prospect, Devis, DevisLigne } from '@/types';
 import { generateInvoiceDocx } from '@/lib/generateInvoiceDocx';
 import { generateInvoicePdf } from '@/lib/generateInvoicePdf';
+import { getCompanySettings } from '@/lib/companySettings';
 import {
   DropdownMenu,
   DropdownMenuContent,
