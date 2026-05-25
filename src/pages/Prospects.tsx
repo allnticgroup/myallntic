@@ -24,12 +24,14 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useProspects, useDevis } from '@/hooks/useData';
+import { useClients } from '@/hooks/useErpData';
 import { Prospect, ProspectStatus } from '@/types';
 import { exportProspectsToCsv } from '@/lib/export';
 import { toast } from 'sonner';
 
 export default function Prospects() {
   const { prospects, addProspect, updateProspect, deleteProspect } = useProspects();
+  const { updateClient } = useClients();
   const { devisList, deleteDevis } = useDevis();
   const [statusFilter, setStatusFilter] = useState<ProspectStatus | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -45,7 +47,11 @@ export default function Prospects() {
   });
 
   const handleAddProspect = (data: Parameters<typeof addProspect>[0]) => {
-    addProspect(data);
+    const created = addProspect(data);
+    // Lien bidirectionnel si pré-rempli depuis un client
+    if (data.clientId) {
+      updateClient(data.clientId, { prospectId: created.id });
+    }
     setShowForm(false);
     toast.success('Prospect créé avec succès');
   };

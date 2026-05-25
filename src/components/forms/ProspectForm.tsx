@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,6 +20,7 @@ import {
   STRUCTURE_LABELS,
   BESOIN_LABELS,
 } from '@/types';
+import { useClients } from '@/hooks/useErpData';
 
 interface ProspectFormProps {
   prospect?: Prospect;
@@ -27,6 +29,7 @@ interface ProspectFormProps {
 }
 
 export function ProspectForm({ prospect, onSubmit, onCancel }: ProspectFormProps) {
+  const { clients } = useClients();
   const [formData, setFormData] = useState({
     nomStructure: prospect?.nomStructure || '',
     nomDecideur: prospect?.nomDecideur || '',
@@ -35,7 +38,20 @@ export function ProspectForm({ prospect, onSubmit, onCancel }: ProspectFormProps
     besoinPrincipal: prospect?.besoinPrincipal || ('Reseau' as BesoinType),
     statut: prospect?.statut || ('prospect' as ProspectStatus),
     notes: prospect?.notes || '',
+    clientId: prospect?.clientId,
   });
+
+  const handlePickClient = (clientId: string) => {
+    const c = clients.find((x) => x.id === clientId);
+    if (!c) return;
+    setFormData((prev) => ({
+      ...prev,
+      nomStructure: c.nom,
+      telephone: c.telephone || prev.telephone,
+      notes: c.notes || prev.notes,
+      clientId: c.id,
+    }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +60,27 @@ export function ProspectForm({ prospect, onSubmit, onCancel }: ProspectFormProps
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {!prospect && clients.length > 0 && (
+        <div className="space-y-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
+          <Label className="flex items-center gap-2 text-sm">
+            <UserPlus className="h-4 w-4 text-primary" />
+            Pré-remplir depuis un client existant
+          </Label>
+          <Select value={formData.clientId || ''} onValueChange={handlePickClient}>
+            <SelectTrigger>
+              <SelectValue placeholder="Sélectionner un client..." />
+            </SelectTrigger>
+            <SelectContent>
+              {clients.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.code} — {c.nom}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       <div className="space-y-2">
         <Label htmlFor="nomStructure">Nom de la structure *</Label>
         <Input
