@@ -49,6 +49,7 @@ import {
 } from '@/components/ui/select';
 import { useProspects, useDevis, useInterventions, useMaterials } from '@/hooks/useData';
 import { useClients } from '@/hooks/useErpData';
+import { useProspectClientSync } from '@/hooks/useProspectClientSync';
 import {
   ProspectStatus,
   DevisStatus,
@@ -76,7 +77,12 @@ export default function ProspectDetail() {
     deleteIntervention,
   } = useInterventions();
   const { deductStockForDevis, restoreStockForDevis } = useMaterials();
-  const { clients, addClient } = useClients();
+  const { clients } = useClients();
+  const {
+    convertProspectToClient,
+    syncedUpdateProspect,
+    unlinkClientFromProspect,
+  } = useProspectClientSync();
 
   const [showForm, setShowForm] = useState<FormType>(null);
   const [showConvert, setShowConvert] = useState(false);
@@ -86,7 +92,8 @@ export default function ProspectDetail() {
   const interventions = id ? getInterventionsForProspect(id) : [];
 
   const existingClient = prospect
-    ? clients.find(c => c.nom.trim().toLowerCase() === prospect.nomStructure.trim().toLowerCase())
+    ? clients.find(c => c.id === prospect.clientId) ||
+      clients.find(c => c.nom.trim().toLowerCase() === prospect.nomStructure.trim().toLowerCase())
     : undefined;
 
   if (!prospect) {
