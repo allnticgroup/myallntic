@@ -262,11 +262,53 @@ export default function Settings() {
               </CardContent>
             </Card>
 
+            {/* Modes de paiement */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Modes de paiement (factures)</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-xs text-muted-foreground">
+                  Les liens Wave et Orange Money seront convertis en QR codes sur vos factures PDF.
+                  Utilisez <code>{'{amount}'}</code> dans le lien pour insérer automatiquement le montant.
+                </p>
+                <div className="space-y-2">
+                  <Label htmlFor="waveLink">Lien Wave (marchand)</Label>
+                  <Input
+                    id="waveLink"
+                    value={waveLink}
+                    onChange={(e) => setWaveLink(e.target.value)}
+                    placeholder="https://pay.wave.com/m/XXXX/c/xof/?amount={amount}"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="orangeMoneyLink">Lien / Code Orange Money</Label>
+                  <Input
+                    id="orangeMoneyLink"
+                    value={orangeMoneyLink}
+                    onChange={(e) => setOrangeMoneyLink(e.target.value)}
+                    placeholder="#144*82*CODE*{amount}#  ou  https://..."
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="banqueNom">Banque</Label>
+                    <Input id="banqueNom" value={banqueNom} onChange={(e) => setBanqueNom(e.target.value)} placeholder="Ex: SGBCI" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="ibanBancaire">IBAN / RIB</Label>
+                    <Input id="ibanBancaire" value={ibanBancaire} onChange={(e) => setIbanBancaire(e.target.value)} placeholder="CI93 CI00 ..." />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <Button onClick={handleSave} className="w-full">
               <Save className="h-4 w-4 mr-2" />
               Sauvegarder les paramètres
             </Button>
           </TabsContent>
+
 
           <TabsContent value="historique" className="space-y-4 mt-4">
             {/* Filters */}
