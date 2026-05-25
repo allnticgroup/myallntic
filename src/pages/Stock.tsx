@@ -73,10 +73,42 @@ export default function Stock() {
     return <RotateCcw className="h-4 w-4 text-primary" />;
   };
 
+  const stockValue = useMemo(
+    () => materials.reduce((sum, m) => sum + (m.prixVente || 0) * m.stockQuantite, 0),
+    [materials]
+  );
+
+  const handleExportCsv = () => {
+    const headers = ['Reference', 'Nom', 'Categorie', 'Stock', 'Minimum', 'PrixVente', 'ValeurStock'];
+    const rows = materials.map((m) => [
+      m.reference,
+      `"${m.nom.replace(/"/g, '""')}"`,
+      MATERIAL_CATEGORY_LABELS[m.categorie],
+      m.stockQuantite,
+      m.stockMinimum,
+      m.prixVente || 0,
+      (m.prixVente || 0) * m.stockQuantite,
+    ].join(','));
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `inventaire-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Inventaire exporté');
+  };
+
   return (
     <div className="min-h-screen pb-20">
       <PageHeader title="Stock" subtitle={`${materials.length} produit${materials.length > 1 ? 's' : ''}`}
-        action={<Button size="sm" onClick={() => setShowMovementForm(true)}><Plus className="h-4 w-4 mr-1" />Mouvement</Button>}
+        action={
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={handleExportCsv}><Download className="h-4 w-4 mr-1" />CSV</Button>
+            <Button size="sm" onClick={() => setShowMovementForm(true)}><Plus className="h-4 w-4 mr-1" />Mouvement</Button>
+          </div>
+        }
       />
       <main className="p-4 space-y-4 max-w-lg mx-auto">
         {criticalStock.length > 0 && (
