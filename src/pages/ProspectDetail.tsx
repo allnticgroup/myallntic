@@ -150,6 +150,15 @@ export default function ProspectDetail() {
         showBack
         action={
           <div className="flex gap-2">
+            {existingClient ? (
+              <Button variant="ghost" size="icon" onClick={() => navigate(`/clients/${existingClient.id}`)} title="Voir le client lié">
+                <UserCheck className="h-4 w-4 text-success" />
+              </Button>
+            ) : (
+              <Button variant="ghost" size="icon" onClick={() => setShowConvert(true)} title="Convertir en client">
+                <UserCheck className="h-4 w-4" />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"
