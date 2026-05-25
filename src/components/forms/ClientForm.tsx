@@ -48,7 +48,17 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
 
   const contactsSupported = typeof navigator !== 'undefined' && 'contacts' in navigator && 'ContactsManager' in window;
 
+  const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
+
   const handlePickContact = async () => {
+    if (isInIframe) {
+      toast({
+        title: 'Ouvrir le site directement',
+        description: "L'accès aux contacts ne fonctionne pas dans l'aperçu. Ouvre l'app publiée sur ton téléphone (Chrome Android) pour utiliser cette fonction.",
+        variant: 'destructive',
+      });
+      return;
+    }
     try {
       const nav = navigator as any;
       if (!nav.contacts?.select) {
