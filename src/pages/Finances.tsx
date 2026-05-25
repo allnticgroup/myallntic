@@ -437,9 +437,112 @@ export default function Finances() {
             )}
           </TabsContent>
 
+          {/* Relances Tab */}
+          <TabsContent value="relances" className="space-y-4 mt-4">
+            {relances.length === 0 ? (
+              <Card>
+                <CardContent className="p-6 text-center text-muted-foreground">
+                  <Bell className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                  <p>Aucune facture à relancer</p>
+                  <p className="text-xs mt-1">Toutes les factures envoyées sont à jour</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                <Card className="bg-primary/5 border-primary/20">
+                  <CardContent className="p-3">
+                    <div className="flex items-center gap-2">
+                      <Bell className="h-4 w-4 text-primary" />
+                      <p className="text-sm font-medium">
+                        {relances.length} facture(s) à suivre - {relances.reduce((s, r) => s + r.invoice.montantTTC, 0).toLocaleString('fr-FR')} FCFA
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="space-y-3">
+                  {relances.map(({ invoice, prospect, joursRetard }) => (
+                    <Card key={invoice.id} className={joursRetard > 0 ? 'border-destructive/30' : ''}>
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{prospect?.nomStructure || 'Client inconnu'}</p>
+                            <p className="text-xs text-muted-foreground">{invoice.numero}</p>
+                            <p className="text-lg font-bold mt-1">{invoice.montantTTC.toLocaleString('fr-FR')} FCFA</p>
+                          </div>
+                          <div className="text-right">
+                            {joursRetard > 0 ? (
+                              <Badge variant="destructive" className="mb-1">
+                                +{joursRetard}j
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="mb-1">
+                                J{joursRetard}
+                              </Badge>
+                            )}
+                            <p className="text-xs text-muted-foreground">
+                              {format(new Date(invoice.dateEcheance), 'dd/MM/yy', { locale: fr })}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 flex-wrap">
+                          {prospect?.telephone && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() =>
+                                handleRelanceWhatsApp(
+                                  prospect.nomStructure,
+                                  invoice.numero,
+                                  invoice.montantTTC,
+                                  joursRetard,
+                                  prospect.telephone,
+                                )
+                              }
+                            >
+                              <Phone className="h-4 w-4 mr-1" /> WhatsApp
+                            </Button>
+                          )}
+                          {prospect && (prospect as any).email && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() =>
+                                handleRelanceEmail(
+                                  prospect.nomStructure,
+                                  invoice.numero,
+                                  invoice.montantTTC,
+                                  joursRetard,
+                                  (prospect as any).email,
+                                )
+                              }
+                            >
+                              <Mail className="h-4 w-4 mr-1" /> Email
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              updateInvoice(invoice.id, { statut: 'paid' });
+                              toast.success('Facture marquée payée');
+                            }}
+                          >
+                            Payée
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </>
+            )}
+          </TabsContent>
+
           {/* Expenses Tab */}
-          <TabsContent value="expenses" className="space-y-4 mt-4">
-            <Button onClick={() => { setEditingExpense(undefined); setShowExpenseForm(true); }} className="w-full">
+
               <Plus className="h-4 w-4 mr-2" /> Ajouter une dépense
             </Button>
 
