@@ -47,8 +47,13 @@ export default function Settings() {
   const [tauxTVA, setTauxTVA] = useState(settings.tauxTVA);
   const [services, setServices] = useState(settings.services);
   const [logo, setLogo] = useState(settings.logo);
+  const [waveLink, setWaveLink] = useState(settings.waveLink || '');
+  const [orangeMoneyLink, setOrangeMoneyLink] = useState(settings.orangeMoneyLink || '');
+  const [ibanBancaire, setIbanBancaire] = useState(settings.ibanBancaire || '');
+  const [banqueNom, setBanqueNom] = useState(settings.banqueNom || '');
   const [newService, setNewService] = useState('');
   const [clearConfirm, setClearConfirm] = useState(false);
+
 
   // Audit log filters
   const [auditSearch, setAuditSearch] = useState('');
