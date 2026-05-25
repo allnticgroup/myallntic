@@ -23,6 +23,7 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
   const { prospects } = useProspects();
   const [formData, setFormData] = useState({
     nom: client?.nom || '',
+    nomDecideur: client?.nomDecideur || '',
     telephone: client?.telephone || '',
     email: client?.email || '',
     adresse: client?.adresse || '',
@@ -37,6 +38,7 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
     setFormData((prev) => ({
       ...prev,
       nom: p.nomStructure,
+      nomDecideur: p.nomDecideur || prev.nomDecideur,
       telephone: p.telephone || prev.telephone,
       notes: p.notes || prev.notes,
       prospectId: p.id,
@@ -100,8 +102,12 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
         </Alert>
       )}
       <div className="space-y-2">
-        <Label htmlFor="nom">Nom du client *</Label>
-        <Input id="nom" value={formData.nom} onChange={(e) => setFormData({ ...formData, nom: e.target.value })} placeholder="Ex: Entreprise ABC" required />
+        <Label htmlFor="nom">Nom de la structure *</Label>
+        <Input id="nom" value={formData.nom} maxLength={120} onChange={(e) => setFormData({ ...formData, nom: e.target.value })} placeholder="Ex: Société ABC" required />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="nomDecideur">Nom du décideur *</Label>
+        <Input id="nomDecideur" value={formData.nomDecideur} maxLength={120} onChange={(e) => setFormData({ ...formData, nomDecideur: e.target.value })} placeholder="Ex: M. Kouassi" required />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">

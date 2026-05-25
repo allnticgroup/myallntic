@@ -32,11 +32,12 @@ export function useProspectClientSync() {
     // Création
     const newClient = addClient({
       nom: prospect.nomStructure,
+      nomDecideur: prospect.nomDecideur || '',
       telephone: prospect.telephone,
       email: '',
       adresse: '',
       ville: '',
-      notes: `Converti depuis le prospect (${prospect.nomDecideur || 'N/A'})\n${prospect.notes || ''}`.trim(),
+      notes: prospect.notes || '',
       prospectId: prospect.id,
     });
     updateProspect(prospect.id, { clientId: newClient.id });
@@ -51,6 +52,7 @@ export function useProspectClientSync() {
     if (!clientId) return;
     const clientUpdates: Partial<Client> = {};
     if (updates.nomStructure !== undefined) clientUpdates.nom = updates.nomStructure;
+    if (updates.nomDecideur !== undefined) clientUpdates.nomDecideur = updates.nomDecideur;
     if (updates.telephone !== undefined) clientUpdates.telephone = updates.telephone;
     if (updates.notes !== undefined) clientUpdates.notes = updates.notes;
     if (Object.keys(clientUpdates).length > 0) updateClient(clientId, clientUpdates);
@@ -64,6 +66,7 @@ export function useProspectClientSync() {
     if (!prospectId) return;
     const prospectUpdates: Partial<Prospect> = {};
     if (updates.nom !== undefined) prospectUpdates.nomStructure = updates.nom;
+    if (updates.nomDecideur !== undefined) prospectUpdates.nomDecideur = updates.nomDecideur;
     if (updates.telephone !== undefined) prospectUpdates.telephone = updates.telephone;
     if (updates.notes !== undefined) prospectUpdates.notes = updates.notes;
     if (Object.keys(prospectUpdates).length > 0) updateProspect(prospectId, prospectUpdates);
