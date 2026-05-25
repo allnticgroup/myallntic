@@ -542,9 +542,11 @@ export default function Finances() {
           </TabsContent>
 
           {/* Expenses Tab */}
-
+          <TabsContent value="expenses" className="space-y-4 mt-4">
+            <Button onClick={() => { setEditingExpense(undefined); setShowExpenseForm(true); }} className="w-full">
               <Plus className="h-4 w-4 mr-2" /> Ajouter une dépense
             </Button>
+
 
             {expenses.length === 0 ? (
               <Card>
