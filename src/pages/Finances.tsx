@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Plus, TrendingUp, TrendingDown, Wallet, Receipt, CreditCard, Trash2, Edit2, FileText, Users, Download, ChevronLeft, ChevronRight } from 'lucide-react';
-import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, addDays } from 'date-fns';
+import { Plus, TrendingUp, TrendingDown, Wallet, Receipt, CreditCard, Trash2, Edit2, FileText, Users, Download, ChevronLeft, ChevronRight, Bell, Phone, Mail, AlertTriangle } from 'lucide-react';
+import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, addDays, differenceInDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +16,8 @@ import { Payment, Expense, Invoice, PAYMENT_MODE_LABELS, EXPENSE_CATEGORY_LABELS
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from 'recharts';
 import { toast } from 'sonner';
 import { generateBulletinPdf } from '@/lib/generateBulletinPdf';
+import { generateReceiptPdf } from '@/lib/generateReceiptPdf';
+
 
 export default function Finances() {
   const { payments, addPayment, updatePayment, deletePayment } = usePayments();
