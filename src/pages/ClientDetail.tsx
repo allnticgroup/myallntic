@@ -55,6 +55,19 @@ export default function ClientDetail() {
         }
       />
       <main className="p-4 space-y-4 max-w-lg mx-auto">
+        {linkedProspect && (
+          <Link to={`/prospects/${linkedProspect.id}`}>
+            <Card className="bg-primary/5 border-primary/20 hover:bg-primary/10 transition-smooth">
+              <CardContent className="p-3 flex items-center gap-3">
+                <Target className="h-4 w-4 text-primary" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-muted-foreground">Prospect d'origine (synchronisé)</p>
+                  <p className="text-sm font-medium truncate">{linkedProspect.nomStructure}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        )}
         <Card>
           <CardContent className="p-4 space-y-3">
             {client.telephone && (
