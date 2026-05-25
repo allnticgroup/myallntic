@@ -418,6 +418,9 @@ export default function Finances() {
                           </div>
                         </div>
                         <div className="flex gap-1">
+                          <Button size="icon" variant="ghost" title="Reçu PDF" onClick={() => handleGenerateReceipt(payment)}>
+                            <Download className="h-4 w-4" />
+                          </Button>
                           <Button size="icon" variant="ghost" onClick={() => { setEditingPayment(payment); setShowPaymentForm(true); }}>
                             <Edit2 className="h-4 w-4" />
                           </Button>
@@ -425,6 +428,7 @@ export default function Finances() {
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
+
                       </div>
                     </CardContent>
                   </Card>
