@@ -45,12 +45,69 @@ export default function Invoices() {
   const { prospects, getProspect } = useProspects();
   const { devisList } = useDevis();
   const { getClient } = useClients();
+  const { ventes } = useVentes();
+  const { materials } = useMaterials();
 
   const getInvoiceClientName = (invoice: Invoice) => {
     if (invoice.source === 'vente' && invoice.clientId) {
       return getClient(invoice.clientId)?.nom;
     }
     return getProspect(invoice.prospectId)?.nomStructure;
+  };
+
+  // Build proxy Prospect + Devis from a Vente-sourced invoice so PDF/DOCX generators work
+  const buildVenteContext = (invoice: Invoice): { prospect: Prospect; devis: Devis } | null => {
+    if (!invoice.clientId || !invoice.venteId) return null;
+    const client = getClient(invoice.clientId);
+    const vente = ventes.find((v) => v.id === invoice.venteId);
+    if (!client || !vente) return null;
+    const company = getCompanySettings();
+    const proxyProspect: Prospect = {
+      id: client.id,
+      nomStructure: client.nom,
+      nomDecideur: client.nom,
+      telephone: client.telephone || '',
+      typeStructure: 'Autre',
+      besoinPrincipal: 'Maintenance',
+      statut: 'signe',
+      notes: client.adresse || '',
+      createdAt: client.createdAt,
+      updatedAt: client.updatedAt,
+    };
+    const lignes: DevisLigne[] = vente.lignes.map((l) => {
+      const mat = materials.find((m) => m.id === l.materialId);
+      return {
+        materialId: l.materialId,
+        nom: l.nom,
+        reference: mat?.reference || '',
+        categorie: mat?.categorie || 'autre',
+        quantite: l.quantite,
+        prixUnitaire: l.prixUnitaire,
+        total: l.total,
+      };
+    });
+    const proxyDevis: Devis = {
+      id: vente.id,
+      prospectId: client.id,
+      dateDevis: vente.dateVente,
+      objet: `Vente ${vente.code}`,
+      option: 'Essentiel',
+      montant: vente.total,
+      lignes,
+      statut: 'accepte',
+      acompteRecu: false,
+      montantAcompte: 0,
+      mainDoeuvre: 0,
+      stockDeduit: vente.stockDeduit,
+      entrepriseNom: company.nom,
+      entrepriseAdresse: company.adresse,
+      entrepriseTelephone: company.telephone,
+      entrepriseEmail: company.email,
+      entrepriseSite: company.siteWeb,
+      createdAt: vente.createdAt,
+      updatedAt: vente.updatedAt,
+    };
+    return { prospect: proxyProspect, devis: proxyDevis };
   };
   
   const [searchQuery, setSearchQuery] = useState('');
