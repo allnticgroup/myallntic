@@ -123,8 +123,13 @@ export default function Clients() {
       <AlertDialog open={!!deletingClient} onOpenChange={() => setDeletingClient(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer le client ?</AlertDialogTitle>
-            <AlertDialogDescription>Cette action supprimera définitivement "{deletingClient?.nom}".</AlertDialogDescription>
+            <AlertDialogTitle>Supprimer "{deletingClient?.nom}" ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deletingVentes.length > 0 && (
+                <>⚠️ <strong>{deletingVentes.length} vente(s)</strong> liée(s) à ce client perdront leur référence.<br /><br /></>
+              )}
+              Cette action est irréversible.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
