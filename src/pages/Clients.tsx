@@ -38,7 +38,7 @@ export default function Clients() {
 
   const handleUpdate = (data: Parameters<typeof addClient>[0]) => {
     if (editingClient) {
-      updateClient(editingClient.id, data);
+      syncedUpdateClient(editingClient.id, data);
       setEditingClient(null);
       toast.success('Client modifié');
     }
@@ -46,6 +46,7 @@ export default function Clients() {
 
   const handleDelete = () => {
     if (deletingClient) {
+      unlinkProspectFromClient(deletingClient.id);
       deleteClient(deletingClient.id);
       setDeletingClient(null);
       toast.success('Client supprimé');
