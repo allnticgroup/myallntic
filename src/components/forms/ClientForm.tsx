@@ -23,6 +23,7 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
   const { prospects } = useProspects();
   const [formData, setFormData] = useState({
     nom: client?.nom || '',
+    nomDecideur: client?.nomDecideur || '',
     telephone: client?.telephone || '',
     email: client?.email || '',
     adresse: client?.adresse || '',
@@ -37,6 +38,7 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
     setFormData((prev) => ({
       ...prev,
       nom: p.nomStructure,
+      nomDecideur: p.nomDecideur || prev.nomDecideur,
       telephone: p.telephone || prev.telephone,
       notes: p.notes || prev.notes,
       prospectId: p.id,
