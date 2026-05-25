@@ -107,9 +107,15 @@ export default function ProspectDetail() {
   const handleStatusChange = (newStatus: ProspectStatus) => {
     updateProspect(prospect.id, { statut: newStatus });
     toast.success('Statut mis à jour');
+    // Auto-conversion en client lorsque le prospect est signé
+    if (newStatus === 'signe' && !prospect.clientId && !existingClient) {
+      const c = convertProspectToClient(prospect);
+      toast.success(`Client ${c.code} créé automatiquement`);
+    }
   };
 
   const handleDelete = () => {
+    unlinkClientFromProspect(prospect.id);
     deleteProspect(prospect.id);
     devisList.forEach((d) => deleteDevis(d.id));
     interventions.forEach((i) => deleteIntervention(i.id));
@@ -118,7 +124,7 @@ export default function ProspectDetail() {
   };
 
   const handleEditProspect = (data: Parameters<typeof updateProspect>[1]) => {
-    updateProspect(prospect.id, data);
+    syncedUpdateProspect(prospect.id, data);
     setShowForm(null);
     toast.success('Prospect modifié');
   };
@@ -136,16 +142,9 @@ export default function ProspectDetail() {
   };
 
   const handleConvertToClient = () => {
-    const newClient = addClient({
-      nom: prospect.nomStructure,
-      telephone: prospect.telephone,
-      email: '',
-      adresse: '',
-      ville: '',
-      notes: `Converti depuis le prospect (${prospect.nomDecideur || 'N/A'})\n${prospect.notes || ''}`.trim(),
-    });
+    const newClient = convertProspectToClient(prospect);
     setShowConvert(false);
-    toast.success(`Client ${newClient.code} créé`);
+    toast.success(`Client ${newClient.code} lié`);
     navigate(`/clients/${newClient.id}`);
   };
 
