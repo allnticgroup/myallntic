@@ -12,6 +12,7 @@ import {
   Wrench,
   CheckCircle2,
   Clock,
+  UserCheck,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -47,6 +48,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useProspects, useDevis, useInterventions, useMaterials } from '@/hooks/useData';
+import { useClients } from '@/hooks/useErpData';
 import {
   ProspectStatus,
   DevisStatus,
@@ -74,12 +76,18 @@ export default function ProspectDetail() {
     deleteIntervention,
   } = useInterventions();
   const { deductStockForDevis, restoreStockForDevis } = useMaterials();
+  const { clients, addClient } = useClients();
 
   const [showForm, setShowForm] = useState<FormType>(null);
+  const [showConvert, setShowConvert] = useState(false);
 
   const prospect = id ? getProspect(id) : undefined;
   const devisList = id ? getDevisForProspect(id) : [];
   const interventions = id ? getInterventionsForProspect(id) : [];
+
+  const existingClient = prospect
+    ? clients.find(c => c.nom.trim().toLowerCase() === prospect.nomStructure.trim().toLowerCase())
+    : undefined;
 
   if (!prospect) {
     return (
@@ -118,6 +126,20 @@ export default function ProspectDetail() {
     addIntervention(data);
     setShowForm(null);
     toast.success('Intervention créée');
+  };
+
+  const handleConvertToClient = () => {
+    const newClient = addClient({
+      nom: prospect.nomStructure,
+      telephone: prospect.telephone,
+      email: '',
+      adresse: '',
+      ville: '',
+      notes: `Converti depuis le prospect (${prospect.nomDecideur || 'N/A'})\n${prospect.notes || ''}`.trim(),
+    });
+    setShowConvert(false);
+    toast.success(`Client ${newClient.code} créé`);
+    navigate(`/clients/${newClient.id}`);
   };
 
   return (
