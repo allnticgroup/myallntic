@@ -183,7 +183,10 @@ export default function Invoices() {
 
   const handleDownloadDocx = async (invoice: Invoice) => {
     if (invoice.source === 'vente') {
-      toast.info('Téléchargement Word indisponible pour les factures issues de ventes');
+      const ctx = buildVenteContext(invoice);
+      if (!ctx) { toast.error('Données vente introuvables'); return; }
+      await generateInvoiceDocx(invoice, ctx.prospect, ctx.devis);
+      toast.success('Document Word téléchargé');
       return;
     }
     const prospect = getProspect(invoice.prospectId);
@@ -195,7 +198,10 @@ export default function Invoices() {
 
   const handleDownloadPdf = async (invoice: Invoice) => {
     if (invoice.source === 'vente') {
-      toast.info('Téléchargement PDF indisponible pour les factures issues de ventes');
+      const ctx = buildVenteContext(invoice);
+      if (!ctx) { toast.error('Données vente introuvables'); return; }
+      await generateInvoicePdf(invoice, ctx.prospect, ctx.devis);
+      toast.success('Document PDF téléchargé');
       return;
     }
     const prospect = getProspect(invoice.prospectId);
