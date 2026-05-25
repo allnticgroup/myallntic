@@ -20,6 +20,7 @@ const normalize = (s: string) => s.replace(/\s+/g, '').toLowerCase();
 
 export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
   const { clients } = useClients();
+  const { prospects } = useProspects();
   const [formData, setFormData] = useState({
     nom: client?.nom || '',
     telephone: client?.telephone || '',
@@ -27,7 +28,21 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
     adresse: client?.adresse || '',
     ville: client?.ville || '',
     notes: client?.notes || '',
+    prospectId: client?.prospectId,
   });
+
+  const handlePickProspect = (prospectId: string) => {
+    const p = prospects.find((x) => x.id === prospectId);
+    if (!p) return;
+    setFormData((prev) => ({
+      ...prev,
+      nom: p.nomStructure,
+      telephone: p.telephone || prev.telephone,
+      notes: p.notes || prev.notes,
+      prospectId: p.id,
+    }));
+  };
+
 
   const duplicates = useMemo(() => {
     const list: { client: Client; reason: string }[] = [];
