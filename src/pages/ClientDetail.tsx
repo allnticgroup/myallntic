@@ -122,7 +122,16 @@ export default function ClientDetail() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Supprimer "{client.nom}" ?</AlertDialogTitle>
-            <AlertDialogDescription>Cette action est irréversible.</AlertDialogDescription>
+            <AlertDialogDescription>
+              {ventes.length > 0 ? (
+                <>
+                  ⚠️ Ce client a <strong>{ventes.length} vente(s)</strong> liée(s) (total: {totalVentes.toLocaleString('fr-FR')} F).
+                  Les ventes ne seront pas supprimées mais perdront la référence client.
+                  <br /><br />
+                </>
+              ) : null}
+              Cette action est irréversible.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
