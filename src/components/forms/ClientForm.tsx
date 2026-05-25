@@ -108,6 +108,13 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {!client && contactsSupported && (
+        <Button type="button" variant="outline" onClick={handlePickContact} className="w-full gap-2">
+          <Smartphone className="h-4 w-4" />
+          Importer depuis mes contacts
+        </Button>
+      )}
+
       {!client && availableProspects.length > 0 && (
         <div className="space-y-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
           <Label className="flex items-center gap-2 text-sm">
