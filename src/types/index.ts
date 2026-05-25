@@ -385,7 +385,13 @@ export interface CompanySettings {
   numeroFiscal?: string;
   tauxTVA: number; // en pourcentage, 0 = pas de TVA
   services: string[];
+  // Paiements mobiles - liens / numéros marchand
+  waveLink?: string; // ex: https://pay.wave.com/m/XXXX/c/xof (peut contenir {amount})
+  orangeMoneyLink?: string; // ex: code marchand ou USSD #144*82*XXXXX#
+  ibanBancaire?: string; // RIB / IBAN pour virement
+  banqueNom?: string;
 }
+
 
 // Types pour l'audit log
 export type AuditAction = 'create' | 'update' | 'delete';

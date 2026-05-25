@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Plus, TrendingUp, TrendingDown, Wallet, Receipt, CreditCard, Trash2, Edit2, FileText, Users, Download, ChevronLeft, ChevronRight } from 'lucide-react';
-import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, addDays } from 'date-fns';
+import { Plus, TrendingUp, TrendingDown, Wallet, Receipt, CreditCard, Trash2, Edit2, FileText, Users, Download, ChevronLeft, ChevronRight, Bell, Phone, Mail, AlertTriangle } from 'lucide-react';
+import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, addDays, differenceInDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +16,8 @@ import { Payment, Expense, Invoice, PAYMENT_MODE_LABELS, EXPENSE_CATEGORY_LABELS
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from 'recharts';
 import { toast } from 'sonner';
 import { generateBulletinPdf } from '@/lib/generateBulletinPdf';
+import { generateReceiptPdf } from '@/lib/generateReceiptPdf';
+
 
 export default function Finances() {
   const { payments, addPayment, updatePayment, deletePayment } = usePayments();
@@ -173,19 +175,92 @@ export default function Finances() {
     return prospects.find(p => p.id === prospectId)?.nomStructure || 'Client inconnu';
   };
 
+  const getProspect = (prospectId: string) => prospects.find(p => p.id === prospectId);
+
+  // ===== Reçu PDF =====
+  const handleGenerateReceipt = async (payment: Payment) => {
+    const clientName = getProspectName(payment.prospectId);
+    const devis = devisList.find(d => d.id === payment.devisId);
+    const invoice = devis ? invoices.find(i => i.devisId === devis.id) : undefined;
+    await generateReceiptPdf(payment, clientName, invoice?.numero);
+    toast.success('Reçu PDF généré');
+  };
+
+  // ===== Encaissements & Relances =====
+  const encaissementsStats = useMemo(() => {
+    const totalEncaisse = payments.reduce((sum, p) => sum + p.montant, 0);
+    const totalFacture = invoices.reduce((sum, i) => sum + i.montantTTC, 0);
+    const totalImpaye = invoices
+      .filter(i => i.statut !== 'paid')
+      .reduce((sum, i) => sum + i.montantTTC, 0);
+    const totalEnRetard = invoices
+      .filter(i => i.statut === 'overdue')
+      .reduce((sum, i) => sum + i.montantTTC, 0);
+    const tauxEncaissement = totalFacture > 0 ? (totalEncaisse / totalFacture) * 100 : 0;
+    return { totalEncaisse, totalFacture, totalImpaye, totalEnRetard, tauxEncaissement };
+  }, [payments, invoices]);
+
+  const relances = useMemo(() => {
+    const today = new Date();
+    return invoices
+      .filter(i => i.statut === 'sent' || i.statut === 'overdue')
+      .map(i => {
+        const prospect = getProspect(i.prospectId);
+        const joursRetard = differenceInDays(today, new Date(i.dateEcheance));
+        return { invoice: i, prospect, joursRetard };
+      })
+      .sort((a, b) => b.joursRetard - a.joursRetard);
+  }, [invoices, prospects]);
+
+  const encaissementsParClient = useMemo(() => {
+    const map = new Map<string, { name: string; encaisse: number; impaye: number }>();
+    invoices.forEach(i => {
+      const name = getProspectName(i.prospectId);
+      const entry = map.get(i.prospectId) || { name, encaisse: 0, impaye: 0 };
+      if (i.statut === 'paid') entry.encaisse += i.montantTTC;
+      else entry.impaye += i.montantTTC;
+      map.set(i.prospectId, entry);
+    });
+    return Array.from(map.values())
+      .filter(e => e.encaisse > 0 || e.impaye > 0)
+      .sort((a, b) => b.impaye - a.impaye);
+  }, [invoices, prospects]);
+
+  const buildRelanceMessage = (clientName: string, numero: string, montant: number, joursRetard: number) => {
+    const intro = joursRetard > 0
+      ? `Bonjour ${clientName}, nous vous rappelons que la facture ${numero} d'un montant de ${montant.toLocaleString('fr-FR')} FCFA est en retard de ${joursRetard} jour(s).`
+      : `Bonjour ${clientName}, nous vous rappelons que la facture ${numero} d'un montant de ${montant.toLocaleString('fr-FR')} FCFA arrive à échéance.`;
+    return `${intro} Merci de bien vouloir procéder au règlement dans les meilleurs délais.`;
+  };
+
+  const handleRelanceWhatsApp = (clientName: string, numero: string, montant: number, joursRetard: number, telephone: string) => {
+    const msg = buildRelanceMessage(clientName, numero, montant, joursRetard);
+    const phone = telephone.replace(/[^0-9]/g, '');
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
+  const handleRelanceEmail = (clientName: string, numero: string, montant: number, joursRetard: number, email: string) => {
+    const msg = buildRelanceMessage(clientName, numero, montant, joursRetard);
+    const subject = `Relance facture ${numero}`;
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(msg)}`;
+  };
+
+
   return (
     <div className="min-h-screen pb-20">
       <PageHeader title="Finances" subtitle="Gestion financière" />
 
       <main className="p-4 space-y-4 max-w-lg mx-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="dashboard" className="text-xs">Tableau</TabsTrigger>
-            <TabsTrigger value="payments" className="text-xs">Revenus</TabsTrigger>
-            <TabsTrigger value="expenses" className="text-xs">Dépenses</TabsTrigger>
-            <TabsTrigger value="salaries" className="text-xs">Salaires</TabsTrigger>
-            <TabsTrigger value="invoices" className="text-xs">Factures</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="dashboard" className="text-[10px] px-1">Tableau</TabsTrigger>
+            <TabsTrigger value="payments" className="text-[10px] px-1">Revenus</TabsTrigger>
+            <TabsTrigger value="relances" className="text-[10px] px-1">Relances</TabsTrigger>
+            <TabsTrigger value="expenses" className="text-[10px] px-1">Dépenses</TabsTrigger>
+            <TabsTrigger value="salaries" className="text-[10px] px-1">Salaires</TabsTrigger>
+            <TabsTrigger value="invoices" className="text-[10px] px-1">Factures</TabsTrigger>
           </TabsList>
+
 
           {/* Dashboard Tab */}
           <TabsContent value="dashboard" className="space-y-4 mt-4">
@@ -208,6 +283,68 @@ export default function Finances() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Encaissements - dashboard paiements */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" /> Encaissements
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-3 rounded-lg bg-success/10 border border-success/20">
+                    <p className="text-xs text-muted-foreground">Encaissé</p>
+                    <p className="text-base font-bold text-success">{encaissementsStats.totalEncaisse.toLocaleString('fr-FR')} F</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
+                    <p className="text-xs text-muted-foreground">Impayé</p>
+                    <p className="text-base font-bold text-warning">{encaissementsStats.totalImpaye.toLocaleString('fr-FR')} F</p>
+                  </div>
+                </div>
+                {encaissementsStats.totalEnRetard > 0 && (
+                  <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-destructive" />
+                    <div className="flex-1">
+                      <p className="text-xs text-muted-foreground">En retard</p>
+                      <p className="text-sm font-bold text-destructive">{encaissementsStats.totalEnRetard.toLocaleString('fr-FR')} FCFA</p>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => setActiveTab('relances')}>
+                      Relancer
+                    </Button>
+                  </div>
+                )}
+                <div>
+                  <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                    <span>Taux d'encaissement</span>
+                    <span className="font-semibold">{encaissementsStats.tauxEncaissement.toFixed(0)}%</span>
+                  </div>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-success transition-all"
+                      style={{ width: `${Math.min(100, encaissementsStats.tauxEncaissement)}%` }}
+                    />
+                  </div>
+                </div>
+                {encaissementsParClient.length > 0 && (
+                  <div className="pt-2 border-t">
+                    <p className="text-xs font-medium mb-2 text-muted-foreground">Top clients</p>
+                    <div className="space-y-1.5">
+                      {encaissementsParClient.slice(0, 5).map(c => (
+                        <div key={c.name} className="flex items-center justify-between text-xs">
+                          <span className="truncate flex-1">{c.name}</span>
+                          <div className="flex gap-2 ml-2 shrink-0">
+                            <span className="text-success">{(c.encaisse / 1000).toFixed(0)}k</span>
+                            {c.impaye > 0 && <span className="text-warning">/ {(c.impaye / 1000).toFixed(0)}k</span>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
 
             <Card>
               <CardHeader className="pb-2">
@@ -281,6 +418,9 @@ export default function Finances() {
                           </div>
                         </div>
                         <div className="flex gap-1">
+                          <Button size="icon" variant="ghost" title="Reçu PDF" onClick={() => handleGenerateReceipt(payment)}>
+                            <Download className="h-4 w-4" />
+                          </Button>
                           <Button size="icon" variant="ghost" onClick={() => { setEditingPayment(payment); setShowPaymentForm(true); }}>
                             <Edit2 className="h-4 w-4" />
                           </Button>
@@ -288,6 +428,7 @@ export default function Finances() {
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
+
                       </div>
                     </CardContent>
                   </Card>
@@ -296,11 +437,116 @@ export default function Finances() {
             )}
           </TabsContent>
 
+          {/* Relances Tab */}
+          <TabsContent value="relances" className="space-y-4 mt-4">
+            {relances.length === 0 ? (
+              <Card>
+                <CardContent className="p-6 text-center text-muted-foreground">
+                  <Bell className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                  <p>Aucune facture à relancer</p>
+                  <p className="text-xs mt-1">Toutes les factures envoyées sont à jour</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                <Card className="bg-primary/5 border-primary/20">
+                  <CardContent className="p-3">
+                    <div className="flex items-center gap-2">
+                      <Bell className="h-4 w-4 text-primary" />
+                      <p className="text-sm font-medium">
+                        {relances.length} facture(s) à suivre - {relances.reduce((s, r) => s + r.invoice.montantTTC, 0).toLocaleString('fr-FR')} FCFA
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="space-y-3">
+                  {relances.map(({ invoice, prospect, joursRetard }) => (
+                    <Card key={invoice.id} className={joursRetard > 0 ? 'border-destructive/30' : ''}>
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{prospect?.nomStructure || 'Client inconnu'}</p>
+                            <p className="text-xs text-muted-foreground">{invoice.numero}</p>
+                            <p className="text-lg font-bold mt-1">{invoice.montantTTC.toLocaleString('fr-FR')} FCFA</p>
+                          </div>
+                          <div className="text-right">
+                            {joursRetard > 0 ? (
+                              <Badge variant="destructive" className="mb-1">
+                                +{joursRetard}j
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="mb-1">
+                                J{joursRetard}
+                              </Badge>
+                            )}
+                            <p className="text-xs text-muted-foreground">
+                              {format(new Date(invoice.dateEcheance), 'dd/MM/yy', { locale: fr })}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 flex-wrap">
+                          {prospect?.telephone && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() =>
+                                handleRelanceWhatsApp(
+                                  prospect.nomStructure,
+                                  invoice.numero,
+                                  invoice.montantTTC,
+                                  joursRetard,
+                                  prospect.telephone,
+                                )
+                              }
+                            >
+                              <Phone className="h-4 w-4 mr-1" /> WhatsApp
+                            </Button>
+                          )}
+                          {prospect && (prospect as any).email && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() =>
+                                handleRelanceEmail(
+                                  prospect.nomStructure,
+                                  invoice.numero,
+                                  invoice.montantTTC,
+                                  joursRetard,
+                                  (prospect as any).email,
+                                )
+                              }
+                            >
+                              <Mail className="h-4 w-4 mr-1" /> Email
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              updateInvoice(invoice.id, { statut: 'paid' });
+                              toast.success('Facture marquée payée');
+                            }}
+                          >
+                            Payée
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </>
+            )}
+          </TabsContent>
+
           {/* Expenses Tab */}
           <TabsContent value="expenses" className="space-y-4 mt-4">
             <Button onClick={() => { setEditingExpense(undefined); setShowExpenseForm(true); }} className="w-full">
               <Plus className="h-4 w-4 mr-2" /> Ajouter une dépense
             </Button>
+
 
             {expenses.length === 0 ? (
               <Card>
