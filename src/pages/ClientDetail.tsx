@@ -70,6 +70,9 @@ export default function ClientDetail() {
         )}
         <Card>
           <CardContent className="p-4 space-y-3">
+            {client.nomDecideur && (
+              <p className="text-sm"><span className="text-muted-foreground">Décideur : </span><span className="font-medium">{client.nomDecideur}</span></p>
+            )}
             {client.telephone && (
               <a href={`tel:${client.telephone}`} className="flex items-center gap-3 text-sm">
                 <Phone className="h-4 w-4 text-muted-foreground" />{client.telephone}
