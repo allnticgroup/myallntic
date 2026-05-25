@@ -5,19 +5,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Client, Vente, VenteLigne } from '@/types/erp';
+import { Client, Project, Vente, VenteLigne } from '@/types/erp';
 import { Material } from '@/types';
 
 interface VenteFormProps {
   vente?: Vente;
   clients: Client[];
   materials: Material[];
+  projects?: Project[];
+  defaultProjectId?: string;
   onSubmit: (data: Omit<Vente, 'id' | 'code' | 'createdAt' | 'updatedAt'>) => void;
   onCancel: () => void;
 }
 
-export function VenteForm({ vente, clients, materials, onSubmit, onCancel }: VenteFormProps) {
+export function VenteForm({ vente, clients, materials, projects = [], defaultProjectId, onSubmit, onCancel }: VenteFormProps) {
   const [clientId, setClientId] = useState(vente?.clientId || '');
+  const [projectId, setProjectId] = useState(vente?.projectId || defaultProjectId || '');
   const [lignes, setLignes] = useState<VenteLigne[]>(vente?.lignes || []);
   const [remise, setRemise] = useState(vente?.remise || 0);
   const [notes, setNotes] = useState(vente?.notes || '');
@@ -54,6 +57,7 @@ export function VenteForm({ vente, clients, materials, onSubmit, onCancel }: Ven
     e.preventDefault();
     onSubmit({
       clientId,
+      projectId: projectId || undefined,
       dateVente: vente?.dateVente || new Date().toISOString().split('T')[0],
       lignes,
       sousTotal,
@@ -79,6 +83,21 @@ export function VenteForm({ vente, clients, materials, onSubmit, onCancel }: Ven
           </SelectContent>
         </Select>
       </div>
+
+      {projects.length > 0 && (
+        <div className="space-y-2">
+          <Label>Projet (optionnel)</Label>
+          <Select value={projectId || 'none'} onValueChange={(v) => setProjectId(v === 'none' ? '' : v)}>
+            <SelectTrigger><SelectValue placeholder="Aucun projet" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Aucun projet</SelectItem>
+              {projects.map(p => (
+                <SelectItem key={p.id} value={p.id}>{p.code} · {p.nom}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       <div className="space-y-3">
         <div className="flex items-center justify-between">

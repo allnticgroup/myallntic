@@ -5,19 +5,23 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Expense, ExpenseCategory, EXPENSE_CATEGORY_LABELS } from '@/types';
+import { Project } from '@/types/erp';
 
 interface ExpenseFormProps {
   expense?: Expense;
+  projects?: Project[];
+  defaultProjectId?: string;
   onSubmit: (data: Omit<Expense, 'id' | 'createdAt' | 'updatedAt'>) => void;
   onCancel: () => void;
 }
 
-export function ExpenseForm({ expense, onSubmit, onCancel }: ExpenseFormProps) {
+export function ExpenseForm({ expense, projects = [], defaultProjectId, onSubmit, onCancel }: ExpenseFormProps) {
   const [libelle, setLibelle] = useState(expense?.libelle || '');
   const [montant, setMontant] = useState(expense?.montant?.toString() || '');
   const [categorie, setCategorie] = useState<ExpenseCategory>(expense?.categorie || 'materiel');
   const [dateDepense, setDateDepense] = useState(expense?.dateDepense || new Date().toISOString().split('T')[0]);
   const [fournisseur, setFournisseur] = useState(expense?.fournisseur || '');
+  const [projectId, setProjectId] = useState(expense?.projectId || defaultProjectId || '');
   const [notes, setNotes] = useState(expense?.notes || '');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -28,6 +32,7 @@ export function ExpenseForm({ expense, onSubmit, onCancel }: ExpenseFormProps) {
       categorie,
       dateDepense,
       fournisseur: fournisseur.trim(),
+      projectId: projectId || undefined,
       notes: notes.trim(),
     });
   };
@@ -88,6 +93,21 @@ export function ExpenseForm({ expense, onSubmit, onCancel }: ExpenseFormProps) {
           placeholder="Nom du fournisseur..."
         />
       </div>
+
+      {projects.length > 0 && (
+        <div className="space-y-2">
+          <Label>Projet (optionnel)</Label>
+          <Select value={projectId || 'none'} onValueChange={(v) => setProjectId(v === 'none' ? '' : v)}>
+            <SelectTrigger><SelectValue placeholder="Aucun projet" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Aucun projet</SelectItem>
+              {projects.map(p => (
+                <SelectItem key={p.id} value={p.id}>{p.code} · {p.nom}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label>Notes</Label>
