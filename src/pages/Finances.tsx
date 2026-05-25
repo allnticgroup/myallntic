@@ -284,6 +284,68 @@ export default function Finances() {
               </CardContent>
             </Card>
 
+            {/* Encaissements - dashboard paiements */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" /> Encaissements
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-3 rounded-lg bg-success/10 border border-success/20">
+                    <p className="text-xs text-muted-foreground">Encaissé</p>
+                    <p className="text-base font-bold text-success">{encaissementsStats.totalEncaisse.toLocaleString('fr-FR')} F</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
+                    <p className="text-xs text-muted-foreground">Impayé</p>
+                    <p className="text-base font-bold text-warning">{encaissementsStats.totalImpaye.toLocaleString('fr-FR')} F</p>
+                  </div>
+                </div>
+                {encaissementsStats.totalEnRetard > 0 && (
+                  <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-destructive" />
+                    <div className="flex-1">
+                      <p className="text-xs text-muted-foreground">En retard</p>
+                      <p className="text-sm font-bold text-destructive">{encaissementsStats.totalEnRetard.toLocaleString('fr-FR')} FCFA</p>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => setActiveTab('relances')}>
+                      Relancer
+                    </Button>
+                  </div>
+                )}
+                <div>
+                  <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                    <span>Taux d'encaissement</span>
+                    <span className="font-semibold">{encaissementsStats.tauxEncaissement.toFixed(0)}%</span>
+                  </div>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-success transition-all"
+                      style={{ width: `${Math.min(100, encaissementsStats.tauxEncaissement)}%` }}
+                    />
+                  </div>
+                </div>
+                {encaissementsParClient.length > 0 && (
+                  <div className="pt-2 border-t">
+                    <p className="text-xs font-medium mb-2 text-muted-foreground">Top clients</p>
+                    <div className="space-y-1.5">
+                      {encaissementsParClient.slice(0, 5).map(c => (
+                        <div key={c.name} className="flex items-center justify-between text-xs">
+                          <span className="truncate flex-1">{c.name}</span>
+                          <div className="flex gap-2 ml-2 shrink-0">
+                            <span className="text-success">{(c.encaisse / 1000).toFixed(0)}k</span>
+                            {c.impaye > 0 && <span className="text-warning">/ {(c.impaye / 1000).toFixed(0)}k</span>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">Revenus vs Dépenses (6 mois)</CardTitle>
