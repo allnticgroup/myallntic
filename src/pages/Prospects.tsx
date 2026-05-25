@@ -31,7 +31,7 @@ import { toast } from 'sonner';
 
 export default function Prospects() {
   const { prospects, addProspect, updateProspect, deleteProspect } = useProspects();
-  const { updateClient } = useClients();
+  const { addClient, updateClient } = useClients();
   const { devisList, deleteDevis } = useDevis();
   const [statusFilter, setStatusFilter] = useState<ProspectStatus | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
