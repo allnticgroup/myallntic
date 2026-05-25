@@ -118,7 +118,7 @@ export default function ClientDetail() {
         <SheetContent side="bottom" className="h-[90vh] rounded-t-xl">
           <SheetHeader className="mb-4"><SheetTitle>Modifier le client</SheetTitle></SheetHeader>
           <div className="overflow-y-auto max-h-[calc(90vh-100px)]">
-            <ClientForm client={client} onSubmit={(data) => { updateClient(client.id, data); setShowEdit(false); toast.success('Client modifié'); }} onCancel={() => setShowEdit(false)} />
+            <ClientForm client={client} onSubmit={(data) => { syncedUpdateClient(client.id, data); setShowEdit(false); toast.success('Client modifié'); }} onCancel={() => setShowEdit(false)} />
           </div>
         </SheetContent>
       </Sheet>
