@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Client } from '@/types/erp';
 import { useClients } from '@/hooks/useErpData';
+import { useProspects } from '@/hooks/useData';
 
 interface ClientFormProps {
   client?: Client;
@@ -18,6 +20,7 @@ const normalize = (s: string) => s.replace(/\s+/g, '').toLowerCase();
 
 export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
   const { clients } = useClients();
+  const { prospects } = useProspects();
   const [formData, setFormData] = useState({
     nom: client?.nom || '',
     telephone: client?.telephone || '',
@@ -25,7 +28,21 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
     adresse: client?.adresse || '',
     ville: client?.ville || '',
     notes: client?.notes || '',
+    prospectId: client?.prospectId,
   });
+
+  const handlePickProspect = (prospectId: string) => {
+    const p = prospects.find((x) => x.id === prospectId);
+    if (!p) return;
+    setFormData((prev) => ({
+      ...prev,
+      nom: p.nomStructure,
+      telephone: p.telephone || prev.telephone,
+      notes: p.notes || prev.notes,
+      prospectId: p.id,
+    }));
+  };
+
 
   const duplicates = useMemo(() => {
     const list: { client: Client; reason: string }[] = [];
@@ -46,8 +63,34 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
     onSubmit(formData);
   };
 
+  // Prospects non encore liés à un client
+  const availableProspects = prospects.filter(
+    (p) => !p.clientId || (client && p.clientId === client.id)
+  );
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {!client && availableProspects.length > 0 && (
+        <div className="space-y-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
+          <Label className="flex items-center gap-2 text-sm">
+            <Target className="h-4 w-4 text-primary" />
+            Pré-remplir depuis un prospect existant
+          </Label>
+          <Select value={formData.prospectId || ''} onValueChange={handlePickProspect}>
+            <SelectTrigger>
+              <SelectValue placeholder="Sélectionner un prospect..." />
+            </SelectTrigger>
+            <SelectContent>
+              {availableProspects.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.nomStructure}{p.nomDecideur ? ` — ${p.nomDecideur}` : ''}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       {duplicates.length > 0 && (
         <Alert className="bg-warning/10 border-warning/30">
           <AlertTriangle className="h-4 w-4 text-warning" />
