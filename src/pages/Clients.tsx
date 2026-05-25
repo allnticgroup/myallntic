@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useClients, useVentes } from '@/hooks/useErpData';
+import { useProspects } from '@/hooks/useData';
 import { useProspectClientSync } from '@/hooks/useProspectClientSync';
 import { Client } from '@/types/erp';
 import { Users } from 'lucide-react';
@@ -18,6 +19,7 @@ import { toast } from 'sonner';
 
 export default function Clients() {
   const { clients, addClient, deleteClient } = useClients();
+  const { updateProspect } = useProspects();
   const { syncedUpdateClient, unlinkProspectFromClient } = useProspectClientSync();
   const { getVentesForClient } = useVentes();
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,10 +33,14 @@ export default function Clients() {
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const handleAdd = (data: Parameters<typeof addClient>[0]) => {
-    addClient(data);
+    const created = addClient(data);
+    if (data.prospectId) {
+      updateProspect(data.prospectId, { clientId: created.id });
+    }
     setShowForm(false);
     toast.success('Client créé');
   };
+
 
   const handleUpdate = (data: Parameters<typeof addClient>[0]) => {
     if (editingClient) {
