@@ -8,6 +8,7 @@ export interface Client {
   adresse: string;
   ville: string;
   notes: string;
+  prospectId?: string; // lien vers le prospect d'origine
   createdAt: string;
   updatedAt: string;
 }
