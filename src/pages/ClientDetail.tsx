@@ -153,7 +153,7 @@ export default function ClientDetail() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={() => { deleteClient(client.id); navigate('/clients'); toast.success('Client supprimé'); }} className="bg-destructive text-destructive-foreground">Supprimer</AlertDialogAction>
+            <AlertDialogAction onClick={() => { unlinkProspectFromClient(client.id); deleteClient(client.id); navigate('/clients'); toast.success('Client supprimé'); }} className="bg-destructive text-destructive-foreground">Supprimer</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
