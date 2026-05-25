@@ -18,11 +18,11 @@ import { toast } from 'sonner';
 export default function Clients() {
   const { clients, addClient, updateClient, deleteClient } = useClients();
   const { getVentesForClient } = useVentes();
-  const deletingVentes = deletingClient ? getVentesForClient(deletingClient.id) : [];
   const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [deletingClient, setDeletingClient] = useState<Client | null>(null);
+  const deletingVentes = deletingClient ? getVentesForClient(deletingClient.id) : [];
 
   const filtered = clients
     .filter(c => c.nom.toLowerCase().includes(searchQuery.toLowerCase()) || c.code.toLowerCase().includes(searchQuery.toLowerCase()))
