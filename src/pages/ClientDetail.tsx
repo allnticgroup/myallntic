@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Phone, Mail, MapPin, Edit, Trash2, ShoppingCart } from 'lucide-react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Phone, Mail, MapPin, Edit, Trash2, ShoppingCart, Target } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
@@ -11,19 +11,24 @@ import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useClients, useVentes } from '@/hooks/useErpData';
+import { useProspects } from '@/hooks/useData';
+import { useProspectClientSync } from '@/hooks/useProspectClientSync';
 import { VENTE_STATUS_LABELS } from '@/types/erp';
 import { toast } from 'sonner';
 
 export default function ClientDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getClient, updateClient, deleteClient } = useClients();
+  const { getClient, deleteClient } = useClients();
   const { getVentesForClient } = useVentes();
+  const { prospects } = useProspects();
+  const { syncedUpdateClient, unlinkProspectFromClient } = useProspectClientSync();
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
 
   const client = id ? getClient(id) : undefined;
   const ventes = id ? getVentesForClient(id) : [];
+  const linkedProspect = client?.prospectId ? prospects.find(p => p.id === client.prospectId) : undefined;
 
   if (!client) {
     return (
