@@ -46,6 +46,41 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
     }));
   };
 
+  const contactsSupported = typeof navigator !== 'undefined' && 'contacts' in navigator && 'ContactsManager' in window;
+
+  const handlePickContact = async () => {
+    try {
+      const nav = navigator as any;
+      if (!nav.contacts?.select) {
+        toast({ title: 'Non supporté', description: "Votre appareil ou navigateur ne permet pas l'accès aux contacts. Utilisez Chrome sur Android.", variant: 'destructive' });
+        return;
+      }
+      const props = ['name', 'tel', 'email', 'address'];
+      const supported: string[] = await nav.contacts.getProperties?.() || props;
+      const wanted = props.filter((p) => supported.includes(p));
+      const contacts = await nav.contacts.select(wanted, { multiple: false });
+      if (!contacts || contacts.length === 0) return;
+      const c = contacts[0];
+      const name = Array.isArray(c.name) ? c.name[0] : c.name;
+      const tel = Array.isArray(c.tel) ? c.tel[0] : c.tel;
+      const email = Array.isArray(c.email) ? c.email[0] : c.email;
+      const addr = Array.isArray(c.address) ? c.address[0] : c.address;
+      const addrStr = addr ? [addr.addressLine?.join(' '), addr.city, addr.country].filter(Boolean).join(', ') : '';
+      setFormData((prev) => ({
+        ...prev,
+        nomDecideur: name || prev.nomDecideur,
+        nom: prev.nom || name || '',
+        telephone: tel || prev.telephone,
+        email: email || prev.email,
+        adresse: addrStr || prev.adresse,
+        ville: addr?.city || prev.ville,
+      }));
+      toast({ title: 'Contact importé', description: name || 'Informations récupérées.' });
+    } catch (err: any) {
+      toast({ title: 'Erreur', description: err?.message || "Impossible d'accéder aux contacts.", variant: 'destructive' });
+    }
+  };
+
 
   const duplicates = useMemo(() => {
     const list: { client: Client; reason: string }[] = [];
