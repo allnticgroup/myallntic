@@ -78,10 +78,15 @@ export default function Settings() {
       nom, adresse, ville, telephone, email, siteWeb,
       numeroFiscal: numeroFiscal || undefined,
       tauxTVA, services, logo,
+      waveLink: waveLink || undefined,
+      orangeMoneyLink: orangeMoneyLink || undefined,
+      ibanBancaire: ibanBancaire || undefined,
+      banqueNom: banqueNom || undefined,
     });
     addEntry('update', 'company_settings', 'settings', nom, 'Paramètres entreprise mis à jour');
     toast.success('Paramètres sauvegardés');
   };
+
 
   const addService = () => {
     if (newService.trim()) {
