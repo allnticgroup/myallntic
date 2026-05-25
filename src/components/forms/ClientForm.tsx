@@ -112,9 +112,6 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="telephone">Téléphone</Label>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="telephone">Téléphone</Label>
           <Input id="telephone" type="tel" value={formData.telephone} onChange={(e) => setFormData({ ...formData, telephone: e.target.value })} placeholder="+225 07 XX XX XX" />
         </div>
         <div className="space-y-2">
