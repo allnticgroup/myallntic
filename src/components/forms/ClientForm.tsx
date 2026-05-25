@@ -63,8 +63,34 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
     onSubmit(formData);
   };
 
+  // Prospects non encore liés à un client
+  const availableProspects = prospects.filter(
+    (p) => !p.clientId || (client && p.clientId === client.id)
+  );
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {!client && availableProspects.length > 0 && (
+        <div className="space-y-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
+          <Label className="flex items-center gap-2 text-sm">
+            <Target className="h-4 w-4 text-primary" />
+            Pré-remplir depuis un prospect existant
+          </Label>
+          <Select value={formData.prospectId || ''} onValueChange={handlePickProspect}>
+            <SelectTrigger>
+              <SelectValue placeholder="Sélectionner un prospect..." />
+            </SelectTrigger>
+            <SelectContent>
+              {availableProspects.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.nomStructure}{p.nomDecideur ? ` — ${p.nomDecideur}` : ''}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       {duplicates.length > 0 && (
         <Alert className="bg-warning/10 border-warning/30">
           <AlertTriangle className="h-4 w-4 text-warning" />
