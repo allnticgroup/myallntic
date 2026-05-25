@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 
 export default function Clients() {
   const { clients, addClient, deleteClient } = useClients();
-  const { updateProspect } = useProspects();
+  const { addProspect, updateProspect } = useProspects();
   const { syncedUpdateClient, unlinkProspectFromClient } = useProspectClientSync();
   const { getVentesForClient } = useVentes();
   const [searchQuery, setSearchQuery] = useState('');
