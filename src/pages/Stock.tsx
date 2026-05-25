@@ -74,20 +74,20 @@ export default function Stock() {
   };
 
   const stockValue = useMemo(
-    () => materials.reduce((sum, m) => sum + (m.prixVente || 0) * m.stockQuantite, 0),
+    () => materials.reduce((sum, m) => sum + (m.prixUnitaire || 0) * m.stockQuantite, 0),
     [materials]
   );
 
   const handleExportCsv = () => {
-    const headers = ['Reference', 'Nom', 'Categorie', 'Stock', 'Minimum', 'PrixVente', 'ValeurStock'];
+    const headers = ['Reference', 'Nom', 'Categorie', 'Stock', 'Minimum', 'PrixUnitaire', 'ValeurStock'];
     const rows = materials.map((m) => [
       m.reference,
       `"${m.nom.replace(/"/g, '""')}"`,
       MATERIAL_CATEGORY_LABELS[m.categorie],
       m.stockQuantite,
       m.stockMinimum,
-      m.prixVente || 0,
-      (m.prixVente || 0) * m.stockQuantite,
+      m.prixUnitaire || 0,
+      (m.prixUnitaire || 0) * m.stockQuantite,
     ].join(','));
     const csv = [headers.join(','), ...rows].join('\n');
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
