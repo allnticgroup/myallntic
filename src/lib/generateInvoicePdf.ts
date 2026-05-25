@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf';
+import QRCode from 'qrcode';
 import { Invoice, Prospect, Devis } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -14,7 +15,23 @@ function getCompanyInfo() {
     website: settings.siteWeb,
     logo: settings.logo,
     services: settings.services,
+    waveLink: settings.waveLink,
+    orangeMoneyLink: settings.orangeMoneyLink,
+    ibanBancaire: settings.ibanBancaire,
+    banqueNom: settings.banqueNom,
   };
+}
+
+async function makeQrDataUrl(text: string): Promise<string | null> {
+  try {
+    return await QRCode.toDataURL(text, { margin: 1, width: 200 });
+  } catch {
+    return null;
+  }
+}
+
+function fillTemplate(tpl: string, amount: number): string {
+  return tpl.replace(/\{amount\}/gi, String(amount));
 }
 
 function formatMontant(montant: number): string {
