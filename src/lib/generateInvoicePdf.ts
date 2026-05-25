@@ -249,12 +249,54 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
   doc.setFont('times', 'normal');
   doc.setTextColor(80, 80, 80);
   doc.setFontSize(8);
-  doc.text('• Virement bancaire', margin, y);
-  y += 4;
-  doc.text('• Mobile Money', margin, y);
-  y += 4;
+
+  const textBlockY = y;
+  if (COMPANY_INFO.ibanBancaire) {
+    doc.text(`• Virement : ${COMPANY_INFO.banqueNom || ''} - ${COMPANY_INFO.ibanBancaire}`, margin, y);
+    y += 4;
+  } else {
+    doc.text('• Virement bancaire', margin, y);
+    y += 4;
+  }
+  if (COMPANY_INFO.waveLink) {
+    doc.text(`• Wave : ${COMPANY_INFO.waveLink}`, margin, y);
+    y += 4;
+  }
+  if (COMPANY_INFO.orangeMoneyLink) {
+    doc.text(`• Orange Money : ${COMPANY_INFO.orangeMoneyLink}`, margin, y);
+    y += 4;
+  }
   doc.text('• Espèces', margin, y);
-  y += 10;
+  y += 4;
+
+  // QR codes Wave / Orange Money
+  const qrSize = 28;
+  let qrX = pageWidth - margin - qrSize;
+  const qrY = textBlockY - 2;
+
+  if (COMPANY_INFO.waveLink) {
+    const waveUrl = fillTemplate(COMPANY_INFO.waveLink, invoice.montantTTC);
+    const qr = await makeQrDataUrl(waveUrl);
+    if (qr) {
+      doc.addImage(qr, 'PNG', qrX, qrY, qrSize, qrSize);
+      doc.setFontSize(7);
+      doc.setTextColor(33, 90, 168);
+      doc.text('Wave', qrX + qrSize / 2, qrY + qrSize + 3, { align: 'center' });
+      qrX -= qrSize + 5;
+    }
+  }
+  if (COMPANY_INFO.orangeMoneyLink) {
+    const omUrl = fillTemplate(COMPANY_INFO.orangeMoneyLink, invoice.montantTTC);
+    const qr = await makeQrDataUrl(omUrl);
+    if (qr) {
+      doc.addImage(qr, 'PNG', qrX, qrY, qrSize, qrSize);
+      doc.setFontSize(7);
+      doc.setTextColor(33, 90, 168);
+      doc.text('Orange Money', qrX + qrSize / 2, qrY + qrSize + 3, { align: 'center' });
+    }
+  }
+
+  y = Math.max(y, qrY + qrSize + 8);
 
   // Statut
   if (invoice.statut === 'paid') {
