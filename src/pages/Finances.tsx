@@ -175,6 +175,77 @@ export default function Finances() {
     return prospects.find(p => p.id === prospectId)?.nomStructure || 'Client inconnu';
   };
 
+  const getProspect = (prospectId: string) => prospects.find(p => p.id === prospectId);
+
+  // ===== Reçu PDF =====
+  const handleGenerateReceipt = async (payment: Payment) => {
+    const clientName = getProspectName(payment.prospectId);
+    const devis = devisList.find(d => d.id === payment.devisId);
+    const invoice = devis ? invoices.find(i => i.devisId === devis.id) : undefined;
+    await generateReceiptPdf(payment, clientName, invoice?.numero);
+    toast.success('Reçu PDF généré');
+  };
+
+  // ===== Encaissements & Relances =====
+  const encaissementsStats = useMemo(() => {
+    const totalEncaisse = payments.reduce((sum, p) => sum + p.montant, 0);
+    const totalFacture = invoices.reduce((sum, i) => sum + i.montantTTC, 0);
+    const totalImpaye = invoices
+      .filter(i => i.statut !== 'paid')
+      .reduce((sum, i) => sum + i.montantTTC, 0);
+    const totalEnRetard = invoices
+      .filter(i => i.statut === 'overdue')
+      .reduce((sum, i) => sum + i.montantTTC, 0);
+    const tauxEncaissement = totalFacture > 0 ? (totalEncaisse / totalFacture) * 100 : 0;
+    return { totalEncaisse, totalFacture, totalImpaye, totalEnRetard, tauxEncaissement };
+  }, [payments, invoices]);
+
+  const relances = useMemo(() => {
+    const today = new Date();
+    return invoices
+      .filter(i => i.statut === 'sent' || i.statut === 'overdue')
+      .map(i => {
+        const prospect = getProspect(i.prospectId);
+        const joursRetard = differenceInDays(today, new Date(i.dateEcheance));
+        return { invoice: i, prospect, joursRetard };
+      })
+      .sort((a, b) => b.joursRetard - a.joursRetard);
+  }, [invoices, prospects]);
+
+  const encaissementsParClient = useMemo(() => {
+    const map = new Map<string, { name: string; encaisse: number; impaye: number }>();
+    invoices.forEach(i => {
+      const name = getProspectName(i.prospectId);
+      const entry = map.get(i.prospectId) || { name, encaisse: 0, impaye: 0 };
+      if (i.statut === 'paid') entry.encaisse += i.montantTTC;
+      else entry.impaye += i.montantTTC;
+      map.set(i.prospectId, entry);
+    });
+    return Array.from(map.values())
+      .filter(e => e.encaisse > 0 || e.impaye > 0)
+      .sort((a, b) => b.impaye - a.impaye);
+  }, [invoices, prospects]);
+
+  const buildRelanceMessage = (clientName: string, numero: string, montant: number, joursRetard: number) => {
+    const intro = joursRetard > 0
+      ? `Bonjour ${clientName}, nous vous rappelons que la facture ${numero} d'un montant de ${montant.toLocaleString('fr-FR')} FCFA est en retard de ${joursRetard} jour(s).`
+      : `Bonjour ${clientName}, nous vous rappelons que la facture ${numero} d'un montant de ${montant.toLocaleString('fr-FR')} FCFA arrive à échéance.`;
+    return `${intro} Merci de bien vouloir procéder au règlement dans les meilleurs délais.`;
+  };
+
+  const handleRelanceWhatsApp = (clientName: string, numero: string, montant: number, joursRetard: number, telephone: string) => {
+    const msg = buildRelanceMessage(clientName, numero, montant, joursRetard);
+    const phone = telephone.replace(/[^0-9]/g, '');
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
+  const handleRelanceEmail = (clientName: string, numero: string, montant: number, joursRetard: number, email: string) => {
+    const msg = buildRelanceMessage(clientName, numero, montant, joursRetard);
+    const subject = `Relance facture ${numero}`;
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(msg)}`;
+  };
+
+
   return (
     <div className="min-h-screen pb-20">
       <PageHeader title="Finances" subtitle="Gestion financière" />
