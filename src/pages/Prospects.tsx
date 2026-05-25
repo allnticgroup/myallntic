@@ -31,7 +31,7 @@ import { toast } from 'sonner';
 
 export default function Prospects() {
   const { prospects, addProspect, updateProspect, deleteProspect } = useProspects();
-  const { updateClient } = useClients();
+  const { addClient, updateClient } = useClients();
   const { devisList, deleteDevis } = useDevis();
   const [statusFilter, setStatusFilter] = useState<ProspectStatus | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,12 +48,25 @@ export default function Prospects() {
 
   const handleAddProspect = (data: Parameters<typeof addProspect>[0]) => {
     const created = addProspect(data);
-    // Lien bidirectionnel si pré-rempli depuis un client
     if (data.clientId) {
       updateClient(data.clientId, { prospectId: created.id });
+      toast.success('Prospect créé avec succès');
+    } else {
+      // Création automatique du client miroir
+      const newClient = addClient({
+        nom: created.nomStructure,
+        nomDecideur: created.nomDecideur || '',
+        telephone: created.telephone || '',
+        email: '',
+        adresse: '',
+        ville: '',
+        notes: created.notes || '',
+        prospectId: created.id,
+      });
+      updateProspect(created.id, { clientId: newClient.id });
+      toast.success('Prospect + client créés et liés');
     }
     setShowForm(false);
-    toast.success('Prospect créé avec succès');
   };
 
   const handleUpdateProspect = (data: Parameters<typeof addProspect>[0]) => {
