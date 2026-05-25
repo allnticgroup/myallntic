@@ -26,11 +26,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useInvoices, useProspects, useDevis } from '@/hooks/useData';
-import { useClients } from '@/hooks/useErpData';
-import { Invoice, InvoiceStatus, INVOICE_STATUS_LABELS } from '@/types';
+import { useInvoices, useProspects, useDevis, useMaterials } from '@/hooks/useData';
+import { useClients, useVentes } from '@/hooks/useErpData';
+import { Invoice, InvoiceStatus, INVOICE_STATUS_LABELS, Prospect, Devis, DevisLigne } from '@/types';
 import { generateInvoiceDocx } from '@/lib/generateInvoiceDocx';
 import { generateInvoicePdf } from '@/lib/generateInvoicePdf';
+import { getCompanySettings } from '@/lib/companySettings';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,12 +45,69 @@ export default function Invoices() {
   const { prospects, getProspect } = useProspects();
   const { devisList } = useDevis();
   const { getClient } = useClients();
+  const { ventes } = useVentes();
+  const { materials } = useMaterials();
 
   const getInvoiceClientName = (invoice: Invoice) => {
     if (invoice.source === 'vente' && invoice.clientId) {
       return getClient(invoice.clientId)?.nom;
     }
     return getProspect(invoice.prospectId)?.nomStructure;
+  };
+
+  // Build proxy Prospect + Devis from a Vente-sourced invoice so PDF/DOCX generators work
+  const buildVenteContext = (invoice: Invoice): { prospect: Prospect; devis: Devis } | null => {
+    if (!invoice.clientId || !invoice.venteId) return null;
+    const client = getClient(invoice.clientId);
+    const vente = ventes.find((v) => v.id === invoice.venteId);
+    if (!client || !vente) return null;
+    const company = getCompanySettings();
+    const proxyProspect: Prospect = {
+      id: client.id,
+      nomStructure: client.nom,
+      nomDecideur: client.nom,
+      telephone: client.telephone || '',
+      typeStructure: 'Autre',
+      besoinPrincipal: 'Maintenance',
+      statut: 'signe',
+      notes: client.adresse || '',
+      createdAt: client.createdAt,
+      updatedAt: client.updatedAt,
+    };
+    const lignes: DevisLigne[] = vente.lignes.map((l) => {
+      const mat = materials.find((m) => m.id === l.materialId);
+      return {
+        materialId: l.materialId,
+        nom: l.nom,
+        reference: mat?.reference || '',
+        categorie: mat?.categorie || 'autre',
+        quantite: l.quantite,
+        prixUnitaire: l.prixUnitaire,
+        total: l.total,
+      };
+    });
+    const proxyDevis: Devis = {
+      id: vente.id,
+      prospectId: client.id,
+      dateDevis: vente.dateVente,
+      objet: `Vente ${vente.code}`,
+      option: 'Essentiel',
+      montant: vente.total,
+      lignes,
+      statut: 'accepte',
+      acompteRecu: false,
+      montantAcompte: 0,
+      mainDoeuvre: 0,
+      stockDeduit: vente.stockDeduit,
+      entrepriseNom: company.nom,
+      entrepriseAdresse: company.adresse,
+      entrepriseTelephone: company.telephone,
+      entrepriseEmail: company.email,
+      entrepriseSite: company.siteWeb,
+      createdAt: vente.createdAt,
+      updatedAt: vente.updatedAt,
+    };
+    return { prospect: proxyProspect, devis: proxyDevis };
   };
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -125,7 +183,10 @@ export default function Invoices() {
 
   const handleDownloadDocx = async (invoice: Invoice) => {
     if (invoice.source === 'vente') {
-      toast.info('Téléchargement Word indisponible pour les factures issues de ventes');
+      const ctx = buildVenteContext(invoice);
+      if (!ctx) { toast.error('Données vente introuvables'); return; }
+      await generateInvoiceDocx(invoice, ctx.prospect, ctx.devis);
+      toast.success('Document Word téléchargé');
       return;
     }
     const prospect = getProspect(invoice.prospectId);
@@ -137,7 +198,10 @@ export default function Invoices() {
 
   const handleDownloadPdf = async (invoice: Invoice) => {
     if (invoice.source === 'vente') {
-      toast.info('Téléchargement PDF indisponible pour les factures issues de ventes');
+      const ctx = buildVenteContext(invoice);
+      if (!ctx) { toast.error('Données vente introuvables'); return; }
+      await generateInvoicePdf(invoice, ctx.prospect, ctx.devis);
+      toast.success('Document PDF téléchargé');
       return;
     }
     const prospect = getProspect(invoice.prospectId);
@@ -404,13 +468,22 @@ export default function Invoices() {
           <DialogHeader>
             <DialogTitle>Aperçu de la facture</DialogTitle>
           </DialogHeader>
-          {previewingInvoice && getProspect(previewingInvoice.prospectId) && (
-            <InvoicePreview
-              invoice={previewingInvoice}
-              prospect={getProspect(previewingInvoice.prospectId)!}
-              devis={devisList.find((d) => d.id === previewingInvoice.devisId)}
-            />
-          )}
+          {previewingInvoice && (() => {
+            if (previewingInvoice.source === 'vente') {
+              const ctx = buildVenteContext(previewingInvoice);
+              if (!ctx) return <p className="text-sm text-muted-foreground p-4">Données vente introuvables</p>;
+              return <InvoicePreview invoice={previewingInvoice} prospect={ctx.prospect} devis={ctx.devis} />;
+            }
+            const prospect = getProspect(previewingInvoice.prospectId);
+            if (!prospect) return <p className="text-sm text-muted-foreground p-4">Client introuvable</p>;
+            return (
+              <InvoicePreview
+                invoice={previewingInvoice}
+                prospect={prospect}
+                devis={devisList.find((d) => d.id === previewingInvoice.devisId)}
+              />
+            );
+          })()}
           <DialogFooter className="flex gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

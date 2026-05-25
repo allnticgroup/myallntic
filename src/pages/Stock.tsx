@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Search, Package, AlertTriangle, ArrowDownCircle, ArrowUpCircle, RotateCcw, Plus } from 'lucide-react';
+import { Search, Package, AlertTriangle, ArrowDownCircle, ArrowUpCircle, RotateCcw, Plus, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
@@ -73,12 +73,53 @@ export default function Stock() {
     return <RotateCcw className="h-4 w-4 text-primary" />;
   };
 
+  const stockValue = useMemo(
+    () => materials.reduce((sum, m) => sum + (m.prixUnitaire || 0) * m.stockQuantite, 0),
+    [materials]
+  );
+
+  const handleExportCsv = () => {
+    const headers = ['Reference', 'Nom', 'Categorie', 'Stock', 'Minimum', 'PrixUnitaire', 'ValeurStock'];
+    const rows = materials.map((m) => [
+      m.reference,
+      `"${m.nom.replace(/"/g, '""')}"`,
+      MATERIAL_CATEGORY_LABELS[m.categorie],
+      m.stockQuantite,
+      m.stockMinimum,
+      m.prixUnitaire || 0,
+      (m.prixUnitaire || 0) * m.stockQuantite,
+    ].join(','));
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `inventaire-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Inventaire exporté');
+  };
+
   return (
     <div className="min-h-screen pb-20">
       <PageHeader title="Stock" subtitle={`${materials.length} produit${materials.length > 1 ? 's' : ''}`}
-        action={<Button size="sm" onClick={() => setShowMovementForm(true)}><Plus className="h-4 w-4 mr-1" />Mouvement</Button>}
+        action={
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={handleExportCsv}><Download className="h-4 w-4 mr-1" />CSV</Button>
+            <Button size="sm" onClick={() => setShowMovementForm(true)}><Plus className="h-4 w-4 mr-1" />Mouvement</Button>
+          </div>
+        }
       />
       <main className="p-4 space-y-4 max-w-lg mx-auto">
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="p-3 flex items-center justify-between">
+            <div>
+              <p className="text-xs text-muted-foreground">Valeur du stock</p>
+              <p className="text-lg font-bold text-primary">{stockValue.toLocaleString('fr-FR')} FCFA</p>
+            </div>
+            <Package className="h-6 w-6 text-primary/60" />
+          </CardContent>
+        </Card>
         {criticalStock.length > 0 && (
           <Card className="bg-destructive/10 border-destructive/30">
             <CardContent className="p-4">
