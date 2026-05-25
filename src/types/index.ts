@@ -171,6 +171,7 @@ export interface Expense {
   categorie: ExpenseCategory;
   dateDepense: string;
   fournisseur: string;
+  projectId?: string;
   notes: string;
   createdAt: string;
   updatedAt: string;

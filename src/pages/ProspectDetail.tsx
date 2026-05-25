@@ -12,6 +12,7 @@ import {
   Wrench,
   CheckCircle2,
   Clock,
+  UserCheck,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -47,6 +48,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useProspects, useDevis, useInterventions, useMaterials } from '@/hooks/useData';
+import { useClients } from '@/hooks/useErpData';
 import {
   ProspectStatus,
   DevisStatus,
@@ -74,12 +76,18 @@ export default function ProspectDetail() {
     deleteIntervention,
   } = useInterventions();
   const { deductStockForDevis, restoreStockForDevis } = useMaterials();
+  const { clients, addClient } = useClients();
 
   const [showForm, setShowForm] = useState<FormType>(null);
+  const [showConvert, setShowConvert] = useState(false);
 
   const prospect = id ? getProspect(id) : undefined;
   const devisList = id ? getDevisForProspect(id) : [];
   const interventions = id ? getInterventionsForProspect(id) : [];
+
+  const existingClient = prospect
+    ? clients.find(c => c.nom.trim().toLowerCase() === prospect.nomStructure.trim().toLowerCase())
+    : undefined;
 
   if (!prospect) {
     return (
@@ -120,6 +128,20 @@ export default function ProspectDetail() {
     toast.success('Intervention créée');
   };
 
+  const handleConvertToClient = () => {
+    const newClient = addClient({
+      nom: prospect.nomStructure,
+      telephone: prospect.telephone,
+      email: '',
+      adresse: '',
+      ville: '',
+      notes: `Converti depuis le prospect (${prospect.nomDecideur || 'N/A'})\n${prospect.notes || ''}`.trim(),
+    });
+    setShowConvert(false);
+    toast.success(`Client ${newClient.code} créé`);
+    navigate(`/clients/${newClient.id}`);
+  };
+
   return (
     <div className="min-h-screen pb-20">
       <PageHeader
@@ -128,6 +150,15 @@ export default function ProspectDetail() {
         showBack
         action={
           <div className="flex gap-2">
+            {existingClient ? (
+              <Button variant="ghost" size="icon" onClick={() => navigate(`/clients/${existingClient.id}`)} title="Voir le client lié">
+                <UserCheck className="h-4 w-4 text-success" />
+              </Button>
+            ) : (
+              <Button variant="ghost" size="icon" onClick={() => setShowConvert(true)} title="Convertir en client">
+                <UserCheck className="h-4 w-4" />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"
@@ -426,6 +457,22 @@ export default function ProspectDetail() {
           </div>
         </SheetContent>
       </Sheet>
+
+      <AlertDialog open={showConvert} onOpenChange={setShowConvert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Convertir en client ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Un nouveau client sera créé à partir de "{prospect.nomStructure}". Le prospect sera conservé pour l'historique commercial.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConvertToClient}>Convertir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+

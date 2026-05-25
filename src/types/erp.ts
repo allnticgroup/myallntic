@@ -27,6 +27,7 @@ export interface Vente {
   id: string;
   code: string; // V0001
   clientId: string;
+  projectId?: string;
   dateVente: string;
   lignes: VenteLigne[];
   sousTotal: number;

@@ -10,17 +10,19 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { useClients } from '@/hooks/useErpData';
+import { useClients, useVentes } from '@/hooks/useErpData';
 import { Client } from '@/types/erp';
 import { Users } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Clients() {
   const { clients, addClient, updateClient, deleteClient } = useClients();
+  const { getVentesForClient } = useVentes();
   const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [deletingClient, setDeletingClient] = useState<Client | null>(null);
+  const deletingVentes = deletingClient ? getVentesForClient(deletingClient.id) : [];
 
   const filtered = clients
     .filter(c => c.nom.toLowerCase().includes(searchQuery.toLowerCase()) || c.code.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -121,8 +123,13 @@ export default function Clients() {
       <AlertDialog open={!!deletingClient} onOpenChange={() => setDeletingClient(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer le client ?</AlertDialogTitle>
-            <AlertDialogDescription>Cette action supprimera définitivement "{deletingClient?.nom}".</AlertDialogDescription>
+            <AlertDialogTitle>Supprimer "{deletingClient?.nom}" ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deletingVentes.length > 0 && (
+                <>⚠️ <strong>{deletingVentes.length} vente(s)</strong> liée(s) à ce client perdront leur référence.<br /><br /></>
+              )}
+              Cette action est irréversible.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>

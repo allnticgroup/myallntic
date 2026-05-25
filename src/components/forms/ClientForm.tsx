@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Client } from '@/types/erp';
+import { useClients } from '@/hooks/useErpData';
 
 interface ClientFormProps {
   client?: Client;
@@ -11,7 +14,10 @@ interface ClientFormProps {
   onCancel: () => void;
 }
 
+const normalize = (s: string) => s.replace(/\s+/g, '').toLowerCase();
+
 export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
+  const { clients } = useClients();
   const [formData, setFormData] = useState({
     nom: client?.nom || '',
     telephone: client?.telephone || '',
@@ -21,6 +27,20 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
     notes: client?.notes || '',
   });
 
+  const duplicates = useMemo(() => {
+    const list: { client: Client; reason: string }[] = [];
+    const phone = normalize(formData.telephone);
+    const email = normalize(formData.email);
+    const nom = normalize(formData.nom);
+    clients.forEach(c => {
+      if (client && c.id === client.id) return;
+      if (phone && normalize(c.telephone) === phone) list.push({ client: c, reason: 'téléphone' });
+      else if (email && normalize(c.email) === email) list.push({ client: c, reason: 'email' });
+      else if (nom && normalize(c.nom) === nom) list.push({ client: c, reason: 'nom' });
+    });
+    return list;
+  }, [clients, client, formData.telephone, formData.email, formData.nom]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
@@ -28,6 +48,14 @@ export function ClientForm({ client, onSubmit, onCancel }: ClientFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {duplicates.length > 0 && (
+        <Alert className="bg-warning/10 border-warning/30">
+          <AlertTriangle className="h-4 w-4 text-warning" />
+          <AlertDescription className="text-sm">
+            Doublon potentiel ({duplicates[0].reason}) : <strong>{duplicates[0].client.nom}</strong> ({duplicates[0].client.code})
+          </AlertDescription>
+        </Alert>
+      )}
       <div className="space-y-2">
         <Label htmlFor="nom">Nom du client *</Label>
         <Input id="nom" value={formData.nom} onChange={(e) => setFormData({ ...formData, nom: e.target.value })} placeholder="Ex: Entreprise ABC" required />

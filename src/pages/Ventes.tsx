@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useClients, useVentes, useStockMovements } from '@/hooks/useErpData';
+import { useClients, useVentes, useStockMovements, useProjects } from '@/hooks/useErpData';
 import { useMaterials, useInvoices } from '@/hooks/useData';
 import { Vente, VenteStatus, VENTE_STATUS_LABELS } from '@/types/erp';
 import { useNavigate } from 'react-router-dom';
@@ -22,6 +22,7 @@ export default function Ventes() {
   const navigate = useNavigate();
   const { clients, getClient } = useClients();
   const { ventes, addVente, updateVente, deleteVente } = useVentes();
+  const { projects } = useProjects();
   const { materials, updateMaterial } = useMaterials();
   const { addMovement } = useStockMovements();
   const { invoices, addInvoice, generateInvoiceNumber } = useInvoices();
@@ -211,7 +212,7 @@ export default function Ventes() {
         <SheetContent side="bottom" className="h-[90vh] rounded-t-xl">
           <SheetHeader className="mb-4"><SheetTitle>Nouvelle vente</SheetTitle></SheetHeader>
           <div className="overflow-y-auto max-h-[calc(90vh-100px)]">
-            <VenteForm clients={clients} materials={materials} onSubmit={handleAdd} onCancel={() => setShowForm(false)} />
+            <VenteForm clients={clients} materials={materials} projects={projects} onSubmit={handleAdd} onCancel={() => setShowForm(false)} />
           </div>
         </SheetContent>
       </Sheet>
