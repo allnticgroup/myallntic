@@ -111,6 +111,15 @@ export default function Stock() {
         }
       />
       <main className="p-4 space-y-4 max-w-lg mx-auto">
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="p-3 flex items-center justify-between">
+            <div>
+              <p className="text-xs text-muted-foreground">Valeur du stock</p>
+              <p className="text-lg font-bold text-primary">{stockValue.toLocaleString('fr-FR')} FCFA</p>
+            </div>
+            <Package className="h-6 w-6 text-primary/60" />
+          </CardContent>
+        </Card>
         {criticalStock.length > 0 && (
           <Card className="bg-destructive/10 border-destructive/30">
             <CardContent className="p-4">
