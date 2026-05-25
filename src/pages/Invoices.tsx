@@ -468,13 +468,22 @@ export default function Invoices() {
           <DialogHeader>
             <DialogTitle>Aperçu de la facture</DialogTitle>
           </DialogHeader>
-          {previewingInvoice && getProspect(previewingInvoice.prospectId) && (
-            <InvoicePreview
-              invoice={previewingInvoice}
-              prospect={getProspect(previewingInvoice.prospectId)!}
-              devis={devisList.find((d) => d.id === previewingInvoice.devisId)}
-            />
-          )}
+          {previewingInvoice && (() => {
+            if (previewingInvoice.source === 'vente') {
+              const ctx = buildVenteContext(previewingInvoice);
+              if (!ctx) return <p className="text-sm text-muted-foreground p-4">Données vente introuvables</p>;
+              return <InvoicePreview invoice={previewingInvoice} prospect={ctx.prospect} devis={ctx.devis} />;
+            }
+            const prospect = getProspect(previewingInvoice.prospectId);
+            if (!prospect) return <p className="text-sm text-muted-foreground p-4">Client introuvable</p>;
+            return (
+              <InvoicePreview
+                invoice={previewingInvoice}
+                prospect={prospect}
+                devis={devisList.find((d) => d.id === previewingInvoice.devisId)}
+              />
+            );
+          })()}
           <DialogFooter className="flex gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
