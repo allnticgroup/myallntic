@@ -2,7 +2,8 @@
 export interface Client {
   id: string;
   code: string; // CL001
-  nom: string;
+  nom: string; // Nom de la structure
+  nomDecideur: string;
   telephone: string;
   email: string;
   adresse: string;
