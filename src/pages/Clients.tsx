@@ -36,9 +36,23 @@ export default function Clients() {
     const created = addClient(data);
     if (data.prospectId) {
       updateProspect(data.prospectId, { clientId: created.id });
+      toast.success('Client créé');
+    } else {
+      // Création automatique du prospect miroir
+      const newProspect = addProspect({
+        nomStructure: created.nom,
+        nomDecideur: created.nomDecideur || '',
+        telephone: created.telephone || '',
+        typeStructure: 'PME',
+        besoinPrincipal: 'Reseau',
+        statut: 'signe',
+        notes: created.notes || '',
+        clientId: created.id,
+      });
+      syncedUpdateClient(created.id, { prospectId: newProspect.id });
+      toast.success('Client + prospect créés et liés');
     }
     setShowForm(false);
-    toast.success('Client créé');
   };
 
 
