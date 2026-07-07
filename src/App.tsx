@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { BottomNav } from "@/components/BottomNav";
+import { PwaInstallButton } from "@/components/PwaInstallButton";
 import Index from "./pages/Index";
 import Prospects from "./pages/Prospects";
 import ProspectDetail from "./pages/ProspectDetail";
@@ -61,6 +62,7 @@ const App = () => (
             <Route path="/parametres" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <PwaInstallButton />
           <BottomNav />
         </BrowserRouter>
       </TooltipProvider>
