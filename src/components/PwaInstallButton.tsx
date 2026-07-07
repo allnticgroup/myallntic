@@ -7,9 +7,11 @@ type BeforeInstallPromptEvent = Event & {
 };
 
 function isStandaloneDisplay() {
+  const navigatorWithStandalone = window.navigator as Navigator & { standalone?: boolean };
+
   return (
     window.matchMedia("(display-mode: standalone)").matches ||
-    ("standalone" in window.navigator && window.navigator.standalone === true)
+    navigatorWithStandalone.standalone === true
   );
 }
 
