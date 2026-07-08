@@ -302,66 +302,22 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   }
 
 
-
-  // ===== TOTAUX À DROITE =====
-  const totalsX = pageWidth - margin - 70;
-
-  // Total Matériel + Main-d'œuvre si applicable
+  // ===== DÉTAIL MAIN-D'ŒUVRE (si applicable) =====
   if (devis.lignes && devis.lignes.length > 0 && devis.mainDoeuvre > 0) {
     const totalMateriel = devis.montant - devis.mainDoeuvre;
+    const totalsX = pageWidth - margin - 80;
 
-    // Total Matériel
-    doc.setFillColor(240, 245, 250);
-    doc.rect(totalsX, y, 38, 8, 'F');
-    doc.setDrawColor(33, 90, 168);
-    doc.rect(totalsX, y, 38, 8, 'S');
     doc.setFontSize(8);
-    doc.setFont('times', 'bold');
-    doc.setTextColor(33, 90, 168);
-    doc.text('Total Matériel', totalsX + 2, y + 5);
-    doc.setFillColor(255, 255, 255);
-    doc.rect(totalsX + 38, y, 32, 8, 'F');
-    doc.setDrawColor(180, 180, 180);
-    doc.rect(totalsX + 38, y, 32, 8, 'S');
-    doc.setTextColor(50, 50, 50);
     doc.setFont('times', 'normal');
-    doc.text(`${formatMontant(totalMateriel)} F`, totalsX + 68, y + 5, { align: 'right' });
-    y += 9;
-
-    // Main-d'œuvre
-    doc.setFillColor(240, 245, 250);
-    doc.rect(totalsX, y, 38, 8, 'F');
-    doc.setDrawColor(33, 90, 168);
-    doc.rect(totalsX, y, 38, 8, 'S');
-    doc.setFontSize(8);
-    doc.setFont('times', 'bold');
-    doc.setTextColor(33, 90, 168);
-    doc.text('Main-d\'œuvre', totalsX + 2, y + 5);
-    doc.setFillColor(255, 255, 255);
-    doc.rect(totalsX + 38, y, 32, 8, 'F');
-    doc.setDrawColor(180, 180, 180);
-    doc.rect(totalsX + 38, y, 32, 8, 'S');
-    doc.setTextColor(50, 50, 50);
-    doc.setFont('times', 'normal');
-    doc.text(`${formatMontant(devis.mainDoeuvre)} F`, totalsX + 68, y + 5, { align: 'right' });
-    y += 10;
+    doc.setTextColor(80, 80, 80);
+    doc.text('Dont Matériel :', totalsX, y);
+    doc.text(`${formatMontant(totalMateriel)} F`, pageWidth - margin, y, { align: 'right' });
+    y += 5;
+    doc.text("Dont Main-d'œuvre :", totalsX, y);
+    doc.text(`${formatMontant(devis.mainDoeuvre)} F`, pageWidth - margin, y, { align: 'right' });
+    y += 8;
   }
 
-  // Total
-  doc.setFillColor(33, 90, 168);
-  doc.rect(totalsX, y, 38, 10, 'F');
-  doc.setFontSize(10);
-  doc.setFont('times', 'bold');
-  doc.setTextColor(255, 255, 255);
-  doc.text('Total', totalsX + 3, y + 7);
-  doc.setFillColor(255, 255, 255);
-  doc.rect(totalsX + 38, y, 32, 10, 'F');
-  doc.setDrawColor(33, 90, 168);
-  doc.rect(totalsX + 38, y, 32, 10, 'S');
-  doc.setTextColor(33, 90, 168);
-  doc.setFontSize(11);
-  doc.text(`${formatMontant(devis.montant)} F`, totalsX + 68, y + 7, { align: 'right' });
-  y += 15;
 
   // Acompte si reçu
   if (devis.acompteRecu && devis.montantAcompte > 0) {
