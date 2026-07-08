@@ -1,8 +1,19 @@
 import jsPDF from 'jspdf';
-import { Devis, Prospect, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS, MATERIAL_CATEGORY_LABELS } from '@/types';
+import { Devis, Prospect, Material, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { getCompanySettings } from './companySettings';
+
+function getMaterialsMap(): Record<string, Material> {
+  try {
+    const raw = window.localStorage.getItem('allntic_materials');
+    const list: Material[] = raw ? JSON.parse(raw) : [];
+    return Object.fromEntries(list.map((m) => [m.id, m]));
+  } catch {
+    return {};
+  }
+}
+
 
 // Informations de l'entreprise
 function getCompanyInfo(devis: Devis) {
