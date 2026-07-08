@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import { Devis, Prospect, Material, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS } from '@/types';
+import { Devis, Prospect, Material, DEVIS_OPTION_LABELS } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { getCompanySettings } from './companySettings';
