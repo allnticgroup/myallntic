@@ -128,15 +128,18 @@ export interface Material {
   id: string;
   nom: string;
   reference: string;
+  modele?: string;
   categorie: MaterialCategory;
   prixUnitaire: number;
   unite: string;
   description: string;
+  photo?: string; // Base64 JPEG compressée
   stockQuantite: number;
   stockMinimum: number;
   createdAt: string;
   updatedAt: string;
 }
+
 
 export const MATERIAL_CATEGORY_LABELS: Record<MaterialCategory, string> = {
   camera: 'Caméra',

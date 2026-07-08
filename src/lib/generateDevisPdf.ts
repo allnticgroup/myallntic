@@ -1,8 +1,19 @@
 import jsPDF from 'jspdf';
-import { Devis, Prospect, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS, MATERIAL_CATEGORY_LABELS } from '@/types';
+import { Devis, Prospect, Material, DEVIS_OPTION_LABELS } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { getCompanySettings } from './companySettings';
+
+function getMaterialsMap(): Record<string, Material> {
+  try {
+    const raw = window.localStorage.getItem('allntic_materials');
+    const list: Material[] = raw ? JSON.parse(raw) : [];
+    return Object.fromEntries(list.map((m) => [m.id, m]));
+  } catch {
+    return {};
+  }
+}
+
 
 // Informations de l'entreprise
 function getCompanyInfo(devis: Devis) {
@@ -143,136 +154,170 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
 
   y += 45;
 
-  // Objet du devis
-  doc.setFontSize(9);
-  doc.setFont('times', 'bold');
-  doc.setTextColor(33, 90, 168);
-  doc.text(`Objet : ${devis.objet || `${DEVIS_OPTION_LABELS[devis.option]} - ${DEVIS_STATUS_LABELS[devis.statut]}`}`, margin, y);
-  y += 12;
+  // ===== TABLEAU DES MATÉRIELS (style catalogue avec photos) =====
+  const materialsMap = getMaterialsMap();
 
-  // ===== TABLEAU DES MATÉRIELS =====
   if (devis.lignes && devis.lignes.length > 0) {
-    // En-têtes du tableau
     const tableWidth = pageWidth - margin * 2;
-    const colWidths = [tableWidth * 0.35, tableWidth * 0.15, tableWidth * 0.18, tableWidth * 0.10, tableWidth * 0.22];
-    const colX = [
-      margin,
-      margin + colWidths[0],
-      margin + colWidths[0] + colWidths[1],
-      margin + colWidths[0] + colWidths[1] + colWidths[2],
-      margin + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3],
-    ];
-    
-    // Header du tableau avec fond bleu
-    doc.setFillColor(33, 90, 168);
-    doc.rect(margin, y - 5, tableWidth, 10, 'F');
-    
+    // Colonnes : No | Nom | Modèle | Photo | Description | Uté | PU TTC | Qté | MT TTC
+    const ratios = [0.05, 0.13, 0.11, 0.14, 0.22, 0.05, 0.10, 0.06, 0.14];
+    const colW = ratios.map((r) => tableWidth * r);
+    const colX: number[] = [];
+    let cx = margin;
+    for (const w of colW) {
+      colX.push(cx);
+      cx += w;
+    }
+
+    // Bandeau rouge du haut
+    doc.setFillColor(220, 38, 38);
+    doc.rect(margin, y, tableWidth, 4, 'F');
+    y += 4;
+
+    // Titre catégorie (issu de l'objet du devis)
+    const titre = (devis.objet || DEVIS_OPTION_LABELS[devis.option] || 'DEVIS').toUpperCase();
+    doc.setFillColor(255, 255, 255);
+    doc.rect(margin, y, tableWidth, 10, 'F');
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(0.3);
+    doc.rect(margin, y, tableWidth, 10, 'S');
+    doc.setFontSize(14);
+    doc.setFont('times', 'italic');
+    doc.setTextColor(0, 0, 0);
+    doc.text(titre, margin + tableWidth / 2, y + 7, { align: 'center' });
+    y += 10;
+
+    // En-tête de colonnes
+    const headerH = 10;
+    doc.setFillColor(245, 245, 245);
+    doc.rect(margin, y, tableWidth, headerH, 'F');
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(0.2);
+    doc.rect(margin, y, tableWidth, headerH, 'S');
+    const headers = ['No', 'Nom du produit', 'Modèle', 'Photo', 'Description', 'Uté', 'PU,TTC', 'PT.TTC', 'M.T. T.T.C'];
     doc.setFontSize(7);
     doc.setFont('times', 'bold');
-    doc.setTextColor(255, 255, 255);
-    doc.text('Désignation', colX[0] + 2, y + 1);
-    doc.text('Réf.', colX[1] + 2, y + 1);
-    doc.text('P.U. HT', colX[2] + 2, y + 1);
-    doc.text('Qté', colX[3] + 2, y + 1);
-    doc.text('Total HT', colX[4] + 2, y + 1);
-    y += 10;
+    doc.setTextColor(0, 0, 0);
+    headers.forEach((h, i) => {
+      // séparateurs verticaux
+      if (i > 0) doc.line(colX[i], y, colX[i], y + headerH);
+      doc.text(h, colX[i] + colW[i] / 2, y + 6.5, { align: 'center' });
+    });
+    y += headerH;
 
     // Lignes du tableau
     doc.setFont('times', 'normal');
-    doc.setTextColor(0);
+    doc.setTextColor(50, 50, 50);
+
     devis.lignes.forEach((ligne, index) => {
-      if (y > 245) {
+      const mat = materialsMap[ligne.materialId];
+      const nom = ligne.nom || mat?.nom || '';
+      const modele = mat?.modele || ligne.reference || '';
+      const description = mat?.description || '';
+      const photo = mat?.photo;
+
+      // Hauteur ligne dynamique selon description
+      const descLines = doc.splitTextToSize(description, colW[4] - 4);
+      const rowH = Math.max(22, 6 + descLines.length * 3.5);
+
+      if (y + rowH > 275) {
         doc.addPage();
         y = 20;
       }
-      
-      // Alternance de couleurs gris clair
-      if (index % 2 === 0) {
-        doc.setFillColor(255, 255, 255);
-      } else {
-        doc.setFillColor(240, 242, 245);
+
+      // Fond ligne
+      doc.setFillColor(255, 255, 255);
+      doc.rect(margin, y, tableWidth, rowH, 'F');
+      // Bordures
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.2);
+      doc.rect(margin, y, tableWidth, rowH, 'S');
+      for (let i = 1; i < colX.length; i++) {
+        doc.line(colX[i], y, colX[i], y + rowH);
       }
-      doc.rect(margin, y - 4, tableWidth, 8, 'F');
-      
-      // Bordures légères grises
-      doc.setDrawColor(180, 180, 180);
-      doc.setLineWidth(0.1);
-      doc.line(margin, y + 4, margin + tableWidth, y + 4);
-      
+
+      const cy = y + rowH / 2;
       doc.setFontSize(7);
       doc.setTextColor(50, 50, 50);
-      const nom = ligne.nom.length > 30 ? ligne.nom.substring(0, 30) + '...' : ligne.nom;
-      const ref = ligne.reference ? (ligne.reference.length > 12 ? ligne.reference.substring(0, 12) + '...' : ligne.reference) : '-';
-      doc.text(nom, colX[0] + 2, y + 1);
-      doc.text(ref, colX[1] + 2, y + 1);
-      doc.text(`${formatMontant(ligne.prixUnitaire)} F`, colX[2] + 2, y + 1);
-      doc.text(ligne.quantite.toString(), colX[3] + 2, y + 1);
-      doc.text(`${formatMontant(ligne.total)} F`, colX[4] + 2, y + 1);
-      y += 8;
+      doc.text(String(index + 1), colX[0] + colW[0] / 2, cy + 1, { align: 'center' });
+
+      // Nom (wrap)
+      const nomLines = doc.splitTextToSize(nom, colW[1] - 4);
+      doc.text(nomLines, colX[1] + colW[1] / 2, y + 5, { align: 'center', maxWidth: colW[1] - 4 });
+
+      // Modèle
+      const modLines = doc.splitTextToSize(modele, colW[2] - 4);
+      doc.text(modLines, colX[2] + colW[2] / 2, y + 5, { align: 'center', maxWidth: colW[2] - 4 });
+
+      // Photo
+      if (photo) {
+        try {
+          const imgSize = Math.min(colW[3] - 4, rowH - 4);
+          const imgX = colX[3] + (colW[3] - imgSize) / 2;
+          const imgY = y + (rowH - imgSize) / 2;
+          doc.addImage(photo, 'JPEG', imgX, imgY, imgSize, imgSize);
+        } catch (e) {
+          console.warn('Photo non ajoutée', e);
+        }
+      }
+
+      // Description
+      doc.text(descLines, colX[4] + colW[4] / 2, y + 5, { align: 'center', maxWidth: colW[4] - 4 });
+
+      // Uté (unité)
+      doc.text(mat?.unite || 'PCS', colX[5] + colW[5] / 2, cy + 1, { align: 'center' });
+
+      // PU TTC
+      doc.text(`${formatMontant(ligne.prixUnitaire)}`, colX[6] + colW[6] - 2, cy + 1, { align: 'right' });
+
+      // Qté
+      doc.text(String(ligne.quantite), colX[7] + colW[7] / 2, cy + 1, { align: 'center' });
+
+      // MT TTC
+      doc.setFont('times', 'bold');
+      doc.text(`${formatMontant(ligne.total)}`, colX[8] + colW[8] - 2, cy + 1, { align: 'right' });
+      doc.setFont('times', 'normal');
+
+      y += rowH;
     });
 
-    y += 5;
+    // Ligne Montant total
+    const totalRowH = 12;
+    if (y + totalRowH > 275) {
+      doc.addPage();
+      y = 20;
+    }
+    doc.setFillColor(255, 255, 255);
+    doc.rect(margin, y, tableWidth, totalRowH, 'F');
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(0.3);
+    doc.rect(margin, y, tableWidth, totalRowH, 'S');
+    doc.setFont('times', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Montant', margin + (tableWidth - colW[8]) / 2, y + 8, { align: 'center' });
+    doc.line(colX[8], y, colX[8], y + totalRowH);
+    doc.text(`${formatMontant(devis.montant)}`, colX[8] + colW[8] - 2, y + 8, { align: 'right' });
+    y += totalRowH + 5;
   }
 
-  // ===== TOTAUX À DROITE =====
-  const totalsX = pageWidth - margin - 70;
 
-  // Total Matériel + Main-d'œuvre si applicable
+  // ===== DÉTAIL MAIN-D'ŒUVRE (si applicable) =====
   if (devis.lignes && devis.lignes.length > 0 && devis.mainDoeuvre > 0) {
     const totalMateriel = devis.montant - devis.mainDoeuvre;
+    const totalsX = pageWidth - margin - 80;
 
-    // Total Matériel
-    doc.setFillColor(240, 245, 250);
-    doc.rect(totalsX, y, 38, 8, 'F');
-    doc.setDrawColor(33, 90, 168);
-    doc.rect(totalsX, y, 38, 8, 'S');
     doc.setFontSize(8);
-    doc.setFont('times', 'bold');
-    doc.setTextColor(33, 90, 168);
-    doc.text('Total Matériel', totalsX + 2, y + 5);
-    doc.setFillColor(255, 255, 255);
-    doc.rect(totalsX + 38, y, 32, 8, 'F');
-    doc.setDrawColor(180, 180, 180);
-    doc.rect(totalsX + 38, y, 32, 8, 'S');
-    doc.setTextColor(50, 50, 50);
     doc.setFont('times', 'normal');
-    doc.text(`${formatMontant(totalMateriel)} F`, totalsX + 68, y + 5, { align: 'right' });
-    y += 9;
-
-    // Main-d'œuvre
-    doc.setFillColor(240, 245, 250);
-    doc.rect(totalsX, y, 38, 8, 'F');
-    doc.setDrawColor(33, 90, 168);
-    doc.rect(totalsX, y, 38, 8, 'S');
-    doc.setFontSize(8);
-    doc.setFont('times', 'bold');
-    doc.setTextColor(33, 90, 168);
-    doc.text('Main-d\'œuvre', totalsX + 2, y + 5);
-    doc.setFillColor(255, 255, 255);
-    doc.rect(totalsX + 38, y, 32, 8, 'F');
-    doc.setDrawColor(180, 180, 180);
-    doc.rect(totalsX + 38, y, 32, 8, 'S');
-    doc.setTextColor(50, 50, 50);
-    doc.setFont('times', 'normal');
-    doc.text(`${formatMontant(devis.mainDoeuvre)} F`, totalsX + 68, y + 5, { align: 'right' });
-    y += 10;
+    doc.setTextColor(80, 80, 80);
+    doc.text('Dont Matériel :', totalsX, y);
+    doc.text(`${formatMontant(totalMateriel)} F`, pageWidth - margin, y, { align: 'right' });
+    y += 5;
+    doc.text("Dont Main-d'œuvre :", totalsX, y);
+    doc.text(`${formatMontant(devis.mainDoeuvre)} F`, pageWidth - margin, y, { align: 'right' });
+    y += 8;
   }
 
-  // Total
-  doc.setFillColor(33, 90, 168);
-  doc.rect(totalsX, y, 38, 10, 'F');
-  doc.setFontSize(10);
-  doc.setFont('times', 'bold');
-  doc.setTextColor(255, 255, 255);
-  doc.text('Total', totalsX + 3, y + 7);
-  doc.setFillColor(255, 255, 255);
-  doc.rect(totalsX + 38, y, 32, 10, 'F');
-  doc.setDrawColor(33, 90, 168);
-  doc.rect(totalsX + 38, y, 32, 10, 'S');
-  doc.setTextColor(33, 90, 168);
-  doc.setFontSize(11);
-  doc.text(`${formatMontant(devis.montant)} F`, totalsX + 68, y + 7, { align: 'right' });
-  y += 15;
 
   // Acompte si reçu
   if (devis.acompteRecu && devis.montantAcompte > 0) {
