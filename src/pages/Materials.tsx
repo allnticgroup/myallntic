@@ -229,7 +229,7 @@ export default function Materials() {
                   </Button>
                   <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
                     <FileUp className="h-4 w-4 mr-2" />
-                    Importer depuis un PDF
+                    Importer PDF / Excel / Word
                   </Button>
                 </div>
               ) : undefined
@@ -329,7 +329,7 @@ export default function Materials() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Upload className="h-5 w-5" />
-              Import PDF — {parsedMaterials.length} matériel(s) détecté(s)
+              Import — {parsedMaterials.length} matériel(s) détecté(s)
             </DialogTitle>
           </DialogHeader>
           
