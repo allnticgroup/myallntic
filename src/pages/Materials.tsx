@@ -12,9 +12,12 @@ import { useMaterials } from '@/hooks/useData';
 import { MaterialForm } from '@/components/forms/MaterialForm';
 import { Material, MaterialCategory, MATERIAL_CATEGORY_LABELS } from '@/types';
 import { EmptyState } from '@/components/EmptyState';
-import { parseMaterialsPdf, ParsedMaterial } from '@/lib/parseMaterialsPdf';
+import { ParsedMaterial } from '@/lib/parseMaterialsPdf';
+import { parseMaterialsFile } from '@/lib/parseMaterialsFile';
+import { HIKVISION_CATALOG } from '@/data/hikvisionCatalog';
 import { toast } from 'sonner';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Sparkles } from 'lucide-react';
 
 export default function Materials() {
   const { materials, addMaterial, deleteMaterial } = useMaterials();
@@ -74,16 +77,11 @@ export default function Materials() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.type !== 'application/pdf') {
-      toast.error('Veuillez sélectionner un fichier PDF');
-      return;
-    }
-
     setIsParsing(true);
     try {
-      const parsed = await parseMaterialsPdf(file);
+      const parsed = await parseMaterialsFile(file);
       if (parsed.length === 0) {
-        toast.error('Aucun matériel trouvé dans le PDF');
+        toast.error('Aucun matériel trouvé dans le fichier');
         return;
       }
       setParsedMaterials(parsed);
@@ -91,11 +89,25 @@ export default function Materials() {
       setIsPdfImportOpen(true);
       toast.success(`${parsed.length} matériel(s) détecté(s)`);
     } catch (error: any) {
-      toast.error(error.message || 'Erreur lors de la lecture du PDF');
+      toast.error(error.message || 'Erreur lors de la lecture du fichier');
     } finally {
       setIsParsing(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  };
+
+  const loadHikvisionCatalog = () => {
+    const existingRefs = new Set(materials.map((m) => m.reference.toLowerCase()));
+    const catalog = HIKVISION_CATALOG.map((m) => ({ ...m }));
+    setParsedMaterials(catalog);
+    // Pré-cocher uniquement ceux qui n'existent pas déjà
+    const initial = new Set<number>();
+    catalog.forEach((m, i) => {
+      if (!existingRefs.has(m.reference.toLowerCase())) initial.add(i);
+    });
+    setSelectedImports(initial);
+    setIsPdfImportOpen(true);
+    toast.success(`Catalogue chargé : ${catalog.length} produits (${initial.size} nouveaux)`);
   };
 
   const updateParsedCategory = (idx: number, categorie: MaterialCategory) => {
@@ -138,15 +150,24 @@ export default function Materials() {
       <PageHeader 
         title="Matériels & Prix" 
         action={
-          <div className="flex gap-2">
-            <Button 
-              size="sm" 
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={loadHikvisionCatalog}
+              disabled={isParsing}
+            >
+              <Sparkles className="h-4 w-4 mr-1" />
+              Catalogue
+            </Button>
+            <Button
+              size="sm"
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
               disabled={isParsing}
             >
               <FileUp className="h-4 w-4 mr-1" />
-              {isParsing ? 'Lecture...' : 'PDF'}
+              {isParsing ? 'Lecture...' : 'Importer'}
             </Button>
             <Button size="sm" onClick={() => setIsFormOpen(true)}>
               <Plus className="h-4 w-4 mr-1" />
@@ -159,10 +180,11 @@ export default function Materials() {
       <input
         ref={fileInputRef}
         type="file"
-        accept=".pdf"
+        accept=".pdf,.xlsx,.xls,.csv,.docx"
         className="hidden"
         onChange={handlePdfSelect}
       />
+
 
       <div className="px-4 space-y-4">
         {/* Search and Filter */}
