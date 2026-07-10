@@ -1,8 +1,9 @@
 import * as pdfjsLib from 'pdfjs-dist';
+// Utilise le worker bundlé par Vite (pas de CDN → pas d'erreur réseau/CORS)
+import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { MaterialCategory } from '@/types';
 
-// Configure worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
 export interface ParsedMaterial {
   nom: string;
@@ -16,11 +17,11 @@ export interface ParsedMaterial {
 }
 
 const CATEGORY_KEYWORDS: Record<MaterialCategory, string[]> = {
-  camera: ['caméra', 'camera', 'dôme', 'dome', 'bullet', 'ptz', 'ip cam', 'tourelle'],
-  cable: ['câble', 'cable', 'rj45', 'coaxial', 'utp', 'ftp', 'fibre', 'cat5', 'cat6'],
-  enregistreur: ['nvr', 'dvr', 'enregistreur', 'recorder'],
-  accessoire: ['support', 'alimentation', 'connecteur', 'boîtier', 'boitier', 'adaptateur', 'switch poe'],
-  reseau: ['switch', 'routeur', 'router', 'access point', 'ap', 'modem', 'firewall', 'baie'],
+  camera: ['caméra', 'camera', 'dôme', 'dome', 'bullet', 'ptz', 'ip cam', 'tourelle', 'turret', 'colorvu', 'tandemvu', 'display'],
+  cable: ['câble', 'cable', 'rj45', 'coaxial', 'utp', 'ftp', 'fibre', 'cat5', 'cat6', 'patch cord', 'cordon'],
+  enregistreur: ['nvr', 'dvr', 'enregistreur', 'recorder', 'edvr', 'envr'],
+  accessoire: ['support', 'alimentation', 'connecteur', 'boîtier', 'boitier', 'adaptateur', 'lock', 'button', 'reader', 'terminal', 'card', 'ups', 'onduleur', 'balun', 'hdd', 'disque', 'bell'],
+  reseau: ['switch', 'routeur', 'router', 'access point', 'modem', 'firewall', 'baie', 'coffret', 'patch panel'],
   autre: [],
 };
 
@@ -28,169 +29,126 @@ function detectCategory(text: string): MaterialCategory {
   const lower = text.toLowerCase();
   for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
     if (category === 'autre') continue;
-    if (keywords.some(kw => lower.includes(kw))) {
-      return category as MaterialCategory;
-    }
+    if (keywords.some(kw => lower.includes(kw))) return category as MaterialCategory;
   }
   return 'autre';
 }
 
-function extractPrice(text: string): number {
-  // Match patterns like "25 000", "25000", "25,000", "25.000"
-  const match = text.replace(/\s/g, '').match(/[\d,.]+/);
-  if (match) {
-    const cleaned = match[0].replace(/\./g, '').replace(',', '.');
-    const num = parseFloat(cleaned);
-    return isNaN(num) ? 0 : num;
-  }
-  return 0;
+function parsePrice(raw: string): number {
+  const cleaned = raw.replace(/\s/g, '').replace(/,/g, '');
+  const n = parseInt(cleaned, 10);
+  return isNaN(n) ? 0 : n;
 }
 
-function extractNumber(text: string): number {
-  const match = text.replace(/\s/g, '').match(/\d+/);
-  return match ? parseInt(match[0], 10) : 0;
-}
-
-interface ColumnMapping {
-  nom: number;
-  reference: number;
-  prix: number;
-  quantite: number;
-  unite: number;
-  categorie: number;
-  description: number;
-}
-
-const COLUMN_PATTERNS: Record<keyof ColumnMapping, RegExp[]> = {
-  nom: [/product\s*name/i, /nom/i, /d[ée]signation/i, /article/i, /produit/i, /mat[ée]riel/i, /libell[ée]/i],
-  reference: [/r[ée]f/i, /code/i, /sku/i, /n[°o]/i, /model/i],
-  prix: [/prix/i, /price/i, /p\.?u/i, /tarif/i, /co[uû]t/i, /montant/i, /fcfa/i, /ht/i],
-  quantite: [/qt[ée]/i, /quantit/i, /stock/i, /qte/i, /nbre/i, /nombre/i],
-  unite: [/unit[ée]/i, /u\.?m/i, /mesure/i],
-  categorie: [/cat[ée]gorie/i, /type/i, /famille/i],
-  description: [/desc/i, /observation/i, /note/i, /commentaire/i, /d[ée]tail/i, /appearance/i, /image/i],
-};
-
-function detectColumns(headerCells: string[]): Partial<ColumnMapping> {
-  const mapping: Partial<ColumnMapping> = {};
-  
-  headerCells.forEach((cell, idx) => {
-    const trimmed = cell.trim().toLowerCase();
-    if (!trimmed) return;
-    
-    for (const [field, patterns] of Object.entries(COLUMN_PATTERNS)) {
-      if (patterns.some(p => p.test(trimmed)) && !(field in mapping)) {
-        (mapping as any)[field] = idx;
-      }
-    }
-  });
-  
-  return mapping;
-}
-
-function splitRowIntoCells(text: string): string[] {
-  // Try tab-separated first
-  if (text.includes('\t')) {
-    return text.split('\t').map(s => s.trim());
-  }
-  // Then try multiple spaces (common in PDF extracted text)
-  const cells = text.split(/\s{2,}/).map(s => s.trim()).filter(Boolean);
-  return cells;
-}
-
-export async function parseMaterialsPdf(file: File): Promise<ParsedMaterial[]> {
+// Reconstruction de lignes depuis pdfjs en regroupant par Y arrondi
+async function extractLines(file: File): Promise<string[]> {
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-  
-  const allLines: string[] = [];
-  
+  const lines: string[] = [];
+
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
-    const textContent = await page.getTextContent();
-    
-    // Group text items by Y position to reconstruct rows
-    const items = textContent.items as any[];
-    const rows = new Map<number, { x: number; text: string }[]>();
-    
-    items.forEach(item => {
-      const y = Math.round(item.transform[5]); // Round Y to group nearby items
-      if (!rows.has(y)) rows.set(y, []);
-      rows.get(y)!.push({ x: item.transform[4], text: item.str });
+    const content = await page.getTextContent();
+    const items = content.items as any[];
+
+    // Groupe par Y (tolérance 3px)
+    const buckets = new Map<number, { x: number; text: string }[]>();
+    items.forEach((it) => {
+      const y = Math.round(it.transform[5] / 3) * 3;
+      if (!buckets.has(y)) buckets.set(y, []);
+      buckets.get(y)!.push({ x: it.transform[4], text: it.str });
     });
-    
-    // Sort rows by Y (descending = top to bottom in PDF)
-    const sortedRows = Array.from(rows.entries())
-      .sort((a, b) => b[0] - a[0]);
-    
-    sortedRows.forEach(([, cells]) => {
-      // Sort cells by X position (left to right)
-      cells.sort((a, b) => a.x - b.x);
-      const line = cells.map(c => c.text).join('\t');
-      if (line.trim()) allLines.push(line);
-    });
+
+    Array.from(buckets.entries())
+      .sort((a, b) => b[0] - a[0])
+      .forEach(([, cells]) => {
+        cells.sort((a, b) => a.x - b.x);
+        const line = cells.map((c) => c.text).join(' ').replace(/\s+/g, ' ').trim();
+        if (line) lines.push(line);
+      });
   }
-  
-  if (allLines.length < 2) {
-    throw new Error('Le PDF ne contient pas assez de données. Assurez-vous qu\'il contient un tableau avec des en-têtes.');
-  }
-  
-  // Try to find header row
-  let headerIdx = 0;
-  let bestMapping: Partial<ColumnMapping> = {};
-  
-  for (let i = 0; i < Math.min(5, allLines.length); i++) {
-    const cells = splitRowIntoCells(allLines[i]);
-    const mapping = detectColumns(cells);
-    const matchCount = Object.keys(mapping).length;
-    
-    if (matchCount > Object.keys(bestMapping).length) {
-      bestMapping = mapping;
-      headerIdx = i;
-    }
-  }
-  
-  if (!bestMapping.nom && !bestMapping.reference) {
-    throw new Error('Impossible de détecter les colonnes du tableau. Assurez-vous que les en-têtes contiennent "Nom/Désignation" et/ou "Référence".');
-  }
-  
+  return lines;
+}
+
+// Détection ligne-par-ligne : format catalogue Hikvision & similaires
+// Chaque produit = 1 ligne contenant "XX,XXX CFA" (ou €, FCFA...) et un code-référence au début
+const PRICE_RE = /([\d]{1,3}(?:[.,\s]\d{3})+|\d+)\s*(?:CFA|FCFA|F\.CFA|€|EUR)/i;
+const REF_RE = /^[A-Z0-9][A-Z0-9._/+-]{2,}(?:\([^)]+\))?$/;
+
+function parseLineBased(lines: string[]): ParsedMaterial[] {
   const materials: ParsedMaterial[] = [];
-  
-  for (let i = headerIdx + 1; i < allLines.length; i++) {
-    const cells = splitRowIntoCells(allLines[i]);
-    if (cells.length < 2) continue;
-    
-    const nom = bestMapping.nom !== undefined ? cells[bestMapping.nom] || '' : '';
-    const reference = bestMapping.reference !== undefined ? cells[bestMapping.reference] || '' : '';
-    
-    // Skip empty rows
-    if (!nom && !reference) continue;
-    
-    const prixText = bestMapping.prix !== undefined ? cells[bestMapping.prix] || '0' : '0';
-    const qteText = bestMapping.quantite !== undefined ? cells[bestMapping.quantite] || '0' : '0';
-    const unite = bestMapping.unite !== undefined ? cells[bestMapping.unite] || 'unité' : 'unité';
-    const categorieText = bestMapping.categorie !== undefined ? cells[bestMapping.categorie] || '' : '';
-    const description = bestMapping.description !== undefined ? cells[bestMapping.description] || '' : '';
-    
-    // Detect category from name + category column
-    let categorie: MaterialCategory = 'autre';
-    if (categorieText) {
-      categorie = detectCategory(categorieText);
+  const seen = new Set<string>();
+
+  for (const line of lines) {
+    const priceMatch = line.match(PRICE_RE);
+    if (!priceMatch) continue;
+
+    const prix = parsePrice(priceMatch[1]);
+    if (prix < 100) continue;
+
+    // Tout ce qui est avant le prix
+    const before = line.slice(0, priceMatch.index).trim();
+    if (!before) continue;
+
+    const tokens = before.split(/\s+/);
+    let reference = '';
+    let nameStart = 0;
+    // La référence est en général le 1er ou 2e token qui matche REF_RE
+    for (let i = 0; i < Math.min(3, tokens.length); i++) {
+      if (REF_RE.test(tokens[i]) && /[0-9]/.test(tokens[i])) {
+        reference = tokens[i];
+        nameStart = i + 1;
+        break;
+      }
     }
-    if (categorie === 'autre' && nom) {
-      categorie = detectCategory(nom);
+    if (!reference) continue;
+    if (seen.has(reference)) continue;
+    seen.add(reference);
+
+    const rest = tokens.slice(nameStart).join(' ').trim();
+    // Nom = premiers ~60 caractères, description = reste
+    let nom = rest;
+    let description = '';
+    if (rest.length > 70) {
+      // coupe sur le 1er point ou après ~60 chars
+      const cut = rest.indexOf('.') > 0 && rest.indexOf('.') < 90 ? rest.indexOf('.') : 60;
+      nom = rest.slice(0, cut).trim();
+      description = rest.slice(cut).replace(/^[.\s]+/, '').trim();
     }
-    
+    if (!nom) nom = reference;
+
     materials.push({
-      nom: nom || reference,
-      reference: reference || `REF-${Date.now()}-${i}`,
-      categorie,
-      prixUnitaire: extractPrice(prixText),
-      unite: unite || 'unité',
-      stockQuantite: extractNumber(qteText),
+      nom,
+      reference,
+      categorie: detectCategory(`${nom} ${description}`),
+      prixUnitaire: prix,
+      unite: 'PCS',
+      stockQuantite: 0,
       stockMinimum: 5,
       description,
     });
   }
-  
+
+  return materials;
+}
+
+export async function parseMaterialsPdf(file: File): Promise<ParsedMaterial[]> {
+  let lines: string[];
+  try {
+    lines = await extractLines(file);
+  } catch (e: any) {
+    throw new Error(`Lecture du PDF impossible : ${e?.message || e}`);
+  }
+
+  if (lines.length === 0) {
+    throw new Error('Aucun texte extractible dans ce PDF (peut-être scanné en image).');
+  }
+
+  const materials = parseLineBased(lines);
+  if (materials.length === 0) {
+    throw new Error(
+      "Aucun produit détecté. Formats supportés : lignes contenant une référence puis un prix (ex : « DS-XXXX ... 25 000 CFA »)."
+    );
+  }
   return materials;
 }
