@@ -155,6 +155,15 @@ export default function Materials() {
             <Button
               size="sm"
               variant="outline"
+              onClick={() => exportMaterialsToCsv(filteredMaterials)}
+              disabled={filteredMaterials.length === 0}
+            >
+              <Download className="h-4 w-4 mr-1" />
+              CSV
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
               onClick={loadHikvisionCatalog}
               disabled={isParsing}
             >
