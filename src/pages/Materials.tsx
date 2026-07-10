@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Plus, Search, Edit2, Trash2, Package, AlertTriangle, Upload, FileUp } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Package, AlertTriangle, Upload, FileUp, Download } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,7 @@ import { HIKVISION_CATALOG } from '@/data/hikvisionCatalog';
 import { toast } from 'sonner';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Sparkles } from 'lucide-react';
+import { exportMaterialsToCsv } from '@/lib/export';
 
 export default function Materials() {
   const { materials, addMaterial, deleteMaterial } = useMaterials();
@@ -151,6 +152,15 @@ export default function Materials() {
         title="Matériels & Prix" 
         action={
           <div className="flex gap-2 flex-wrap">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => exportMaterialsToCsv(filteredMaterials)}
+              disabled={filteredMaterials.length === 0}
+            >
+              <Download className="h-4 w-4 mr-1" />
+              CSV
+            </Button>
             <Button
               size="sm"
               variant="outline"

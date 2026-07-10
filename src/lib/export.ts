@@ -1,4 +1,4 @@
-import { Prospect, Devis, STATUS_LABELS, STRUCTURE_LABELS, BESOIN_LABELS, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS } from '@/types';
+import { Prospect, Devis, Material, STATUS_LABELS, STRUCTURE_LABELS, BESOIN_LABELS, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS, MATERIAL_CATEGORY_LABELS } from '@/types';
 import { z } from 'zod';
 
 export function exportToJson(data: object, filename: string) {
@@ -67,6 +67,25 @@ export function exportDevisToCsv(devisList: Devis[], getProspectName: (id: strin
   
   const date = new Date().toISOString().split('T')[0];
   exportToCsv([headers, ...rows], `devis-${date}.csv`);
+}
+
+export function exportMaterialsToCsv(materials: Material[]) {
+  const headers = ['Référence', 'Nom', 'Modèle', 'Catégorie', 'Prix unitaire', 'Unité', 'Stock', 'Stock minimum', 'Description', 'Créé le'];
+  const rows = materials.map(m => [
+    m.reference,
+    m.nom,
+    m.modele || '',
+    MATERIAL_CATEGORY_LABELS[m.categorie],
+    m.prixUnitaire.toLocaleString('fr-FR'),
+    m.unite,
+    m.stockQuantite.toString(),
+    m.stockMinimum.toString(),
+    m.description || '',
+    new Date(m.createdAt).toLocaleDateString('fr-FR')
+  ]);
+
+  const date = new Date().toISOString().split('T')[0];
+  exportToCsv([headers, ...rows], `materiels-${date}.csv`);
 }
 
 export function getAllData() {
