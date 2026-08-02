@@ -51,6 +51,8 @@ export default function Settings() {
   const [orangeMoneyLink, setOrangeMoneyLink] = useState(settings.orangeMoneyLink || '');
   const [ibanBancaire, setIbanBancaire] = useState(settings.ibanBancaire || '');
   const [banqueNom, setBanqueNom] = useState(settings.banqueNom || '');
+  const [prefixeFacture, setPrefixeFacture] = useState(settings.prefixeFacture || 'FAC');
+  const [prefixeVente, setPrefixeVente] = useState(settings.prefixeVente || 'V');
   const [newService, setNewService] = useState('');
   const [clearConfirm, setClearConfirm] = useState(false);
 
@@ -82,6 +84,8 @@ export default function Settings() {
       orangeMoneyLink: orangeMoneyLink || undefined,
       ibanBancaire: ibanBancaire || undefined,
       banqueNom: banqueNom || undefined,
+      prefixeFacture: prefixeFacture.trim().toUpperCase() || 'FAC',
+      prefixeVente: prefixeVente.trim().toUpperCase() || 'V',
     });
     addEntry('update', 'company_settings', 'settings', nom, 'Paramètres entreprise mis à jour');
     toast.success('Paramètres sauvegardés');
