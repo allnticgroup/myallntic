@@ -17,6 +17,7 @@ import { useMaterials, useInvoices } from '@/hooks/useData';
 import { Vente, VenteStatus, VENTE_STATUS_LABELS } from '@/types/erp';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { exportVentesToCsv } from '@/lib/export';
 
 export default function Ventes() {
   const navigate = useNavigate();

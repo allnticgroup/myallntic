@@ -16,6 +16,7 @@ import { useProspectClientSync } from '@/hooks/useProspectClientSync';
 import { Client } from '@/types/erp';
 import { Users } from 'lucide-react';
 import { toast } from 'sonner';
+import { exportClientsToCsv } from '@/lib/export';
 
 export default function Clients() {
   const { clients, addClient, deleteClient } = useClients();
