@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Search, ShoppingCart, Trash2, CheckCircle2, XCircle, FileText } from 'lucide-react';
+import { Plus, Search, ShoppingCart, Trash2, CheckCircle2, XCircle, FileText, Download } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
