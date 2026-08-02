@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Edit, Trash2, Plus, CheckCircle2, Clock, Circle, ShoppingCart, Receipt, TrendingUp } from 'lucide-react';
+import { Edit, Trash2, Plus, CheckCircle2, Clock, Circle, ShoppingCart, Receipt, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
@@ -18,7 +18,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useClients, useProjects, useVentes } from '@/hooks/useErpData';
 import { useExpenses, useMaterials } from '@/hooks/useData';
-import { PROJECT_STATUS_LABELS, TASK_PRIORITY_LABELS, TaskStatus, TaskPriority, VENTE_STATUS_LABELS } from '@/types/erp';
+import { PROJECT_STATUS_LABELS, TASK_PRIORITY_LABELS, TaskStatus, TaskPriority, TASK_STATUS_LABELS, VENTE_STATUS_LABELS } from '@/types/erp';
 import { toast } from 'sonner';
 
 export default function ProjetDetail() {
@@ -35,6 +35,7 @@ export default function ProjetDetail() {
   const [showAddTask, setShowAddTask] = useState(false);
   const [showAddVente, setShowAddVente] = useState(false);
   const [showAddExpense, setShowAddExpense] = useState(false);
+  const [taskView, setTaskView] = useState<'liste' | 'kanban'>('liste');
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskPriority, setNewTaskPriority] = useState<TaskPriority>('normale');
 
