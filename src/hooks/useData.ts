@@ -1,3 +1,4 @@
+import { getCompanySettings } from '@/lib/companySettings';
 import { useLocalStorage } from './useLocalStorage';
 import { Prospect, Devis, Intervention, Material, Payment, Expense, Invoice, Supplier, Purchase, Employee, Salary, EmployeeDocument } from '@/types';
 
@@ -279,8 +280,9 @@ export function useInvoices() {
 
   const generateInvoiceNumber = () => {
     const year = new Date().getFullYear();
-    const count = invoices.filter((i) => i.numero.startsWith(`FAC-${year}`)).length + 1;
-    return `FAC-${year}-${String(count).padStart(4, '0')}`;
+    const prefix = (getCompanySettings().prefixeFacture || 'FAC').toUpperCase();
+    const count = invoices.filter((i) => i.numero.startsWith(`${prefix}-${year}`)).length + 1;
+    return `${prefix}-${year}-${String(count).padStart(4, '0')}`;
   };
 
   return { invoices, addInvoice, updateInvoice, deleteInvoice, getInvoicesForProspect, generateInvoiceNumber };

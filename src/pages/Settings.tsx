@@ -51,6 +51,8 @@ export default function Settings() {
   const [orangeMoneyLink, setOrangeMoneyLink] = useState(settings.orangeMoneyLink || '');
   const [ibanBancaire, setIbanBancaire] = useState(settings.ibanBancaire || '');
   const [banqueNom, setBanqueNom] = useState(settings.banqueNom || '');
+  const [prefixeFacture, setPrefixeFacture] = useState(settings.prefixeFacture || 'FAC');
+  const [prefixeVente, setPrefixeVente] = useState(settings.prefixeVente || 'V');
   const [newService, setNewService] = useState('');
   const [clearConfirm, setClearConfirm] = useState(false);
 
@@ -82,6 +84,8 @@ export default function Settings() {
       orangeMoneyLink: orangeMoneyLink || undefined,
       ibanBancaire: ibanBancaire || undefined,
       banqueNom: banqueNom || undefined,
+      prefixeFacture: prefixeFacture.trim().toUpperCase() || 'FAC',
+      prefixeVente: prefixeVente.trim().toUpperCase() || 'V',
     });
     addEntry('update', 'company_settings', 'settings', nom, 'Paramètres entreprise mis à jour');
     toast.success('Paramètres sauvegardés');
@@ -229,6 +233,25 @@ export default function Settings() {
                 <p className="text-xs text-muted-foreground">
                   Mettre 0 si pas de TVA applicable. Ce taux sera utilisé dans les documents générés.
                 </p>
+              </CardContent>
+            </Card>
+
+            {/* Numérotation */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Numérotation des documents</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="prefixeFacture">Préfixe factures</Label>
+                  <Input id="prefixeFacture" value={prefixeFacture} onChange={(e) => setPrefixeFacture(e.target.value)} placeholder="FAC" />
+                  <p className="text-xs text-muted-foreground">Ex : {(prefixeFacture || 'FAC').toUpperCase()}-{new Date().getFullYear()}-0001</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="prefixeVente">Préfixe ventes</Label>
+                  <Input id="prefixeVente" value={prefixeVente} onChange={(e) => setPrefixeVente(e.target.value)} placeholder="V" />
+                  <p className="text-xs text-muted-foreground">Ex : {(prefixeVente || 'V').toUpperCase()}0001</p>
+                </div>
               </CardContent>
             </Card>
 
