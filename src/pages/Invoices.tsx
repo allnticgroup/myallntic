@@ -39,6 +39,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
+import { exportInvoicesToCsv } from '@/lib/export';
 
 export default function Invoices() {
   const { invoices, addInvoice, updateInvoice, deleteInvoice, generateInvoiceNumber } = useInvoices();
@@ -250,7 +251,20 @@ export default function Invoices() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <PageHeader title="Factures" subtitle={`${invoices.length} factures`} />
+      <PageHeader
+        title="Factures"
+        subtitle={`${invoices.length} factures`}
+        action={
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => exportInvoicesToCsv(filteredInvoices, (inv) => getInvoiceClientName(inv) || '')}
+            disabled={filteredInvoices.length === 0}
+          >
+            <Download className="h-4 w-4 mr-1" />CSV
+          </Button>
+        }
+      />
 
       <main className="p-4 space-y-4 max-w-lg mx-auto">
         {/* Stats */}
