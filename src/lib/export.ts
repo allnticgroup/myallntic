@@ -1,4 +1,5 @@
-import { Prospect, Devis, Material, STATUS_LABELS, STRUCTURE_LABELS, BESOIN_LABELS, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS, MATERIAL_CATEGORY_LABELS } from '@/types';
+import { Prospect, Devis, Material, Invoice, STATUS_LABELS, STRUCTURE_LABELS, BESOIN_LABELS, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS, MATERIAL_CATEGORY_LABELS, INVOICE_STATUS_LABELS } from '@/types';
+import { Client, Vente, VENTE_STATUS_LABELS } from '@/types/erp';
 import { z } from 'zod';
 
 export function exportToJson(data: object, filename: string) {
@@ -297,4 +298,55 @@ export function readJsonFile(file: File): Promise<unknown> {
     reader.onerror = () => reject(new Error('Erreur de lecture du fichier'));
     reader.readAsText(file);
   });
+}
+
+// ===== Exports ERP =====
+export function exportClientsToCsv(clients: Client[]) {
+  const headers = ['Code', 'Structure', 'Décideur', 'Téléphone', 'Email', 'Adresse', 'Ville', 'Notes', 'Créé le'];
+  const rows = clients.map(c => [
+    c.code,
+    c.nom,
+    c.nomDecideur || '',
+    c.telephone || '',
+    c.email || '',
+    c.adresse || '',
+    c.ville || '',
+    c.notes || '',
+    new Date(c.createdAt).toLocaleDateString('fr-FR'),
+  ]);
+  const date = new Date().toISOString().split('T')[0];
+  exportToCsv([headers, ...rows], `clients-${date}.csv`);
+}
+
+export function exportVentesToCsv(ventes: Vente[], getClientName: (id: string) => string) {
+  const headers = ['Code', 'Date', 'Client', 'Nb lignes', 'Sous-total', 'Remise (%)', 'Total', 'Statut', 'Notes'];
+  const rows = ventes.map(v => [
+    v.code,
+    new Date(v.dateVente).toLocaleDateString('fr-FR'),
+    getClientName(v.clientId),
+    v.lignes.length.toString(),
+    v.sousTotal.toLocaleString('fr-FR'),
+    v.remise.toString(),
+    v.total.toLocaleString('fr-FR'),
+    VENTE_STATUS_LABELS[v.statut],
+    v.notes || '',
+  ]);
+  const date = new Date().toISOString().split('T')[0];
+  exportToCsv([headers, ...rows], `ventes-${date}.csv`);
+}
+
+export function exportInvoicesToCsv(invoices: Invoice[], getClientName: (inv: Invoice) => string) {
+  const headers = ['Numéro', 'Client', 'Source', 'Montant HT', 'Montant TTC', 'Émission', 'Échéance', 'Statut'];
+  const rows = invoices.map(i => [
+    i.numero,
+    getClientName(i),
+    i.source === 'vente' ? 'Vente' : 'Devis',
+    i.montantHT.toLocaleString('fr-FR'),
+    i.montantTTC.toLocaleString('fr-FR'),
+    new Date(i.dateEmission).toLocaleDateString('fr-FR'),
+    new Date(i.dateEcheance).toLocaleDateString('fr-FR'),
+    INVOICE_STATUS_LABELS[i.statut],
+  ]);
+  const date = new Date().toISOString().split('T')[0];
+  exportToCsv([headers, ...rows], `factures-${date}.csv`);
 }
