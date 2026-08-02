@@ -167,12 +167,12 @@ export default function Rapports() {
         </Card>
 
         <Tabs defaultValue="ca">
-          <TabsList className="w-full">
-            <TabsTrigger value="ca" className="flex-1">CA</TabsTrigger>
-            <TabsTrigger value="produits" className="flex-1">Produits</TabsTrigger>
-            <TabsTrigger value="depenses" className="flex-1">Dépenses</TabsTrigger>
-            <TabsTrigger value="tresorerie" className="flex-1">Trésorerie</TabsTrigger>
-            <TabsTrigger value="clients" className="flex-1">Clients</TabsTrigger>
+          <TabsList className="w-full text-xs">
+            <TabsTrigger value="ca" className="flex-1 text-xs px-1">CA</TabsTrigger>
+            <TabsTrigger value="produits" className="flex-1 text-xs px-1">Produits</TabsTrigger>
+            <TabsTrigger value="depenses" className="flex-1 text-xs px-1">Dépenses</TabsTrigger>
+            <TabsTrigger value="tresorerie" className="flex-1 text-xs px-1">Trésorerie</TabsTrigger>
+            <TabsTrigger value="clients" className="flex-1 text-xs px-1">Clients</TabsTrigger>
           </TabsList>
 
           <TabsContent value="ca">
