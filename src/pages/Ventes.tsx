@@ -130,7 +130,14 @@ export default function Ventes() {
   return (
     <div className="min-h-screen pb-20">
       <PageHeader title="Ventes" subtitle={`${ventes.length} vente${ventes.length > 1 ? 's' : ''}`}
-        action={<Button size="sm" onClick={() => setShowForm(true)}><Plus className="h-4 w-4 mr-1" />Nouvelle</Button>}
+        action={
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => exportVentesToCsv(filtered, (id) => getClient(id)?.nom || '')} disabled={filtered.length === 0}>
+              <Download className="h-4 w-4 mr-1" />CSV
+            </Button>
+            <Button size="sm" onClick={() => setShowForm(true)}><Plus className="h-4 w-4 mr-1" />Nouvelle</Button>
+          </div>
+        }
       />
       <main className="p-4 space-y-4 max-w-lg mx-auto">
         <div className="flex gap-2">
