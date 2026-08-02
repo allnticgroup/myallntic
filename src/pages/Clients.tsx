@@ -16,6 +16,7 @@ import { useProspectClientSync } from '@/hooks/useProspectClientSync';
 import { Client } from '@/types/erp';
 import { Users } from 'lucide-react';
 import { toast } from 'sonner';
+import { exportClientsToCsv } from '@/lib/export';
 
 export default function Clients() {
   const { clients, addClient, deleteClient } = useClients();
@@ -77,9 +78,14 @@ export default function Clients() {
     <div className="min-h-screen pb-20">
       <PageHeader title="Clients" subtitle={`${clients.length} client${clients.length > 1 ? 's' : ''}`}
         action={
-          <Button size="sm" onClick={() => setShowForm(true)}>
-            <Plus className="h-4 w-4 mr-1" />Nouveau
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => exportClientsToCsv(filtered)} disabled={filtered.length === 0}>
+              <Download className="h-4 w-4 mr-1" />CSV
+            </Button>
+            <Button size="sm" onClick={() => setShowForm(true)}>
+              <Plus className="h-4 w-4 mr-1" />Nouveau
+            </Button>
+          </div>
         }
       />
       <main className="p-4 space-y-4 max-w-lg mx-auto">
