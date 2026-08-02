@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Search, Package, AlertTriangle, ArrowDownCircle, ArrowUpCircle, RotateCcw, Plus, Download } from 'lucide-react';
+import { Search, Package, AlertTriangle, ArrowDownCircle, ArrowUpCircle, RotateCcw, Plus, Download, ScanLine } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
@@ -22,6 +22,7 @@ export default function Stock() {
   const { movements, addMovement } = useStockMovements();
   const [searchQuery, setSearchQuery] = useState('');
   const [showMovementForm, setShowMovementForm] = useState(false);
+  const [scanning, setScanning] = useState(false);
   const [movementData, setMovementData] = useState({
     materialId: '',
     type: 'entree' as StockMovementType,
@@ -35,8 +36,45 @@ export default function Stock() {
   );
 
   const filteredMaterials = materials.filter(m =>
-    m.nom.toLowerCase().includes(searchQuery.toLowerCase())
+    m.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    m.reference.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const barcodeSupported = typeof window !== 'undefined' && 'BarcodeDetector' in window;
+
+  const handleScan = async () => {
+    try {
+      const Detector = (window as any).BarcodeDetector;
+      const detector = new Detector();
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.setAttribute('playsinline', 'true');
+      await video.play();
+      setScanning(true);
+      const stop = () => { stream.getTracks().forEach(t => t.stop()); setScanning(false); };
+      const deadline = Date.now() + 15000;
+      const loop = async () => {
+        if (Date.now() > deadline) { stop(); toast.error('Aucun code détecté'); return; }
+        try {
+          const codes = await detector.detect(video);
+          if (codes.length > 0) {
+            const value = codes[0].rawValue as string;
+            setSearchQuery(value);
+            stop();
+            const found = materials.find(m => m.reference.toLowerCase() === value.toLowerCase());
+            toast.success(found ? `Produit trouvé : ${found.nom}` : `Code scanné : ${value}`);
+            return;
+          }
+        } catch { /* ignore frame errors */ }
+        requestAnimationFrame(loop);
+      };
+      loop();
+    } catch {
+      setScanning(false);
+      toast.error("Impossible d'accéder à la caméra");
+    }
+  };
 
   const handleMovement = () => {
     const mat = materials.find(m => m.id === movementData.materialId);
@@ -147,8 +185,13 @@ export default function Stock() {
           <TabsContent value="inventaire" className="space-y-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Rechercher..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
+              <Input placeholder="Rechercher (nom ou référence)..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
             </div>
+            {barcodeSupported && (
+              <Button variant="outline" size="sm" className="w-full" onClick={handleScan} disabled={scanning}>
+                <ScanLine className="h-4 w-4 mr-1" />{scanning ? 'Scan en cours...' : 'Scanner un code-barres'}
+              </Button>
+            )}
             {filteredMaterials.map(m => (
               <Card key={m.id} className={m.stockQuantite <= m.stockMinimum ? 'border-destructive/50' : ''}>
                 <CardContent className="p-3 flex items-center justify-between">
