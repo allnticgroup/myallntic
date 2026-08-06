@@ -159,8 +159,8 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
 
   if (devis.lignes && devis.lignes.length > 0) {
     const tableWidth = pageWidth - margin * 2;
-    // Colonnes : No | Nom | Modèle | Photo | Description | Uté | PU TTC | Qté | MT TTC
-    const ratios = [0.05, 0.13, 0.11, 0.14, 0.22, 0.05, 0.10, 0.06, 0.14];
+    // Colonnes : Nom | Photo | Uté | PU TTC | Qté | MT TTC
+    const ratios = [0.30, 0.16, 0.08, 0.16, 0.10, 0.20];
     const colW = ratios.map((r) => tableWidth * r);
     const colX: number[] = [];
     let cx = margin;
@@ -194,12 +194,11 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
     doc.setDrawColor(0, 0, 0);
     doc.setLineWidth(0.2);
     doc.rect(margin, y, tableWidth, headerH, 'S');
-    const headers = ['No', 'Nom du produit', 'Modèle', 'Photo', 'Description', 'Uté', 'PU,TTC', 'PT.TTC', 'M.T. T.T.C'];
+    const headers = ['Nom du produit', 'Photo', 'Uté', 'PU,TTC', 'PT.TTC', 'M.T. T.T.C'];
     doc.setFontSize(7);
     doc.setFont('times', 'bold');
     doc.setTextColor(0, 0, 0);
     headers.forEach((h, i) => {
-      // séparateurs verticaux
       if (i > 0) doc.line(colX[i], y, colX[i], y + headerH);
       doc.text(h, colX[i] + colW[i] / 2, y + 6.5, { align: 'center' });
     });
@@ -209,16 +208,12 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
     doc.setFont('times', 'normal');
     doc.setTextColor(50, 50, 50);
 
-    devis.lignes.forEach((ligne, index) => {
+    devis.lignes.forEach((ligne) => {
       const mat = materialsMap[ligne.materialId];
       const nom = ligne.nom || mat?.nom || '';
-      const modele = mat?.modele || ligne.reference || '';
-      const description = mat?.description || '';
       const photo = mat?.photo;
 
-      // Hauteur ligne dynamique selon description
-      const descLines = doc.splitTextToSize(description, colW[4] - 4);
-      const rowH = Math.max(22, 6 + descLines.length * 3.5);
+      const rowH = 22;
 
       if (y + rowH > 275) {
         doc.addPage();
@@ -239,21 +234,17 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
       const cy = y + rowH / 2;
       doc.setFontSize(7);
       doc.setTextColor(50, 50, 50);
-      doc.text(String(index + 1), colX[0] + colW[0] / 2, cy + 1, { align: 'center' });
 
-      // Nom (wrap)
-      const nomLines = doc.splitTextToSize(nom, colW[1] - 4);
-      doc.text(nomLines, colX[1] + colW[1] / 2, y + 5, { align: 'center', maxWidth: colW[1] - 4 });
-
-      // Modèle
-      const modLines = doc.splitTextToSize(modele, colW[2] - 4);
-      doc.text(modLines, colX[2] + colW[2] / 2, y + 5, { align: 'center', maxWidth: colW[2] - 4 });
+      // Nom (wrap, centré verticalement)
+      const nomLines = doc.splitTextToSize(nom, colW[0] - 4) as string[];
+      const nomStartY = cy - ((nomLines.length - 1) * 3.5) / 2 + 1;
+      doc.text(nomLines, colX[0] + colW[0] / 2, nomStartY, { align: 'center', maxWidth: colW[0] - 4 });
 
       // Photo
       if (photo) {
         try {
-          const imgSize = Math.min(colW[3] - 4, rowH - 4);
-          const imgX = colX[3] + (colW[3] - imgSize) / 2;
+          const imgSize = Math.min(colW[1] - 4, rowH - 4);
+          const imgX = colX[1] + (colW[1] - imgSize) / 2;
           const imgY = y + (rowH - imgSize) / 2;
           doc.addImage(photo, 'JPEG', imgX, imgY, imgSize, imgSize);
         } catch (e) {
@@ -261,21 +252,18 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
         }
       }
 
-      // Description
-      doc.text(descLines, colX[4] + colW[4] / 2, y + 5, { align: 'center', maxWidth: colW[4] - 4 });
-
       // Uté (unité)
-      doc.text(mat?.unite || 'PCS', colX[5] + colW[5] / 2, cy + 1, { align: 'center' });
+      doc.text(mat?.unite || 'PCS', colX[2] + colW[2] / 2, cy + 1, { align: 'center' });
 
       // PU TTC
-      doc.text(`${formatMontant(ligne.prixUnitaire)}`, colX[6] + colW[6] - 2, cy + 1, { align: 'right' });
+      doc.text(`${formatMontant(ligne.prixUnitaire)}`, colX[3] + colW[3] - 2, cy + 1, { align: 'right' });
 
       // Qté
-      doc.text(String(ligne.quantite), colX[7] + colW[7] / 2, cy + 1, { align: 'center' });
+      doc.text(String(ligne.quantite), colX[4] + colW[4] / 2, cy + 1, { align: 'center' });
 
       // MT TTC
       doc.setFont('times', 'bold');
-      doc.text(`${formatMontant(ligne.total)}`, colX[8] + colW[8] - 2, cy + 1, { align: 'right' });
+      doc.text(`${formatMontant(ligne.total)}`, colX[5] + colW[5] - 2, cy + 1, { align: 'right' });
       doc.setFont('times', 'normal');
 
       y += rowH;
@@ -295,9 +283,9 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
     doc.setFont('times', 'bold');
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
-    doc.text('Montant', margin + (tableWidth - colW[8]) / 2, y + 8, { align: 'center' });
-    doc.line(colX[8], y, colX[8], y + totalRowH);
-    doc.text(`${formatMontant(devis.montant)}`, colX[8] + colW[8] - 2, y + 8, { align: 'right' });
+    doc.text('Montant', margin + (tableWidth - colW[5]) / 2, y + 8, { align: 'center' });
+    doc.line(colX[5], y, colX[5], y + totalRowH);
+    doc.text(`${formatMontant(devis.montant)}`, colX[5] + colW[5] - 2, y + 8, { align: 'right' });
     y += totalRowH + 5;
   }
 

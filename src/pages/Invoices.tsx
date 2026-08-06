@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Plus, FileText, Download, Trash2, Check, Send, Clock, AlertTriangle, Search, Filter, ChevronDown, Eye, Pencil } from 'lucide-react';
+import { useState, useMemo, useRef } from 'react';
+import { Plus, FileText, Download, Trash2, Check, Send, Clock, AlertTriangle, Search, Filter, ChevronDown, Eye, Pencil, Upload } from 'lucide-react';
 import { format, addDays, isAfter } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
@@ -40,11 +40,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { exportInvoicesToCsv } from '@/lib/export';
+import { parseDocumentsFile } from '@/lib/parseDocumentsFile';
 
 export default function Invoices() {
   const { invoices, addInvoice, updateInvoice, deleteInvoice, generateInvoiceNumber } = useInvoices();
-  const { prospects, getProspect } = useProspects();
-  const { devisList } = useDevis();
+  const { prospects, addProspect, getProspect } = useProspects();
+  const { devisList, addDevis } = useDevis();
+  const importInputRef = useRef<HTMLInputElement>(null);
   const { getClient } = useClients();
   const { ventes } = useVentes();
   const { materials } = useMaterials();
@@ -182,6 +184,79 @@ export default function Invoices() {
     setSelectedDevisId('');
   };
 
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const docs = await parseDocumentsFile(file);
+      const company = getCompanySettings();
+      let count = 0;
+      for (const doc of docs) {
+        const existing = prospects.find(
+          (p) => p.nomStructure.toLowerCase() === doc.client.toLowerCase()
+        );
+        const prospect =
+          existing ??
+          addProspect({
+            nomStructure: doc.client,
+            nomDecideur: '',
+            telephone: '',
+            typeStructure: 'Autre',
+            besoinPrincipal: 'Maintenance',
+            statut: 'signe',
+            notes: 'Créé automatiquement lors de l\'import de factures',
+          });
+        const lignes: DevisLigne[] = doc.lignes.map((l) => ({
+          materialId: '',
+          nom: l.designation,
+          reference: '',
+          categorie: 'autre',
+          quantite: l.qte,
+          prixUnitaire: l.pu,
+          total: l.pu * l.qte,
+        }));
+        const devis = addDevis({
+          prospectId: prospect.id,
+          dateDevis: doc.date,
+          objet: doc.objet || `Facture importée ${doc.numero || ''}`.trim(),
+          option: 'Essentiel',
+          montant: doc.montant,
+          lignes,
+          statut: 'accepte',
+          acompteRecu: false,
+          montantAcompte: 0,
+          mainDoeuvre: 0,
+          stockDeduit: false,
+          entrepriseNom: company.nom,
+          entrepriseAdresse: company.adresse,
+          entrepriseTelephone: company.telephone,
+          entrepriseEmail: company.email,
+          entrepriseSite: company.siteWeb,
+        });
+        const s = doc.statut.toLowerCase();
+        const statut: InvoiceStatus = s.includes('pay') ? 'paid'
+          : s.includes('retard') || s.includes('overdue') ? 'overdue'
+          : s.includes('envoy') || s.includes('sent') ? 'sent'
+          : 'draft';
+        addInvoice({
+          numero: doc.numero || generateInvoiceNumber(),
+          devisId: devis.id,
+          prospectId: prospect.id,
+          montantHT: doc.montant,
+          montantTTC: doc.montant,
+          dateEmission: doc.date,
+          dateEcheance: addDays(new Date(doc.date), 30).toISOString().split('T')[0],
+          statut,
+        });
+        count++;
+      }
+      toast.success(`${count} facture(s) importée(s) avec succès`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erreur lors de l\'import');
+    }
+  };
+
   const handleDownloadDocx = async (invoice: Invoice) => {
     if (invoice.source === 'vente') {
       const ctx = buildVenteContext(invoice);
@@ -255,14 +330,26 @@ export default function Invoices() {
         title="Factures"
         subtitle={`${invoices.length} factures`}
         action={
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => exportInvoicesToCsv(filteredInvoices, (inv) => getInvoiceClientName(inv) || '')}
-            disabled={filteredInvoices.length === 0}
-          >
-            <Download className="h-4 w-4 mr-1" />CSV
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => importInputRef.current?.click()}>
+              <Upload className="h-4 w-4 mr-1" />Importer
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => exportInvoicesToCsv(filteredInvoices, (inv) => getInvoiceClientName(inv) || '')}
+              disabled={filteredInvoices.length === 0}
+            >
+              <Download className="h-4 w-4 mr-1" />CSV
+            </Button>
+            <input
+              ref={importInputRef}
+              type="file"
+              accept=".xlsx,.xls,.csv,.docx"
+              className="hidden"
+              onChange={handleImport}
+            />
+          </div>
         }
       />
 
