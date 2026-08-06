@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, CheckCircle2, Clock, XCircle, Download, Pencil, Trash2, Eye, Search, ChevronDown } from 'lucide-react';
+import { FileText, CheckCircle2, Clock, XCircle, Download, Pencil, Trash2, Eye, Search, ChevronDown, Upload } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
@@ -42,13 +42,16 @@ import { Devis, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS } from '@/types';
 import { generateDevisDocx } from '@/lib/generateDevisDocx';
 import { generateDevisPdf } from '@/lib/generateDevisPdf';
 import { exportDevisToCsv } from '@/lib/export';
+import { parseDocumentsFile } from '@/lib/parseDocumentsFile';
+import { getCompanySettings } from '@/lib/companySettings';
 import { DevisForm } from '@/components/forms/DevisForm';
 import { DevisPreview } from '@/components/DevisPreview';
 import { toast } from 'sonner';
 
 export default function DevisList() {
-  const { devisList, updateDevis, deleteDevis } = useDevis();
-  const { getProspect } = useProspects();
+  const { devisList, addDevis, updateDevis, deleteDevis } = useDevis();
+  const { prospects, addProspect, getProspect } = useProspects();
+  const importInputRef = useRef<HTMLInputElement>(null);
   const [editingDevis, setEditingDevis] = useState<Devis | null>(null);
   const [deletingDevis, setDeletingDevis] = useState<Devis | null>(null);
   const [previewingDevis, setPreviewingDevis] = useState<Devis | null>(null);
@@ -90,16 +93,92 @@ export default function DevisList() {
     exportDevisToCsv(devisList, (id) => getProspect(id)?.nomStructure || 'Inconnu');
   };
 
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const docs = await parseDocumentsFile(file);
+      const company = getCompanySettings();
+      let count = 0;
+      for (const doc of docs) {
+        const existing = prospects.find(
+          (p) => p.nomStructure.toLowerCase() === doc.client.toLowerCase()
+        );
+        const prospect =
+          existing ??
+          addProspect({
+            nomStructure: doc.client,
+            nomDecideur: '',
+            telephone: '',
+            typeStructure: 'Autre',
+            besoinPrincipal: 'Maintenance',
+            statut: 'prospect',
+            notes: 'Créé automatiquement lors de l\'import de devis',
+          });
+        const statutNorm = doc.statut.toLowerCase();
+        const statut = statutNorm.includes('accept') || statutNorm.includes('sign')
+          ? 'accepte' as const
+          : statutNorm.includes('refus')
+          ? 'refuse' as const
+          : 'envoye' as const;
+        addDevis({
+          prospectId: prospect.id,
+          dateDevis: doc.date,
+          objet: doc.objet,
+          option: 'Essentiel',
+          montant: doc.montant,
+          lignes: doc.lignes.map((l) => ({
+            materialId: '',
+            nom: l.designation,
+            reference: '',
+            categorie: 'autre',
+            quantite: l.qte,
+            prixUnitaire: l.pu,
+            total: l.pu * l.qte,
+          })),
+          statut,
+          acompteRecu: false,
+          montantAcompte: 0,
+          mainDoeuvre: 0,
+          stockDeduit: false,
+          entrepriseNom: company.nom,
+          entrepriseAdresse: company.adresse,
+          entrepriseTelephone: company.telephone,
+          entrepriseEmail: company.email,
+          entrepriseSite: company.siteWeb,
+        });
+        count++;
+      }
+      toast.success(`${count} devis importé(s) avec succès`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erreur lors de l\'import');
+    }
+  };
+
   return (
     <div className="min-h-screen pb-20">
       <PageHeader 
         title="Devis" 
         subtitle={`${devisList.length} devis`}
         action={
-          <Button size="sm" variant="outline" onClick={handleExportCsv}>
-            <Download className="h-4 w-4 mr-1" />
-            CSV
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => importInputRef.current?.click()}>
+              <Upload className="h-4 w-4 mr-1" />
+              Importer
+            </Button>
+            <Button size="sm" variant="outline" onClick={handleExportCsv}>
+              <Download className="h-4 w-4 mr-1" />
+              CSV
+            </Button>
+            <input
+              ref={importInputRef}
+              type="file"
+              accept=".xlsx,.xls,.csv,.docx"
+              className="hidden"
+              onChange={handleImport}
+            />
+          </div>
         }
       />
 
