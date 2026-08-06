@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Edit, Trash2, Plus, CheckCircle2, Clock, Circle, ShoppingCart, Receipt, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Edit, Trash2, Plus, CheckCircle2, Clock, Circle, ShoppingCart, Receipt, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
@@ -18,7 +18,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useClients, useProjects, useVentes } from '@/hooks/useErpData';
 import { useExpenses, useMaterials } from '@/hooks/useData';
-import { PROJECT_STATUS_LABELS, TASK_PRIORITY_LABELS, TaskStatus, TaskPriority, TASK_STATUS_LABELS, VENTE_STATUS_LABELS } from '@/types/erp';
+import { PROJECT_STATUS_LABELS, TASK_PRIORITY_LABELS, TaskStatus, TaskPriority, VENTE_STATUS_LABELS } from '@/types/erp';
 import { toast } from 'sonner';
 
 export default function ProjetDetail() {
@@ -35,7 +35,6 @@ export default function ProjetDetail() {
   const [showAddTask, setShowAddTask] = useState(false);
   const [showAddVente, setShowAddVente] = useState(false);
   const [showAddExpense, setShowAddExpense] = useState(false);
-  const [taskView, setTaskView] = useState<'liste' | 'kanban'>('liste');
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskPriority, setNewTaskPriority] = useState<TaskPriority>('normale');
 
@@ -178,51 +177,14 @@ export default function ProjetDetail() {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">Tâches</CardTitle>
-              <div className="flex gap-2">
-                <Button size="sm" variant={taskView === 'liste' ? 'secondary' : 'ghost'} onClick={() => setTaskView('liste')}>Liste</Button>
-                <Button size="sm" variant={taskView === 'kanban' ? 'secondary' : 'ghost'} onClick={() => setTaskView('kanban')}>Kanban</Button>
-                <Button size="sm" variant="outline" onClick={() => setShowAddTask(true)}>
-                  <Plus className="h-4 w-4 mr-1" />Ajouter
-                </Button>
-              </div>
+              <Button size="sm" variant="outline" onClick={() => setShowAddTask(true)}>
+                <Plus className="h-4 w-4 mr-1" />Ajouter
+              </Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-2">
             {project.taches.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">Aucune tâche</p>
-            ) : taskView === 'kanban' ? (
-              <div className="grid grid-cols-3 gap-2">
-                {(['a_faire', 'en_cours', 'fait'] as TaskStatus[]).map(col => (
-                  <div key={col} className="bg-muted/50 rounded-lg p-2 space-y-2 min-h-[80px]">
-                    <p className="text-xs font-semibold text-muted-foreground text-center">
-                      {TASK_STATUS_LABELS[col]} ({project.taches.filter(t => t.statut === col).length})
-                    </p>
-                    {project.taches.filter(t => t.statut === col).map(task => (
-                      <div key={task.id} className="bg-card rounded-md p-2 border shadow-sm space-y-1">
-                        <p className="text-xs font-medium leading-tight break-words">{task.titre}</p>
-                        <Badge variant={priorityColor(task.priorite)} className="text-[10px] px-1 py-0">
-                          {TASK_PRIORITY_LABELS[task.priorite]}
-                        </Badge>
-                        <div className="flex gap-1 pt-1">
-                          {col !== 'a_faire' && (
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => updateTask(project.id, task.id, { statut: col === 'fait' ? 'en_cours' : 'a_faire' })}>
-                              <ChevronLeft className="h-3 w-3" />
-                            </Button>
-                          )}
-                          {col !== 'fait' && (
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => updateTask(project.id, task.id, { statut: col === 'a_faire' ? 'en_cours' : 'fait' })}>
-                              <ChevronRight className="h-3 w-3" />
-                            </Button>
-                          )}
-                          <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto" onClick={() => deleteTask(project.id, task.id)}>
-                            <Trash2 className="h-3 w-3 text-destructive" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
             ) : (
               project.taches.map(task => (
                 <div key={task.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted group">

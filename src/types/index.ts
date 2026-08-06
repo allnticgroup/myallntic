@@ -393,10 +393,6 @@ export interface CompanySettings {
   orangeMoneyLink?: string; // ex: code marchand ou USSD #144*82*XXXXX#
   ibanBancaire?: string; // RIB / IBAN pour virement
   banqueNom?: string;
-  // Numérotation personnalisée des documents
-  prefixeFacture?: string; // défaut: FAC
-  prefixeDevis?: string;   // défaut: DEV
-  prefixeVente?: string;   // défaut: V
 }
 
 

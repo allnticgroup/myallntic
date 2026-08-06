@@ -79,37 +79,9 @@ export default function Rapports() {
     return Object.entries(cats).map(([k, v]) => ({ name: labels[k] || k, value: v }));
   }, [expenses]);
 
-  // Trésorerie : encaissements réels vs dépenses
-  const cashflowData = useMemo(() =>
-    months.map(m => {
-      const encaisse = payments
-        .filter(p => isWithinInterval(new Date(p.datePaiement), { start: m.start, end: m.end }))
-        .reduce((s, p) => s + p.montant, 0);
-      const sorties = expenses
-        .filter(e => isWithinInterval(new Date(e.dateDepense), { start: m.start, end: m.end }))
-        .reduce((s, e) => s + e.montant, 0);
-      return { name: m.label, encaisse, sorties, net: encaisse - sorties };
-    }),
-    [months, payments, expenses]
-  );
-
-  // Top clients par chiffre d'affaires (ventes validées)
-  const topClients = useMemo(() => {
-    const totals: Record<string, { nom: string; ca: number; nb: number }> = {};
-    ventes.filter(v => v.statut === 'validee').forEach(v => {
-      const nom = clients.find(c => c.id === v.clientId)?.nom || 'Client inconnu';
-      if (!totals[v.clientId]) totals[v.clientId] = { nom, ca: 0, nb: 0 };
-      totals[v.clientId].ca += v.total;
-      totals[v.clientId].nb += 1;
-    });
-    return Object.values(totals).sort((a, b) => b.ca - a.ca).slice(0, 8);
-  }, [ventes, clients]);
-
   const totalRevenue = revenueData.reduce((s, d) => s + d.revenus, 0);
   const totalExpenses = revenueData.reduce((s, d) => s + d.depenses, 0);
   const totalBenefice = totalRevenue - totalExpenses;
-  const margeGlobale = totalRevenue > 0 ? (totalBenefice / totalRevenue) * 100 : 0;
-  const totalEncaisse = cashflowData.reduce((s, d) => s + d.encaisse, 0);
 
   const handleExportReport = () => {
     const headers = ['Mois', 'Revenus (FCFA)', 'Dépenses (FCFA)', 'Bénéfice (FCFA)'];
@@ -159,20 +131,11 @@ export default function Rapports() {
           </Card>
         </div>
 
-        <Card>
-          <CardContent className="p-3 flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">Marge globale sur la période</p>
-            <p className={`font-bold text-sm ${margeGlobale >= 0 ? 'text-success' : 'text-destructive'}`}>{margeGlobale.toFixed(1)} %</p>
-          </CardContent>
-        </Card>
-
         <Tabs defaultValue="ca">
-          <TabsList className="w-full text-xs">
-            <TabsTrigger value="ca" className="flex-1 text-xs px-1">CA</TabsTrigger>
-            <TabsTrigger value="produits" className="flex-1 text-xs px-1">Produits</TabsTrigger>
-            <TabsTrigger value="depenses" className="flex-1 text-xs px-1">Dépenses</TabsTrigger>
-            <TabsTrigger value="tresorerie" className="flex-1 text-xs px-1">Trésorerie</TabsTrigger>
-            <TabsTrigger value="clients" className="flex-1 text-xs px-1">Clients</TabsTrigger>
+          <TabsList className="w-full">
+            <TabsTrigger value="ca" className="flex-1">CA</TabsTrigger>
+            <TabsTrigger value="produits" className="flex-1">Produits</TabsTrigger>
+            <TabsTrigger value="depenses" className="flex-1">Dépenses</TabsTrigger>
           </TabsList>
 
           <TabsContent value="ca">
@@ -254,78 +217,6 @@ export default function Rapports() {
                         <Legend formatter={(v) => <span className="text-xs">{v}</span>} />
                       </PieChart>
                     </ResponsiveContainer>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="tresorerie">
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Encaissements vs Sorties</CardTitle></CardHeader>
-              <CardContent>
-                <div className="h-52">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={cashflowData}>
-                      <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                      <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                      <Tooltip formatter={(v: number) => [`${v.toLocaleString('fr-FR')} F`]} contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
-                      <Bar dataKey="encaisse" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Encaissé" />
-                      <Bar dataKey="sorties" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} name="Sorties" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="grid grid-cols-2 gap-3 mt-3">
-                  <div className="text-center">
-                    <p className="text-xs text-muted-foreground">Total encaissé</p>
-                    <p className="font-bold text-sm text-primary">{totalEncaisse.toLocaleString('fr-FR')} F</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xs text-muted-foreground">Flux net</p>
-                    <p className={`font-bold text-sm ${totalEncaisse - totalExpenses >= 0 ? 'text-success' : 'text-destructive'}`}>
-                      {(totalEncaisse - totalExpenses).toLocaleString('fr-FR')} F
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="mt-3">
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Flux net mensuel</CardTitle></CardHeader>
-              <CardContent>
-                <div className="h-44">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={cashflowData}>
-                      <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                      <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                      <Tooltip formatter={(v: number) => [`${v.toLocaleString('fr-FR')} F`]} contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
-                      <Line type="monotone" dataKey="net" stroke="hsl(var(--primary))" strokeWidth={2} name="Flux net" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="clients">
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Meilleurs clients (CA)</CardTitle></CardHeader>
-              <CardContent>
-                {topClients.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">Aucune vente validée</p>
-                ) : (
-                  <div className="space-y-3">
-                    {topClients.map((c, i) => (
-                      <div key={i} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-xs font-bold text-muted-foreground w-5">{i + 1}</span>
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium truncate">{c.nom}</p>
-                            <p className="text-xs text-muted-foreground">{c.nb} vente{c.nb > 1 ? 's' : ''}</p>
-                          </div>
-                        </div>
-                        <p className="text-sm font-semibold shrink-0">{c.ca.toLocaleString('fr-FR')} F</p>
-                      </div>
-                    ))}
                   </div>
                 )}
               </CardContent>

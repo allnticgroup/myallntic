@@ -1,6 +1,5 @@
 import { useLocalStorage } from './useLocalStorage';
 import { Client, Vente, StockMovement, Project, ProjectTask } from '@/types/erp';
-import { getCompanySettings } from '@/lib/companySettings';
 
 // ===== ID Generation =====
 function generateCode(prefix: string, items: { code: string }[]): string {
@@ -8,7 +7,7 @@ function generateCode(prefix: string, items: { code: string }[]): string {
     const num = parseInt(item.code.replace(prefix, ''), 10);
     return isNaN(num) ? max : Math.max(max, num);
   }, 0);
-  const padLen = prefix.length <= 1 ? 4 : 3;
+  const padLen = prefix === 'V' ? 4 : 3;
   return `${prefix}${String(maxNum + 1).padStart(padLen, '0')}`;
 }
 
@@ -55,7 +54,7 @@ export function useVentes() {
     const newVente: Vente = {
       ...vente,
       id: crypto.randomUUID(),
-      code: generateCode((getCompanySettings().prefixeVente || 'V').toUpperCase(), ventes),
+      code: generateCode('V', ventes),
       createdAt: now,
       updatedAt: now,
     };
