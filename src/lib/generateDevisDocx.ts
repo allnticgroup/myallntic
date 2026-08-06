@@ -118,7 +118,6 @@ export async function generateDevisDocx(devis: Devis, prospect: Prospect) {
       new TableRow({
         children: [
           headerCell('Désignation'),
-          headerCell('Réf.'),
           headerCell('P.U. HT'),
           headerCell('Qté'),
           headerCell('Total HT'),
@@ -130,7 +129,6 @@ export async function generateDevisDocx(devis: Devis, prospect: Prospect) {
         return new TableRow({
           children: [
             dataCell(ligne.nom, shade),
-            dataCell(ligne.reference || '-', shade),
             dataCell(`${formatMontant(ligne.prixUnitaire)} F`, shade),
             dataCell(ligne.quantite.toString(), shade),
             dataCell(`${formatMontant(ligne.total)} F`, shade),
