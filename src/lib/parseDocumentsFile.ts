@@ -262,12 +262,40 @@ async function parsePdf(file: File): Promise<ImportedDocument[]> {
       if (m) numero = m[1];
     }
     if (!client) {
-      const inline = t.match(/^(?:client|factur[ée]\s+[àa]|destinataire)\s*:?\s*(.+)$/i);
-      if (inline) {
-        client = inline[1].trim();
-      } else if (/^(?:client|factur[ée]\s+[àa]|destinataire)\s*:?\s*$/i.test(t)) {
-        const next = lines[i + 1]?.text.trim();
-        if (next) client = next;
+      // Approche positionnelle : repère la cellule « Client : » / « Facturé à : »
+      const labelCell = lines[i].cells.find((c) =>
+        /^(?:client|factur[ée]\s+[àa]|destinataire)\s*:?$/i.test(c.text.trim())
+      );
+      if (labelCell) {
+        // a) nom sur la même ligne, à droite du libellé
+        const sameLine = lines[i].cells
+          .filter((c) => c !== labelCell && c.x > labelCell.x)
+          .map((c) => c.text.trim())
+          .filter(Boolean)
+          .join(' ')
+          .trim();
+        if (sameLine && !PDF_META_SKIP_RE.test(sameLine)) {
+          client = sameLine;
+        } else {
+          // b) nom sur les lignes suivantes, dans la même colonne (x proche)
+          for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
+            const colText = lines[j].cells
+              .filter((c) => c.x >= labelCell.x - 15)
+              .map((c) => c.text.trim())
+              .filter(Boolean)
+              .join(' ')
+              .trim();
+            if (colText && !PDF_META_SKIP_RE.test(colText)) {
+              client = colText;
+              break;
+            }
+          }
+        }
+      }
+      // Repli : recherche textuelle simple sur la ligne
+      if (!client) {
+        const inline = t.match(/(?:client|factur[ée]\s+[àa]|destinataire)\s*:?\s*(.{2,})$/i);
+        if (inline && !PDF_META_SKIP_RE.test(inline[1])) client = inline[1].trim();
       }
     }
     if (!date) {
