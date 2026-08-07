@@ -174,7 +174,7 @@ export default function DevisList() {
             <input
               ref={importInputRef}
               type="file"
-              accept=".xlsx,.xls,.csv,.docx"
+              accept=".xlsx,.xls,.csv,.docx,.pdf"
               className="hidden"
               onChange={handleImport}
             />
