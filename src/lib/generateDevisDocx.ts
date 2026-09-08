@@ -1,9 +1,10 @@
-import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType, AlignmentType, BorderStyle, HeadingLevel, ShadingType, TableLayoutType } from 'docx';
+import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, ImageRun, WidthType, AlignmentType, BorderStyle, HeadingLevel, ShadingType, TableLayoutType } from 'docx';
 import { saveAs } from 'file-saver';
 import { Devis, Prospect, DEVIS_OPTION_LABELS, DEVIS_STATUS_LABELS, MATERIAL_CATEGORY_LABELS } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { getCompanySettings } from './companySettings';
+import { loadLogoImageRun } from './docxLogo';
 
 function getCompanyInfo(devis: Devis) {
   const settings = getCompanySettings();
