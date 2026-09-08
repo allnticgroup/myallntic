@@ -1,9 +1,10 @@
-import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType, AlignmentType, BorderStyle, ShadingType, TableLayoutType } from 'docx';
+import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, ImageRun, WidthType, AlignmentType, BorderStyle, ShadingType, TableLayoutType } from 'docx';
 import { saveAs } from 'file-saver';
 import { Invoice, Prospect, Devis } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { getCompanySettings } from './companySettings';
+import { loadLogoImageRun } from './docxLogo';
 
 function getCompanyInfo() {
   const settings = getCompanySettings();
@@ -13,6 +14,7 @@ function getCompanyInfo() {
     phone: settings.telephone,
     email: settings.email,
     website: settings.siteWeb,
+    logo: settings.logo,
     services: settings.services,
   };
 }

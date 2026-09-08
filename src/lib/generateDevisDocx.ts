@@ -13,6 +13,7 @@ function getCompanyInfo(devis: Devis) {
     phone: devis.entrepriseTelephone || settings.telephone,
     email: devis.entrepriseEmail || settings.email,
     website: devis.entrepriseSite || settings.siteWeb,
+    logo: settings.logo,
     services: settings.services,
   };
 }
@@ -44,10 +45,12 @@ function dataCell(text: string, shade?: boolean): TableCell {
 export async function generateDevisDocx(devis: Devis, prospect: Prospect) {
   const COMPANY_INFO = getCompanyInfo(devis);
   const children: (Paragraph | Table)[] = [];
+  const logoImage = await loadLogoImageRun();
 
   // Header
   children.push(new Paragraph({
     children: [
+      ...(logoImage ? [logoImage, new TextRun({ text: ' ', size: 36 })] : []),
       new TextRun({ text: COMPANY_INFO.name, bold: true, size: 36, color: BLUE, font: 'Times New Roman' }),
       new TextRun({ text: '    ', size: 36 }),
       new TextRun({ text: 'DEVIS', bold: true, size: 52, color: BLUE, font: 'Times New Roman' }),
