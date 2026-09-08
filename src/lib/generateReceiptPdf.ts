@@ -3,6 +3,7 @@ import { Payment, PAYMENT_MODE_LABELS } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { getCompanySettings } from './companySettings';
+import { addLogoToPdf } from './pdfLogo';
 
 function formatMontant(montant: number): string {
   return montant.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -19,12 +20,8 @@ export async function generateReceiptPdf(
   const margin = 15;
   let y = 20;
 
-  // Logo
-  if (company.logo) {
-    try {
-      doc.addImage(company.logo, 'PNG', margin, y, 25, 25);
-    } catch {}
-  }
+  // Logo - cadre carré 28 mm sans déformation
+  await addLogoToPdf(doc, company.logo, margin, y, 28);
 
   // En-tête entreprise
   doc.setFontSize(16);

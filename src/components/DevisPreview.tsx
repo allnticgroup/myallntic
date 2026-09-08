@@ -34,7 +34,7 @@ export function DevisPreview({ devis, prospect }: DevisPreviewProps) {
       {/* En-tête */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-start gap-3">
-          <img src={COMPANY_INFO.logo || '/logo.png'} alt="Logo" className="w-12 h-12 object-contain" />
+          <img src={COMPANY_INFO.logo || '/logo.png'} alt="Logo" className="w-16 h-16 object-contain" />
           <div>
             <h2 className="text-lg font-bold text-blue-700">{COMPANY_INFO.name}</h2>
             <p className="text-xs text-gray-500">

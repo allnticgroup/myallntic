@@ -1,9 +1,10 @@
-import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType, AlignmentType, BorderStyle, ShadingType, TableLayoutType } from 'docx';
+import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, ImageRun, WidthType, AlignmentType, BorderStyle, ShadingType, TableLayoutType } from 'docx';
 import { saveAs } from 'file-saver';
 import { Invoice, Prospect, Devis } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { getCompanySettings } from './companySettings';
+import { loadLogoImageRun } from './docxLogo';
 
 function getCompanyInfo() {
   const settings = getCompanySettings();
@@ -13,6 +14,7 @@ function getCompanyInfo() {
     phone: settings.telephone,
     email: settings.email,
     website: settings.siteWeb,
+    logo: settings.logo,
     services: settings.services,
   };
 }
@@ -44,16 +46,19 @@ function dataCell(text: string, shade?: boolean): TableCell {
 export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, devis?: Devis) {
   const COMPANY_INFO = getCompanyInfo();
   const children: (Paragraph | Table)[] = [];
+  const logoImage = await loadLogoImageRun();
   const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
   const borders = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder };
 
   // Header
   children.push(new Paragraph({
     children: [
+      ...(logoImage ? [logoImage, new TextRun({ text: ' ', size: 36 })] : []),
       new TextRun({ text: COMPANY_INFO.name, bold: true, size: 36, color: BLUE, font: 'Times New Roman' }),
       new TextRun({ text: '    ', size: 36 }),
       new TextRun({ text: 'FACTURE', bold: true, size: 52, color: BLUE, font: 'Times New Roman' }),
     ],
+    alignment: AlignmentType.LEFT,
     spacing: { after: 100 },
   }));
 
