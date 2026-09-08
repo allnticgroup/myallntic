@@ -3,8 +3,10 @@ import { getCompanySettings } from './companySettings';
 
 const EMU_PER_PX = 9525; // 96 dpi
 
-function getExtension(base64: string): 'png' | 'jpg' {
-  if (base64.match(/^data:image\/(jpeg|jpg)/i)) return 'jpg';
+function getExtension(base64: string): 'png' | 'jpg' | 'gif' | 'bmp' {
+  if (base64.match(/^data:image\/jpeg/i)) return 'jpg';
+  if (base64.match(/^data:image\/gif/i)) return 'gif';
+  if (base64.match(/^data:image\/bmp/i)) return 'bmp';
   return 'png';
 }
 
@@ -48,13 +50,13 @@ export async function loadLogoImageRun(
     const displayWidthEmu = Math.round(width * scale * EMU_PER_PX);
     const displayHeightEmu = Math.round(height * scale * EMU_PER_PX);
 
-    const extension = getExtension(src);
+    const type = getExtension(src);
     const data = base64ToUint8Array(src);
 
     return new ImageRun({
       data,
       transformation: { width: displayWidthEmu, height: displayHeightEmu },
-      extension,
+      type,
     });
   } catch (e) {
     console.log('Logo non chargé pour docx:', e);
