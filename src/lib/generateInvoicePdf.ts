@@ -4,6 +4,7 @@ import { Invoice, Prospect, Devis } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { getCompanySettings } from './companySettings';
+import { addLogoToPdf } from './pdfLogo';
 
 function getCompanyInfo() {
   const settings = getCompanySettings();
@@ -38,27 +39,6 @@ function formatMontant(montant: number): string {
   return montant.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
-async function loadImageAsBase64(url: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'Anonymous';
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL('image/png'));
-      } else {
-        reject(new Error('Could not get canvas context'));
-      }
-    };
-    img.onerror = reject;
-    img.src = url;
-  });
-}
-
 export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, devis?: Devis) {
   const COMPANY_INFO = getCompanyInfo();
   const doc = new jsPDF();
@@ -67,12 +47,8 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
   let y = 15;
 
   // ===== EN-TÊTE =====
-  try {
-    const logoBase64 = COMPANY_INFO.logo || await loadImageAsBase64('/logo.png');
-    doc.addImage(logoBase64, 'PNG', margin, y, 25, 25);
-  } catch (e) {
-    console.log('Logo non chargé:', e);
-  }
+  // Logo à gauche - cadre carré 32 mm sans déformation
+  await addLogoToPdf(doc, COMPANY_INFO.logo, margin, y, 32);
 
   doc.setFontSize(18);
   doc.setFont('times', 'bold');
