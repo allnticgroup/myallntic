@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Clock,
   UserCheck,
+  Pencil,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -60,6 +61,7 @@ import {
   DEVIS_STATUS_LABELS,
   INTERVENTION_TYPE_LABELS,
   INTERVENTION_STATUS_LABELS,
+  Intervention,
 } from '@/types';
 import { toast } from 'sonner';
 
@@ -86,6 +88,7 @@ export default function ProspectDetail() {
 
   const [showForm, setShowForm] = useState<FormType>(null);
   const [showConvert, setShowConvert] = useState(false);
+  const [editingIntervention, setEditingIntervention] = useState<Intervention | null>(null);
 
   const prospect = id ? getProspect(id) : undefined;
   const devisList = id ? getDevisForProspect(id) : [];
