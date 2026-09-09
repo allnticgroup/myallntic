@@ -490,6 +490,28 @@ export default function ProspectDetail() {
         </SheetContent>
       </Sheet>
 
+      <Sheet open={!!editingIntervention} onOpenChange={(open) => !open && setEditingIntervention(null)}>
+        <SheetContent side="bottom" className="h-[90vh] rounded-t-xl">
+          <SheetHeader className="mb-4">
+            <SheetTitle>Modifier l'intervention</SheetTitle>
+          </SheetHeader>
+          <div className="overflow-y-auto max-h-[calc(90vh-100px)]">
+            {editingIntervention && (
+              <InterventionForm
+                prospectId={editingIntervention.prospectId}
+                intervention={editingIntervention}
+                onSubmit={(data) => {
+                  updateIntervention(editingIntervention.id, data);
+                  setEditingIntervention(null);
+                  toast.success('Intervention modifiée');
+                }}
+                onCancel={() => setEditingIntervention(null)}
+              />
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+
       <AlertDialog open={showConvert} onOpenChange={setShowConvert}>
         <AlertDialogContent>
           <AlertDialogHeader>
