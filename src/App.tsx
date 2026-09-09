@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { BottomNav } from "@/components/BottomNav";
 import { PwaInstallButton } from "@/components/PwaInstallButton";
+import { InterventionReminders } from "@/components/InterventionReminders";
 import Index from "./pages/Index";
 import Prospects from "./pages/Prospects";
 import ProspectDetail from "./pages/ProspectDetail";
@@ -62,6 +63,7 @@ const App = () => (
             <Route path="/parametres" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <InterventionReminders />
           <PwaInstallButton />
           <BottomNav />
         </BrowserRouter>

@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Clock,
   UserCheck,
+  Pencil,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -60,6 +61,7 @@ import {
   DEVIS_STATUS_LABELS,
   INTERVENTION_TYPE_LABELS,
   INTERVENTION_STATUS_LABELS,
+  Intervention,
 } from '@/types';
 import { toast } from 'sonner';
 
@@ -86,6 +88,7 @@ export default function ProspectDetail() {
 
   const [showForm, setShowForm] = useState<FormType>(null);
   const [showConvert, setShowConvert] = useState(false);
+  const [editingIntervention, setEditingIntervention] = useState<Intervention | null>(null);
 
   const prospect = id ? getProspect(id) : undefined;
   const devisList = id ? getDevisForProspect(id) : [];
@@ -390,24 +393,47 @@ export default function ProspectDetail() {
                       })}
                     </p>
                   </div>
-                  <Button
-                    size="sm"
-                    variant={intervention.statut === 'fait' ? 'secondary' : 'default'}
-                    onClick={() =>
-                      updateIntervention(intervention.id, {
-                        statut: intervention.statut === 'fait' ? 'a_faire' : 'fait',
-                      })
-                    }
-                  >
-                    {intervention.statut === 'fait' ? (
-                      <>
-                        <CheckCircle2 className="h-4 w-4 mr-1" />
-                        Fait
-                      </>
-                    ) : (
-                      'Marquer fait'
-                    )}
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="sm"
+                      variant={intervention.statut === 'fait' ? 'secondary' : 'default'}
+                      onClick={() =>
+                        updateIntervention(intervention.id, {
+                          statut: intervention.statut === 'fait' ? 'a_faire' : 'fait',
+                        })
+                      }
+                    >
+                      {intervention.statut === 'fait' ? (
+                        <>
+                          <CheckCircle2 className="h-4 w-4 mr-1" />
+                          Fait
+                        </>
+                      ) : (
+                        'Marquer fait'
+                      )}
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8"
+                      title="Modifier"
+                      onClick={() => setEditingIntervention(intervention)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 text-destructive"
+                      title="Supprimer"
+                      onClick={() => {
+                        deleteIntervention(intervention.id);
+                        toast.success('Intervention supprimée');
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ))
             )}
@@ -460,6 +486,28 @@ export default function ProspectDetail() {
               onSubmit={handleAddIntervention}
               onCancel={() => setShowForm(null)}
             />
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      <Sheet open={!!editingIntervention} onOpenChange={(open) => !open && setEditingIntervention(null)}>
+        <SheetContent side="bottom" className="h-[90vh] rounded-t-xl">
+          <SheetHeader className="mb-4">
+            <SheetTitle>Modifier l'intervention</SheetTitle>
+          </SheetHeader>
+          <div className="overflow-y-auto max-h-[calc(90vh-100px)]">
+            {editingIntervention && (
+              <InterventionForm
+                prospectId={editingIntervention.prospectId}
+                intervention={editingIntervention}
+                onSubmit={(data) => {
+                  updateIntervention(editingIntervention.id, data);
+                  setEditingIntervention(null);
+                  toast.success('Intervention modifiée');
+                }}
+                onCancel={() => setEditingIntervention(null)}
+              />
+            )}
           </div>
         </SheetContent>
       </Sheet>
