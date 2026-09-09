@@ -390,24 +390,47 @@ export default function ProspectDetail() {
                       })}
                     </p>
                   </div>
-                  <Button
-                    size="sm"
-                    variant={intervention.statut === 'fait' ? 'secondary' : 'default'}
-                    onClick={() =>
-                      updateIntervention(intervention.id, {
-                        statut: intervention.statut === 'fait' ? 'a_faire' : 'fait',
-                      })
-                    }
-                  >
-                    {intervention.statut === 'fait' ? (
-                      <>
-                        <CheckCircle2 className="h-4 w-4 mr-1" />
-                        Fait
-                      </>
-                    ) : (
-                      'Marquer fait'
-                    )}
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="sm"
+                      variant={intervention.statut === 'fait' ? 'secondary' : 'default'}
+                      onClick={() =>
+                        updateIntervention(intervention.id, {
+                          statut: intervention.statut === 'fait' ? 'a_faire' : 'fait',
+                        })
+                      }
+                    >
+                      {intervention.statut === 'fait' ? (
+                        <>
+                          <CheckCircle2 className="h-4 w-4 mr-1" />
+                          Fait
+                        </>
+                      ) : (
+                        'Marquer fait'
+                      )}
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8"
+                      title="Modifier"
+                      onClick={() => setEditingIntervention(intervention)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 text-destructive"
+                      title="Supprimer"
+                      onClick={() => {
+                        deleteIntervention(intervention.id);
+                        toast.success('Intervention supprimée');
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ))
             )}
