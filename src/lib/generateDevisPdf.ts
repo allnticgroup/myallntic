@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { getCompanySettings } from './companySettings';
 import { addLogoToPdf } from './pdfLogo';
+import { montantEnLettres } from './numberToWords';
 
 function getMaterialsMap(): Record<string, Material> {
   try {
@@ -305,7 +306,7 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
     y += 6;
     doc.setFont('times', 'normal');
     doc.setTextColor(80, 80, 80);
-    doc.text(`Acompte de 50% à la commande : ${formatMontant(devis.montantAcompte)} F`, margin, y);
+    doc.text(`Acompte de 75% à la commande : ${formatMontant(devis.montantAcompte)} F`, margin, y);
     y += 5;
     doc.text(`Solde à la livraison : ${formatMontant(devis.montant - devis.montantAcompte)} F`, margin, y);
     y += 10;
@@ -350,7 +351,7 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   
   const cgv = [
     '1. VALIDITÉ : Ce devis est valable 7 jours à compter de sa date d\'émission.',
-    '2. PAIEMENT : Un acompte de 60% est requis à la commande. Le solde est dû à la livraison.',
+    '2. PAIEMENT : Un acompte de 75% est requis à la commande. Le solde est dû à la livraison.',
   ];
   
   cgv.forEach((line) => {
