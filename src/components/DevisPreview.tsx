@@ -4,6 +4,7 @@ import { fr } from 'date-fns/locale';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { getCompanySettings } from '@/lib/companySettings';
+import { montantEnLettres } from '@/lib/numberToWords';
 
 function getCompanyInfo(devis: Devis) {
   const settings = getCompanySettings();
@@ -128,11 +129,17 @@ export function DevisPreview({ devis, prospect }: DevisPreviewProps) {
         </div>
       </div>
 
+      {/* Montant en lettres */}
+      <p className="text-xs mb-4">
+        <span className="font-bold text-blue-700">Arrêté le présent devis à la somme de : </span>
+        <span className="italic text-gray-600">{montantEnLettres(devis.montant)}</span>
+      </p>
+
       {/* Acompte */}
       {devis.acompteRecu && devis.montantAcompte > 0 && (
         <div className="mb-4">
           <h4 className="text-sm font-bold text-blue-700 mb-1">Conditions de règlement :</h4>
-          <p className="text-xs text-gray-600">Acompte de 50% à la commande : {formatMontant(devis.montantAcompte)} F</p>
+          <p className="text-xs text-gray-600">Acompte de 75% à la commande : {formatMontant(devis.montantAcompte)} F</p>
           <p className="text-xs text-gray-600">Solde à la livraison : {formatMontant(devis.montant - devis.montantAcompte)} F</p>
         </div>
       )}
@@ -155,7 +162,7 @@ export function DevisPreview({ devis, prospect }: DevisPreviewProps) {
           1. VALIDITÉ : Ce devis est valable 7 jours à compter de sa date d'émission.
         </p>
         <p className="text-[10px] text-gray-500">
-          2. PAIEMENT : Un acompte de 60% est requis à la commande. Le solde est dû à la livraison.
+          2. PAIEMENT : Un acompte de 75% est requis à la commande. Le solde est dû à la livraison.
         </p>
       </div>
 

@@ -4,6 +4,7 @@ import { fr } from 'date-fns/locale';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { getCompanySettings } from '@/lib/companySettings';
+import { montantEnLettres } from '@/lib/numberToWords';
 
 function getCompanyInfo() {
   const settings = getCompanySettings();
@@ -118,6 +119,12 @@ export function InvoicePreview({ invoice, prospect, devis }: InvoicePreviewProps
           </div>
         </div>
       </div>
+
+      {/* Montant en lettres */}
+      <p className="text-xs mb-4">
+        <span className="font-bold text-blue-700">Arrêtée la présente facture à la somme de : </span>
+        <span className="italic text-gray-600">{montantEnLettres(invoice.montantTTC)}</span>
+      </p>
 
       {/* Modalités de paiement */}
       <div className="mb-4">

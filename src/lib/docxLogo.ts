@@ -47,15 +47,15 @@ export async function loadLogoImageRun(
     const maxPx = maxSizeEmu / EMU_PER_PX;
     const scale = Math.min(maxPx / width, maxPx / height, 1);
 
-    const displayWidthEmu = Math.round(width * scale * EMU_PER_PX);
-    const displayHeightEmu = Math.round(height * scale * EMU_PER_PX);
+    const displayWidthPx = Math.max(1, Math.round(width * scale));
+    const displayHeightPx = Math.max(1, Math.round(height * scale));
 
     const type = getExtension(src);
     const data = base64ToUint8Array(src);
 
     return new ImageRun({
       data,
-      transformation: { width: displayWidthEmu, height: displayHeightEmu },
+      transformation: { width: displayWidthPx, height: displayHeightPx },
       type,
     });
   } catch (e) {
