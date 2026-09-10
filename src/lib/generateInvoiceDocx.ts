@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { getCompanySettings } from './companySettings';
 import { loadLogoImageRun } from './docxLogo';
+import { montantEnLettres } from './numberToWords';
 
 function getCompanyInfo() {
   const settings = getCompanySettings();
@@ -161,6 +162,15 @@ export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, 
       new TextRun({ text: 'Total HT : ', bold: true, size: 24, color: BLUE, font: 'Times New Roman' }),
       new TextRun({ text: `${formatMontant(invoice.montantHT)} F`, bold: true, size: 24, color: BLUE, font: 'Times New Roman' }),
     ],
+    spacing: { after: 120 },
+  }));
+
+  // Montant en lettres
+  children.push(new Paragraph({
+    children: [
+      new TextRun({ text: 'Arrêtée la présente facture à la somme de : ', bold: true, size: 18, color: BLUE, font: 'Times New Roman' }),
+      new TextRun({ text: montantEnLettres(invoice.montantTTC), italics: true, size: 18, color: GRAY, font: 'Times New Roman' }),
+    ],
     spacing: { after: 200 },
   }));
 
@@ -192,7 +202,15 @@ export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, 
   }));
 
   const doc = new Document({
-    sections: [{ children }],
+    sections: [{
+      properties: {
+        page: {
+          size: { width: 12240, height: 15840 },
+          margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 },
+        },
+      },
+      children,
+    }],
   });
 
   const blob = await Packer.toBlob(doc);

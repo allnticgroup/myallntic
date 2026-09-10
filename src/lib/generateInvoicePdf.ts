@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { getCompanySettings } from './companySettings';
 import { addLogoToPdf } from './pdfLogo';
+import { montantEnLettres } from './numberToWords';
 
 function getCompanyInfo() {
   const settings = getCompanySettings();
@@ -210,6 +211,19 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
   doc.setFontSize(11);
   doc.text(`${formatMontant(invoice.montantHT)} F`, totalsX + 68, y + 7, { align: 'right' });
   y += 15;
+
+  // Montant en lettres
+  doc.setFontSize(9);
+  doc.setFont('times', 'bold');
+  doc.setTextColor(33, 90, 168);
+  const lettresLabel = 'Arrêtée la présente facture à la somme de : ';
+  doc.text(lettresLabel, margin, y);
+  const lettresLabelW = doc.getTextWidth(lettresLabel);
+  doc.setFont('times', 'italic');
+  doc.setTextColor(80, 80, 80);
+  const lettresLines = doc.splitTextToSize(montantEnLettres(invoice.montantTTC), pageWidth - margin * 2 - lettresLabelW) as string[];
+  doc.text(lettresLines, margin + lettresLabelW, y);
+  y += lettresLines.length * 5 + 6;
 
   // ===== INFORMATIONS DE PAIEMENT =====
   if (y > 230) {
