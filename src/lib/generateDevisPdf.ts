@@ -263,6 +263,21 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
     y += totalRowH + 5;
   }
 
+  // ===== MONTANT EN LETTRES =====
+  {
+    doc.setFontSize(9);
+    doc.setFont('times', 'bold');
+    doc.setTextColor(33, 90, 168);
+    const label = 'Arrêté le présent devis à la somme de : ';
+    doc.text(label, margin, y);
+    const labelWidth = doc.getTextWidth(label);
+    doc.setFont('times', 'italic');
+    doc.setTextColor(80, 80, 80);
+    const lettres = doc.splitTextToSize(montantEnLettres(devis.montant), pageWidth - margin * 2 - labelWidth) as string[];
+    doc.text(lettres, margin + labelWidth, y);
+    y += lettres.length * 5 + 5;
+  }
+
 
   // ===== DÉTAIL MAIN-D'ŒUVRE (si applicable) =====
   if (devis.lignes && devis.lignes.length > 0 && devis.mainDoeuvre > 0) {
