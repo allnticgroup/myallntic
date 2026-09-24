@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { BrandLogo } from '@/components/BrandLogo';
+import { useCompanySettings } from '@/hooks/useCompanySettings';
 
 const mainNavItems = [
   { to: '/', icon: LayoutDashboard, label: 'Tableau' },
@@ -24,6 +25,7 @@ const menuItems = [
 ];
 
 export function BottomNav() {
+  const { settings } = useCompanySettings();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -35,7 +37,7 @@ export function BottomNav() {
       <aside className={cn('fixed inset-y-0 left-0 z-50 hidden lg:flex flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border transition-[width] duration-200', collapsed ? 'w-20' : 'w-64')}>
         <Link to="/" className="h-20 px-4 flex items-center gap-3 border-b border-sidebar-border overflow-hidden">
           <BrandLogo className="h-12 w-12 shrink-0 rounded-md bg-card" />
-          {!collapsed && <span className="font-bold font-heading leading-tight">ALLNTIC<br/><span className="text-accent text-xs">GROUP</span></span>}
+          {!collapsed && <span className="font-bold font-heading leading-tight max-w-40 truncate">{settings.nom}</span>}
         </Link>
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
           {allItems.map(({ to, icon: Icon, label }) => (
