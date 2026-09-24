@@ -497,6 +497,8 @@ export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormPr
         </div>
       )}
 
+      <div className="space-y-2"><Label>Signature du client</Label><p className="text-xs text-muted-foreground">Le client peut signer directement avec le doigt ou la souris.</p><SignaturePad value={formData.signatureClient} onChange={(signatureClient) => setFormData({ ...formData, signatureClient })} /></div>
+
       <div className="flex gap-3 pt-4">
         <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
           Annuler

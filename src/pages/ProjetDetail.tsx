@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Edit, Trash2, Plus, CheckCircle2, Clock, Circle, ShoppingCart, Receipt, TrendingUp } from 'lucide-react';
+import { Edit, Trash2, Plus, CheckCircle2, Clock, Circle, ShoppingCart, Receipt, TrendingUp, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
@@ -16,7 +16,7 @@ import { Progress } from '@/components/ui/progress';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useClients, useProjects, useVentes } from '@/hooks/useErpData';
+import { useClients, useProjects, useVentes, useProjectLabor } from '@/hooks/useErpData';
 import { useExpenses, useMaterials } from '@/hooks/useData';
 import { PROJECT_STATUS_LABELS, TASK_PRIORITY_LABELS, TaskStatus, TaskPriority, VENTE_STATUS_LABELS } from '@/types/erp';
 import { toast } from 'sonner';
@@ -29,6 +29,7 @@ export default function ProjetDetail() {
   const { ventes, addVente, getVentesForClient } = useVentes();
   const { expenses, addExpense } = useExpenses();
   const { materials } = useMaterials();
+  const { entries: laborEntries, addLabor, deleteLabor } = useProjectLabor();
 
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
@@ -37,6 +38,7 @@ export default function ProjetDetail() {
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskPriority, setNewTaskPriority] = useState<TaskPriority>('normale');
+  const [labor, setLabor] = useState({ intervenant: '', heures: '', tauxHoraire: '', date: new Date().toISOString().slice(0,10) });
 
   const project = id ? getProject(id) : undefined;
 
@@ -67,8 +69,10 @@ export default function ProjetDetail() {
 
   const revenusValides = projectVentes.filter(v => v.statut === 'validee').reduce((s, v) => s + v.total, 0);
   const depensesTotales = projectExpenses.reduce((s, e) => s + e.montant, 0);
-  const marge = revenusValides - depensesTotales;
-  const budgetUtilise = project.budget > 0 ? (depensesTotales / project.budget) * 100 : 0;
+  const projectLabor = laborEntries.filter((entry) => entry.projectId === project.id);
+  const coutMainOeuvre = projectLabor.reduce((sum, entry) => sum + entry.heures * entry.tauxHoraire, 0);
+  const marge = revenusValides - depensesTotales - coutMainOeuvre;
+  const budgetUtilise = project.budget > 0 ? ((depensesTotales + coutMainOeuvre) / project.budget) * 100 : 0;
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim()) return;
@@ -144,8 +148,10 @@ export default function ProjetDetail() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="grid grid-cols-4 gap-2 text-center">
               <div>
+                <p className="text-xs text-muted-foreground">Main-d'œuvre</p><p className="text-sm font-bold text-destructive">-{coutMainOeuvre.toLocaleString('fr-FR')}</p>
+              </div><div>
                 <p className="text-xs text-muted-foreground">Revenus</p>
                 <p className="text-sm font-bold text-success">+{revenusValides.toLocaleString('fr-FR')}</p>
               </div>
@@ -171,6 +177,12 @@ export default function ProjetDetail() {
             )}
           </CardContent>
         </Card>
+
+        <Card><CardHeader className="pb-2"><CardTitle className="text-base flex items-center gap-2"><Users className="h-4 w-4"/>Main-d’œuvre</CardTitle></CardHeader><CardContent className="space-y-3">
+          <div className="grid grid-cols-2 gap-2"><Input placeholder="Intervenant" value={labor.intervenant} onChange={e=>setLabor({...labor,intervenant:e.target.value})}/><Input type="date" value={labor.date} onChange={e=>setLabor({...labor,date:e.target.value})}/><Input type="number" placeholder="Heures" value={labor.heures} onChange={e=>setLabor({...labor,heures:e.target.value})}/><Input type="number" placeholder="Taux horaire" value={labor.tauxHoraire} onChange={e=>setLabor({...labor,tauxHoraire:e.target.value})}/></div>
+          <Button className="w-full" size="sm" onClick={()=>{if(!labor.intervenant||!Number(labor.heures)||!Number(labor.tauxHoraire))return toast.error('Complétez les informations');addLabor({projectId:project.id,intervenant:labor.intervenant,heures:Number(labor.heures),tauxHoraire:Number(labor.tauxHoraire),date:labor.date,notes:''});setLabor({...labor,intervenant:'',heures:'',tauxHoraire:''});}}>Ajouter la main-d’œuvre</Button>
+          {projectLabor.map(entry=><div key={entry.id} className="flex justify-between items-center text-sm border-t pt-2"><span>{entry.intervenant} · {entry.heures} h</span><span className="font-semibold">{(entry.heures*entry.tauxHoraire).toLocaleString('fr-FR')} F <button onClick={()=>deleteLabor(entry.id)} className="ml-2 text-destructive">×</button></span></div>)}
+        </CardContent></Card>
 
         {/* Tâches */}
         <Card>
