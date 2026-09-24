@@ -6,12 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { useDevis, useInvoices, useProspects, useExpenses, useMaterials } from '@/hooks/useData';
+import { useDevis, useInvoices, useProspects, useExpenses, useMaterials, useMaterialPacks } from '@/hooks/useData';
 import { useVentes, useClients } from '@/hooks/useErpData';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useAuditLog } from '@/hooks/useAuditLog';
 import { toast } from 'sonner';
-import { Trash2 } from 'lucide-react';
+import { Trash2, PackagePlus } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const fmt = (n: number) => `${Math.round(n).toLocaleString('fr-FR')} FCFA`;
 const daysSince = (d: string) => Math.floor((Date.now() - new Date(d).getTime()) / 86400000);
@@ -28,12 +29,14 @@ export default function Pilotage() {
   const { ventes } = useVentes();
   const { clients } = useClients();
   const { addEntry } = useAuditLog();
+  const { packs, addPack, deletePack } = useMaterialPacks();
 
   const [relances, setRelances] = useLocalStorage<Relance[]>('allntic_relances_devis', []);
   const [objectif, setObjectif] = useLocalStorage<number>('allntic_objectif_mensuel', 0);
   const [garanties, setGaranties] = useLocalStorage<Garantie[]>('allntic_garanties', []);
   const [comptage, setComptage] = useState<Record<string, string>>({});
   const [g, setG] = useState({ materiel: '', client: '', dateFin: '', notes: '' });
+  const [pack, setPack] = useState({ nom: '', description: '', lignes: {} as Record<string, number> });
 
   const prospectName = (id: string) => prospects.find((p) => p.id === id)?.nomStructure || '—';
   const clientName = (inv: { clientId?: string; prospectId: string }) =>
@@ -119,6 +122,7 @@ export default function Pilotage() {
             <TabsTrigger value="treso">Trésorerie</TabsTrigger>
             <TabsTrigger value="inventaire">Inventaire</TabsTrigger>
             <TabsTrigger value="sav">SAV</TabsTrigger>
+            <TabsTrigger value="packs">Packs</TabsTrigger>
           </TabsList>
 
           <TabsContent value="relances" className="space-y-2">
@@ -220,6 +224,7 @@ export default function Pilotage() {
               );
             })}
           </TabsContent>
+          <TabsContent value="packs" className="space-y-3"><Card><CardHeader><CardTitle className="text-base flex items-center gap-2"><PackagePlus className="h-4 w-4"/>Nouveau pack</CardTitle></CardHeader><CardContent className="space-y-2"><Input placeholder="Nom du pack" value={pack.nom} onChange={e=>setPack({...pack,nom:e.target.value})}/><Input placeholder="Description" value={pack.description} onChange={e=>setPack({...pack,description:e.target.value})}/><div className="max-h-64 overflow-y-auto space-y-2">{materials.map(material=><div key={material.id} className="flex items-center gap-2"><Checkbox checked={pack.lignes[material.id]!==undefined} onCheckedChange={checked=>{const lignes={...pack.lignes};if(checked)lignes[material.id]=1;else delete lignes[material.id];setPack({...pack,lignes})}}/><span className="text-sm flex-1 truncate">{material.nom}</span>{pack.lignes[material.id]!==undefined&&<Input className="w-20" type="number" min={1} value={pack.lignes[material.id]} onChange={e=>setPack({...pack,lignes:{...pack.lignes,[material.id]:Math.max(1,Number(e.target.value))}})}/>}</div>)}</div><Button className="w-full" onClick={()=>{if(!pack.nom.trim()||!Object.keys(pack.lignes).length)return toast.error('Ajoutez un nom et au moins un matériel');addPack({nom:pack.nom,description:pack.description,lignes:Object.entries(pack.lignes).map(([materialId,quantite])=>({materialId,quantite}))});setPack({nom:'',description:'',lignes:{}});}}>Créer le pack</Button></CardContent></Card>{packs.map(item=><Card key={item.id}><CardContent className="p-3 flex justify-between items-center"><div><p className="font-semibold">{item.nom}</p><p className="text-xs text-muted-foreground">{item.lignes.length} matériel(s)</p></div><Button size="icon" variant="ghost" onClick={()=>deletePack(item.id)}><Trash2 className="h-4 w-4"/></Button></CardContent></Card>)}</TabsContent>
         </Tabs>
       </div>
     </div>
