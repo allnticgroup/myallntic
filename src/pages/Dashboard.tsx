@@ -168,6 +168,9 @@ export default function Dashboard() {
     ...interventions.filter((item) => item.statut === 'a_faire' && differenceInHours(new Date(item.datePrevue), now) <= 72).map((item) => ({
       id: `intervention-${item.id}`, to: '/interventions', label: `${item.type} à planifier`, detail: format(new Date(item.datePrevue), 'dd MMM à HH:mm', { locale: fr }), urgent: new Date(item.datePrevue) < now,
     })),
+    ...pendingDevis.filter((devis) => differenceInDays(now, new Date(devis.dateDevis)) >= 5).map((devis) => ({
+      id: `devis-${devis.id}`, to: '/devis', label: `Devis ${devis.id.slice(0, 8).toUpperCase()}`, detail: differenceInDays(now, new Date(devis.dateDevis)) >= 7 ? 'Relance en retard' : 'Relance à préparer', urgent: differenceInDays(now, new Date(devis.dateDevis)) >= 7,
+    })),
   ].sort((a, b) => Number(b.urgent) - Number(a.urgent)).slice(0, 4);
 
   return (

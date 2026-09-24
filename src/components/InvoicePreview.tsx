@@ -16,6 +16,7 @@ function getCompanyInfo() {
     website: settings.siteWeb,
     logo: settings.logo,
     services: settings.services,
+    documentFooter: settings.documentFooter,
   };
 }
 
@@ -38,14 +39,14 @@ export function InvoicePreview({ invoice, prospect, devis }: InvoicePreviewProps
         <div className="flex items-start gap-3">
           <img src={COMPANY_INFO.logo || '/icon-512.png'} alt="Logo" className="w-16 h-16 object-contain" />
           <div>
-            <h2 className="text-lg font-bold text-blue-700">{COMPANY_INFO.name}</h2>
+            <h2 className="text-lg font-bold text-primary">{COMPANY_INFO.name}</h2>
             <p className="text-xs text-gray-500 italic">
               • {COMPANY_INFO.services.join(' • ')}
             </p>
           </div>
         </div>
         <div className="text-right">
-          <h1 className="text-2xl font-bold text-blue-700">FACTURE</h1>
+          <h1 className="text-2xl font-bold text-primary">FACTURE</h1>
           <p className="text-sm text-gray-600">N° {invoice.numero}</p>
           <p className="text-sm text-gray-600">
             {format(new Date(invoice.dateEmission), 'dd/MM/yyyy', { locale: fr })}
@@ -53,13 +54,13 @@ export function InvoicePreview({ invoice, prospect, devis }: InvoicePreviewProps
         </div>
       </div>
 
-      <Separator className="my-4 bg-blue-700" />
+      <Separator className="my-4 bg-primary" />
 
       {/* Infos entreprise et client */}
       <div className="grid grid-cols-2 gap-4 mb-4">
-        <Card className="bg-blue-50 border-l-4 border-l-blue-700">
+        <Card className="bg-primary/5 border-l-4 border-l-primary">
           <CardContent className="p-3">
-            <h3 className="font-bold text-blue-700 text-sm mb-1">{COMPANY_INFO.name}</h3>
+            <h3 className="font-bold text-primary text-sm mb-1">{COMPANY_INFO.name}</h3>
             <p className="text-xs text-gray-600">{COMPANY_INFO.address}</p>
             <p className="text-xs text-gray-600">Tél : {COMPANY_INFO.phone}</p>
             <p className="text-xs text-gray-600">Email : {COMPANY_INFO.email}</p>
@@ -67,9 +68,9 @@ export function InvoicePreview({ invoice, prospect, devis }: InvoicePreviewProps
           </CardContent>
         </Card>
 
-        <Card className="bg-blue-50 border-l-4 border-l-blue-700">
+        <Card className="bg-primary/5 border-l-4 border-l-primary">
           <CardContent className="p-3">
-            <h3 className="font-bold text-blue-700 text-sm mb-1">Facturé à :</h3>
+            <h3 className="font-bold text-primary text-sm mb-1">Facturé à :</h3>
             <p className="text-xs text-gray-600">{prospect.nomStructure}</p>
             <p className="text-xs text-gray-600">Contact : {prospect.nomDecideur}</p>
             <p className="text-xs text-gray-600">Tél : {prospect.telephone}</p>
@@ -86,7 +87,7 @@ export function InvoicePreview({ invoice, prospect, devis }: InvoicePreviewProps
       {devis?.lignes && devis.lignes.length > 0 ? (
         <div className="border rounded-lg overflow-hidden mb-4">
           <table className="w-full text-xs">
-            <thead className="bg-blue-700 text-white">
+            <thead className="bg-primary text-primary-foreground">
               <tr>
                 <th className="text-left p-2">Désignation</th>
                 <th className="text-right p-2 min-w-[110px]">P.U. HT</th>
@@ -113,7 +114,7 @@ export function InvoicePreview({ invoice, prospect, devis }: InvoicePreviewProps
       {/* Totaux */}
       <div className="flex justify-end mb-4">
         <div className="w-48">
-          <div className="flex justify-between items-center bg-blue-700 text-white px-3 py-2 text-sm">
+          <div className="flex justify-between items-center bg-primary text-primary-foreground px-3 py-2 text-sm">
             <span className="font-bold">Total HT</span>
             <span className="font-bold">{formatMontant(invoice.montantHT)} F</span>
           </div>
@@ -122,13 +123,13 @@ export function InvoicePreview({ invoice, prospect, devis }: InvoicePreviewProps
 
       {/* Montant en lettres */}
       <p className="text-xs mb-4">
-        <span className="font-bold text-blue-700">Arrêtée la présente facture à la somme de : </span>
+        <span className="font-bold text-primary">Arrêtée la présente facture à la somme de : </span>
         <span className="italic text-gray-600">{montantEnLettres(invoice.montantTTC)}</span>
       </p>
 
       {/* Modalités de paiement */}
       <div className="mb-4">
-        <h4 className="text-sm font-bold text-blue-700 mb-1">Modalités de paiement :</h4>
+        <h4 className="text-sm font-bold text-primary mb-1">Modalités de paiement :</h4>
         <p className="text-xs text-gray-600">• Virement bancaire</p>
         <p className="text-xs text-gray-600">• Mobile Money</p>
         <p className="text-xs text-gray-600">• Espèces</p>
@@ -139,11 +140,11 @@ export function InvoicePreview({ invoice, prospect, devis }: InvoicePreviewProps
         <p className="text-lg font-bold text-green-500 mb-4">✓ PAYÉE</p>
       )}
 
-      <Separator className="my-3 bg-blue-700" />
+      <Separator className="my-3 bg-primary" />
 
       {/* Footer */}
       <p className="text-center text-[10px] text-gray-500">
-        {COMPANY_INFO.name} - {COMPANY_INFO.address} | Tél : {COMPANY_INFO.phone} | {COMPANY_INFO.email} | {COMPANY_INFO.website}
+        {COMPANY_INFO.documentFooter && <>{COMPANY_INFO.documentFooter} • </>}{COMPANY_INFO.name} - {COMPANY_INFO.address} | Tél : {COMPANY_INFO.phone} | {COMPANY_INFO.email}
       </p>
     </div>
   );
