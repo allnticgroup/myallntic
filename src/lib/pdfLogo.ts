@@ -40,7 +40,7 @@ export async function addLogoToPdf(
   x: number,
   y: number,
   boxSize: number,
-  fallbackUrl = '/logo.png'
+  fallbackUrl = '/icon-512.png'
 ): Promise<void> {
   try {
     const src = logoBase64 || fallbackUrl;

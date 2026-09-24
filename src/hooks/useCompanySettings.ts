@@ -1,5 +1,6 @@
 import { useLocalStorage } from './useLocalStorage';
 import { CompanySettings } from '@/types';
+import logoAsset from '@/assets/allntic-group-logo.jpg.asset.json';
 
 const DEFAULT_SETTINGS: CompanySettings = {
   nom: 'ALLNTIC GROUP',
@@ -9,6 +10,7 @@ const DEFAULT_SETTINGS: CompanySettings = {
   email: 'all.ntic225@gmail.com',
   siteWeb: 'www.allntic.com',
   tauxTVA: 0,
+  logo: logoAsset.url,
   services: [
     'Installation et maintenance',
     'Réseaux et câblage',
@@ -25,5 +27,6 @@ export function useCompanySettings() {
     setSettings((prev) => ({ ...prev, ...updates }));
   };
 
-  return { settings, updateSettings };
+  const brandedSettings = { ...settings, nom: settings.nom === 'ALLNTIC' ? 'ALLNTIC GROUP' : settings.nom, logo: settings.logo || logoAsset.url };
+  return { settings: brandedSettings, updateSettings };
 }
