@@ -17,6 +17,6 @@
 - [ ] Filtres sauvegardés
 
 ## Identité et pilotage
-- [ ] Paramètres complets de marque et documents
-- [ ] Tableau de bord mobile-first avec échéances
-- [ ] Logos clair/sombre et couleurs cohérentes
+- [x] Paramètres complets de marque et documents
+- [x] Tableau de bord mobile-first avec échéances
+- [x] Logos clair/sombre et couleurs cohérentes

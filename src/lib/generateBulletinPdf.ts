@@ -2,6 +2,9 @@ import jsPDF from 'jspdf';
 import { Employee, Salary, SALARY_TYPE_LABELS, PAYMENT_MODE_LABELS, CONTRACT_TYPE_LABELS } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { getCompanySettings } from './companySettings';
+import { addLogoToPdf } from './pdfLogo';
+import { hexToRgb } from './brandSettings';
 
 interface BulletinData {
   employee: Employee;
@@ -14,8 +17,11 @@ interface BulletinData {
   };
 }
 
-export function generateBulletinPdf(data: BulletinData) {
+export async function generateBulletinPdf(data: BulletinData) {
   const { employee, salaries, periode, entreprise } = data;
+  const settings = getCompanySettings();
+  const company = { ...entreprise, nom: settings.nom, adresse: settings.adresse, telephone: settings.telephone };
+  const [brandR, brandG, brandB] = hexToRgb(settings.primaryColor);
   const doc = new jsPDF();
   
   const [year, month] = periode.split('-');
@@ -25,7 +31,7 @@ export function generateBulletinPdf(data: BulletinData) {
   const pageWidth = doc.internal.pageSize.getWidth();
   
   // Header
-  doc.setFillColor(0, 71, 133);
+  doc.setFillColor(brandR, brandG, brandB);
   doc.rect(0, 0, pageWidth, 40, 'F');
   
   doc.setTextColor(255, 255, 255);
@@ -35,11 +41,12 @@ export function generateBulletinPdf(data: BulletinData) {
   
   doc.setFontSize(12);
   doc.text(periodeLabel.toUpperCase(), pageWidth / 2, 30, { align: 'center' });
+  await addLogoToPdf(doc, settings.logo, 8, 5, 28);
   
   let y = 55;
   
   // Entreprise info
-  doc.setTextColor(0, 71, 133);
+  doc.setTextColor(brandR, brandG, brandB);
   doc.setFont('times', 'bold');
   doc.setFontSize(11);
   doc.text('EMPLOYEUR', 15, y);
@@ -48,15 +55,15 @@ export function generateBulletinPdf(data: BulletinData) {
   doc.setFont('times', 'normal');
   doc.setFontSize(10);
   y += 7;
-  doc.text(entreprise.nom, 15, y);
+  doc.text(company.nom, 15, y);
   y += 5;
-  doc.text(entreprise.adresse, 15, y);
+  doc.text(company.adresse, 15, y);
   y += 5;
-  doc.text(`Tél: ${entreprise.telephone}`, 15, y);
+  doc.text(`Tél: ${company.telephone}`, 15, y);
   
   // Employee info
   y = 55;
-  doc.setTextColor(0, 71, 133);
+  doc.setTextColor(brandR, brandG, brandB);
   doc.setFont('times', 'bold');
   doc.setFontSize(11);
   doc.text('EMPLOYÉ', 115, y);
@@ -79,7 +86,7 @@ export function generateBulletinPdf(data: BulletinData) {
   
   // Separator
   y = 95;
-  doc.setDrawColor(0, 71, 133);
+  doc.setDrawColor(brandR, brandG, brandB);
   doc.setLineWidth(0.5);
   doc.line(15, y, pageWidth - 15, y);
   
@@ -88,7 +95,7 @@ export function generateBulletinPdf(data: BulletinData) {
   doc.setFillColor(240, 245, 250);
   doc.rect(15, y - 5, pageWidth - 30, 10, 'F');
   
-  doc.setTextColor(0, 71, 133);
+  doc.setTextColor(brandR, brandG, brandB);
   doc.setFont('times', 'bold');
   doc.setFontSize(10);
   doc.text('Désignation', 20, y);
@@ -139,7 +146,7 @@ export function generateBulletinPdf(data: BulletinData) {
   
   // Total
   y += 5;
-  doc.setFillColor(0, 71, 133);
+  doc.setFillColor(brandR, brandG, brandB);
   doc.rect(15, y - 5, pageWidth - 30, 12, 'F');
   
   doc.setTextColor(255, 255, 255);
@@ -159,14 +166,14 @@ export function generateBulletinPdf(data: BulletinData) {
   
   // Footer
   const footerY = doc.internal.pageSize.getHeight() - 25;
-  doc.setDrawColor(0, 71, 133);
+  doc.setDrawColor(brandR, brandG, brandB);
   doc.setLineWidth(0.5);
   doc.line(15, footerY, pageWidth - 15, footerY);
   
   doc.setTextColor(120, 120, 120);
   doc.setFont('times', 'normal');
   doc.setFontSize(8);
-  doc.text('Ce bulletin de salaire est établi conformément aux dispositions légales en vigueur.', pageWidth / 2, footerY + 7, { align: 'center' });
+  doc.text(settings.documentFooter || 'Ce bulletin de salaire est établi conformément aux dispositions légales en vigueur.', pageWidth / 2, footerY + 7, { align: 'center' });
   doc.text(`Généré le ${format(new Date(), 'dd/MM/yyyy à HH:mm')}`, pageWidth / 2, footerY + 13, { align: 'center' });
   
   const fileName = `bulletin_${employee.prenom}_${employee.nom}_${periode}.pdf`;
