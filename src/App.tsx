@@ -42,6 +42,7 @@ const App = () => (
         <Sonner position="top-center" />
         <PinLock>
         <BrowserRouter>
+          <div className="lg:pl-64">
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/prospects" element={<Prospects />} />
@@ -67,6 +68,7 @@ const App = () => (
             <Route path="/parametres" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </div>
           <InterventionReminders />
           <PwaInstallButton />
           <BottomNav />
