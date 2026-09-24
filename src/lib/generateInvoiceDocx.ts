@@ -56,9 +56,9 @@ export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, 
   children.push(new Paragraph({
     children: [
       ...(logoImage ? [logoImage, new TextRun({ text: ' ', size: 36 })] : []),
-      new TextRun({ text: COMPANY_INFO.name, bold: true, size: 36, color: BLUE, font: 'Times New Roman' }),
+      new TextRun({ text: COMPANY_INFO.name, bold: true, size: 36, color: brandColor(), font: 'Times New Roman' }),
       new TextRun({ text: '    ', size: 36 }),
-      new TextRun({ text: 'FACTURE', bold: true, size: 52, color: BLUE, font: 'Times New Roman' }),
+      new TextRun({ text: 'FACTURE', bold: true, size: 52, color: brandColor(), font: 'Times New Roman' }),
     ],
     alignment: AlignmentType.LEFT,
     spacing: { after: 100 },
@@ -84,7 +84,7 @@ export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, 
         children: [
           new TableCell({
             children: [
-              new Paragraph({ children: [new TextRun({ text: COMPANY_INFO.name, bold: true, size: 20, color: BLUE, font: 'Times New Roman' })], spacing: { after: 40 } }),
+              new Paragraph({ children: [new TextRun({ text: COMPANY_INFO.name, bold: true, size: 20, color: brandColor(), font: 'Times New Roman' })], spacing: { after: 40 } }),
               new Paragraph({ children: [new TextRun({ text: COMPANY_INFO.address, size: 16, color: GRAY, font: 'Times New Roman' })], spacing: { after: 20 } }),
               new Paragraph({ children: [new TextRun({ text: `Tél : ${COMPANY_INFO.phone}`, size: 16, color: GRAY, font: 'Times New Roman' })], spacing: { after: 20 } }),
               new Paragraph({ children: [new TextRun({ text: `Email : ${COMPANY_INFO.email}`, size: 16, color: GRAY, font: 'Times New Roman' })], spacing: { after: 20 } }),
@@ -96,7 +96,7 @@ export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, 
           }),
           new TableCell({
             children: [
-              new Paragraph({ children: [new TextRun({ text: 'Facturé à :', bold: true, size: 20, color: BLUE, font: 'Times New Roman' })], spacing: { after: 40 } }),
+              new Paragraph({ children: [new TextRun({ text: 'Facturé à :', bold: true, size: 20, color: brandColor(), font: 'Times New Roman' })], spacing: { after: 40 } }),
               new Paragraph({ children: [new TextRun({ text: prospect.nomStructure, size: 16, color: GRAY, font: 'Times New Roman' })], spacing: { after: 20 } }),
               new Paragraph({ children: [new TextRun({ text: `Contact : ${prospect.nomDecideur}`, size: 16, color: GRAY, font: 'Times New Roman' })], spacing: { after: 20 } }),
               new Paragraph({ children: [new TextRun({ text: `Tél : ${prospect.telephone}`, size: 16, color: GRAY, font: 'Times New Roman' })], spacing: { after: 20 } }),
@@ -160,8 +160,8 @@ export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, 
   children.push(new Paragraph({
     alignment: AlignmentType.RIGHT,
     children: [
-      new TextRun({ text: 'Total HT : ', bold: true, size: 24, color: BLUE, font: 'Times New Roman' }),
-      new TextRun({ text: `${formatMontant(invoice.montantHT)} F`, bold: true, size: 24, color: BLUE, font: 'Times New Roman' }),
+      new TextRun({ text: 'Total HT : ', bold: true, size: 24, color: brandColor(), font: 'Times New Roman' }),
+      new TextRun({ text: `${formatMontant(invoice.montantHT)} F`, bold: true, size: 24, color: brandColor(), font: 'Times New Roman' }),
     ],
     spacing: { after: 120 },
   }));
@@ -169,7 +169,7 @@ export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, 
   // Montant en lettres
   children.push(new Paragraph({
     children: [
-      new TextRun({ text: 'Arrêtée la présente facture à la somme de : ', bold: true, size: 18, color: BLUE, font: 'Times New Roman' }),
+      new TextRun({ text: 'Arrêtée la présente facture à la somme de : ', bold: true, size: 18, color: brandColor(), font: 'Times New Roman' }),
       new TextRun({ text: montantEnLettres(invoice.montantTTC), italics: true, size: 18, color: GRAY, font: 'Times New Roman' }),
     ],
     spacing: { after: 200 },
@@ -177,7 +177,7 @@ export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, 
 
   // Payment methods
   children.push(new Paragraph({
-    children: [new TextRun({ text: 'Modalités de paiement :', bold: true, size: 18, color: BLUE, font: 'Times New Roman' })],
+    children: [new TextRun({ text: 'Modalités de paiement :', bold: true, size: 18, color: brandColor(), font: 'Times New Roman' })],
     spacing: { after: 60 },
   }));
   for (const mode of ['Virement bancaire', 'Mobile Money', 'Espèces']) {
