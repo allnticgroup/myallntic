@@ -4,7 +4,8 @@ import { LayoutDashboard, Users, UserCheck, ShoppingCart, Menu, FileText, Packag
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-const logoAsset = { url: '/allntic-group-logo.jpg' };
+import { BrandLogo } from '@/components/BrandLogo';
+import { useCompanySettings } from '@/hooks/useCompanySettings';
 
 const mainNavItems = [
   { to: '/', icon: LayoutDashboard, label: 'Tableau' },
@@ -24,6 +25,7 @@ const menuItems = [
 ];
 
 export function BottomNav() {
+  const { settings } = useCompanySettings();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -34,8 +36,8 @@ export function BottomNav() {
     <>
       <aside className={cn('fixed inset-y-0 left-0 z-50 hidden lg:flex flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border transition-[width] duration-200', collapsed ? 'w-20' : 'w-64')}>
         <Link to="/" className="h-20 px-4 flex items-center gap-3 border-b border-sidebar-border overflow-hidden">
-          <img src={logoAsset.url} alt="ALLNTIC GROUP" className="h-12 w-12 shrink-0 rounded-md object-contain bg-card" />
-          {!collapsed && <span className="font-bold font-heading leading-tight">ALLNTIC<br/><span className="text-accent text-xs">GROUP</span></span>}
+          <BrandLogo className="h-12 w-12 shrink-0 rounded-md bg-card" />
+          {!collapsed && <span className="font-bold font-heading leading-tight max-w-40 truncate">{settings.nom}</span>}
         </Link>
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
           {allItems.map(({ to, icon: Icon, label }) => (
@@ -58,7 +60,7 @@ export function BottomNav() {
 
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
         <SheetContent side="bottom" className="rounded-t-lg pb-8 max-h-[90vh] overflow-y-auto">
-          <SheetHeader className="mb-4"><SheetTitle>Modules ALLNTIC GROUP</SheetTitle></SheetHeader>
+          <SheetHeader className="mb-4"><SheetTitle>Modules {settings.nom}</SheetTitle></SheetHeader>
           <div className="grid grid-cols-3 gap-3">
             {menuItems.map(({ to, icon: Icon, label }) => <Link key={to} to={to} onClick={() => setMenuOpen(false)} className={cn('flex min-h-20 flex-col items-center justify-center gap-2 p-3 rounded-md border transition-smooth text-center', isActive(to) ? 'bg-primary/10 border-primary text-primary' : 'bg-card border-border text-muted-foreground hover:bg-muted')}><Icon className="h-6 w-6"/><span className="text-xs font-semibold leading-tight">{label}</span></Link>)}
           </div>

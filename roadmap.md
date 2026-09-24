@@ -15,3 +15,8 @@
 - [ ] Rentabilité projet détaillée (main d'œuvre)
 - [ ] Rapport mensuel PDF
 - [ ] Filtres sauvegardés
+
+## Identité et pilotage
+- [x] Paramètres complets de marque et documents
+- [x] Tableau de bord mobile-first avec échéances
+- [x] Logos clair/sombre et couleurs cohérentes

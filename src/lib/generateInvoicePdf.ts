@@ -6,6 +6,7 @@ import { fr } from 'date-fns/locale';
 import { getCompanySettings } from './companySettings';
 import { addLogoToPdf } from './pdfLogo';
 import { montantEnLettres } from './numberToWords';
+import { hexToRgb } from './brandSettings';
 
 function getCompanyInfo() {
   const settings = getCompanySettings();
@@ -21,6 +22,9 @@ function getCompanyInfo() {
     orangeMoneyLink: settings.orangeMoneyLink,
     ibanBancaire: settings.ibanBancaire,
     banqueNom: settings.banqueNom,
+    primary: hexToRgb(settings.primaryColor),
+    documentFooter: settings.documentFooter,
+    documentTerms: settings.documentTerms,
   };
 }
 
@@ -42,6 +46,7 @@ function formatMontant(montant: number): string {
 
 export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, devis?: Devis) {
   const COMPANY_INFO = getCompanyInfo();
+  const [brandR, brandG, brandB] = COMPANY_INFO.primary;
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 15;
@@ -53,7 +58,7 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
 
   doc.setFontSize(18);
   doc.setFont('times', 'bold');
-  doc.setTextColor(33, 90, 168);
+  doc.setTextColor(brandR, brandG, brandB);
   doc.text(COMPANY_INFO.name, margin + 30, y + 10);
 
   doc.setFontSize(7);
@@ -64,7 +69,7 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
   // FACTURE en haut à droite
   doc.setFontSize(28);
   doc.setFont('times', 'bold');
-  doc.setTextColor(33, 90, 168);
+  doc.setTextColor(brandR, brandG, brandB);
   doc.text('FACTURE', pageWidth - margin, y + 8, { align: 'right' });
 
   doc.setFontSize(10);
@@ -76,7 +81,7 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
   y += 35;
 
   // Ligne de séparation
-  doc.setDrawColor(33, 90, 168);
+  doc.setDrawColor(brandR, brandG, brandB);
   doc.setLineWidth(0.8);
   doc.line(margin, y, pageWidth - margin, y);
   y += 10;
@@ -89,13 +94,13 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
   // Bloc entreprise
   doc.setFillColor(240, 245, 250);
   doc.rect(leftColX, y, colWidth, 35, 'F');
-  doc.setDrawColor(33, 90, 168);
+  doc.setDrawColor(brandR, brandG, brandB);
   doc.setLineWidth(0.5);
   doc.line(leftColX, y, leftColX, y + 35);
 
   doc.setFontSize(10);
   doc.setFont('times', 'bold');
-  doc.setTextColor(33, 90, 168);
+  doc.setTextColor(brandR, brandG, brandB);
   doc.text(COMPANY_INFO.name, leftColX + 5, y + 8);
 
   doc.setFontSize(8);
@@ -109,13 +114,13 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
   // Bloc client
   doc.setFillColor(240, 245, 250);
   doc.rect(rightColX, y, colWidth, 35, 'F');
-  doc.setDrawColor(33, 90, 168);
+  doc.setDrawColor(brandR, brandG, brandB);
   doc.setLineWidth(0.5);
   doc.line(rightColX, y, rightColX, y + 35);
 
   doc.setFontSize(10);
   doc.setFont('times', 'bold');
-  doc.setTextColor(33, 90, 168);
+  doc.setTextColor(brandR, brandG, brandB);
   doc.text('Facturé à :', rightColX + 5, y + 8);
 
   doc.setFontSize(8);
@@ -145,7 +150,7 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
       margin + colWidths[0] + colWidths[1] + colWidths[2],
     ];
 
-    doc.setFillColor(33, 90, 168);
+    doc.setFillColor(brandR, brandG, brandB);
     doc.rect(margin, y - 5, tableWidth, 10, 'F');
 
     doc.setFontSize(8);
@@ -197,7 +202,7 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
   // ===== TOTAUX =====
   const totalsX = pageWidth - margin - 70;
 
-  doc.setFillColor(33, 90, 168);
+  doc.setFillColor(brandR, brandG, brandB);
   doc.rect(totalsX, y, 35, 10, 'F');
   doc.setFontSize(10);
   doc.setFont('times', 'bold');
@@ -205,9 +210,9 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
   doc.text('Total HT', totalsX + 3, y + 7);
   doc.setFillColor(255, 255, 255);
   doc.rect(totalsX + 35, y, 35, 10, 'F');
-  doc.setDrawColor(33, 90, 168);
+  doc.setDrawColor(brandR, brandG, brandB);
   doc.rect(totalsX + 35, y, 35, 10, 'S');
-  doc.setTextColor(33, 90, 168);
+  doc.setTextColor(brandR, brandG, brandB);
   doc.setFontSize(11);
   doc.text(`${formatMontant(invoice.montantHT)} F`, totalsX + 68, y + 7, { align: 'right' });
   y += 15;
@@ -215,7 +220,7 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
   // Montant en lettres
   doc.setFontSize(9);
   doc.setFont('times', 'bold');
-  doc.setTextColor(33, 90, 168);
+  doc.setTextColor(brandR, brandG, brandB);
   const lettresLabel = 'Arrêtée la présente facture à la somme de : ';
   doc.text(lettresLabel, margin, y);
   const lettresLabelW = doc.getTextWidth(lettresLabel);
@@ -233,7 +238,7 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
 
   doc.setFontSize(9);
   doc.setFont('times', 'bold');
-  doc.setTextColor(33, 90, 168);
+  doc.setTextColor(brandR, brandG, brandB);
   doc.text('Modalités de paiement :', margin, y);
   y += 6;
   doc.setFont('times', 'normal');
@@ -270,7 +275,7 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
     if (qr) {
       doc.addImage(qr, 'PNG', qrX, qrY, qrSize, qrSize);
       doc.setFontSize(7);
-      doc.setTextColor(33, 90, 168);
+      doc.setTextColor(brandR, brandG, brandB);
       doc.text('Wave', qrX + qrSize / 2, qrY + qrSize + 3, { align: 'center' });
       qrX -= qrSize + 5;
     }
@@ -281,7 +286,7 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
     if (qr) {
       doc.addImage(qr, 'PNG', qrX, qrY, qrSize, qrSize);
       doc.setFontSize(7);
-      doc.setTextColor(33, 90, 168);
+      doc.setTextColor(brandR, brandG, brandB);
       doc.text('Orange Money', qrX + qrSize / 2, qrY + qrSize + 3, { align: 'center' });
     }
   }
@@ -300,14 +305,14 @@ export async function generateInvoicePdf(invoice: Invoice, prospect: Prospect, d
 
   // ===== PIED DE PAGE =====
   const footerY = 285;
-  doc.setDrawColor(33, 90, 168);
+  doc.setDrawColor(brandR, brandG, brandB);
   doc.setLineWidth(0.5);
   doc.line(margin, footerY - 8, pageWidth - margin, footerY - 8);
 
   doc.setFontSize(7);
   doc.setFont('times', 'normal');
   doc.setTextColor(80, 80, 80);
-  const footerText = `${COMPANY_INFO.name} - ${COMPANY_INFO.address} | Tél : ${COMPANY_INFO.phone} | ${COMPANY_INFO.email} | ${COMPANY_INFO.website}`;
+  const footerText = `${COMPANY_INFO.documentFooter ? `${COMPANY_INFO.documentFooter} • ` : ''}${COMPANY_INFO.name} - ${COMPANY_INFO.address} | Tél : ${COMPANY_INFO.phone} | ${COMPANY_INFO.email}`;
   doc.text(footerText, pageWidth / 2, footerY - 2, { align: 'center' });
 
   const fileName = `Facture_${invoice.numero}_${prospect.nomStructure.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;

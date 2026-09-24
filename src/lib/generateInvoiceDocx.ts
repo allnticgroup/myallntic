@@ -6,6 +6,7 @@ import { fr } from 'date-fns/locale';
 import { getCompanySettings } from './companySettings';
 import { loadLogoImageRun } from './docxLogo';
 import { montantEnLettres } from './numberToWords';
+import { hexToDocx } from './brandSettings';
 
 function getCompanyInfo() {
   const settings = getCompanySettings();
@@ -17,6 +18,12 @@ function getCompanyInfo() {
     website: settings.siteWeb,
     logo: settings.logo,
     services: settings.services,
+    waveLink: settings.waveLink,
+    orangeMoneyLink: settings.orangeMoneyLink,
+    ibanBancaire: settings.ibanBancaire,
+    banqueNom: settings.banqueNom,
+    documentFooter: settings.documentFooter,
+    documentTerms: settings.documentTerms,
   };
 }
 
@@ -24,14 +31,14 @@ function formatMontant(montant: number): string {
   return montant.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
-const BLUE = '215AA8';
+const brandColor = () => hexToDocx(getCompanySettings().primaryColor);
 const GRAY = '505050';
 const LIGHT_BG = 'F0F5FA';
 
 function headerCell(text: string): TableCell {
   return new TableCell({
     children: [new Paragraph({ children: [new TextRun({ text, bold: true, color: 'FFFFFF', size: 16, font: 'Times New Roman' })], spacing: { before: 40, after: 40 } })],
-    shading: { type: ShadingType.SOLID, color: BLUE },
+    shading: { type: ShadingType.CLEAR, color: 'auto', fill: brandColor() },
     verticalAlign: 'center',
   });
 }
@@ -55,9 +62,9 @@ export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, 
   children.push(new Paragraph({
     children: [
       ...(logoImage ? [logoImage, new TextRun({ text: ' ', size: 36 })] : []),
-      new TextRun({ text: COMPANY_INFO.name, bold: true, size: 36, color: BLUE, font: 'Times New Roman' }),
+      new TextRun({ text: COMPANY_INFO.name, bold: true, size: 36, color: brandColor(), font: 'Times New Roman' }),
       new TextRun({ text: '    ', size: 36 }),
-      new TextRun({ text: 'FACTURE', bold: true, size: 52, color: BLUE, font: 'Times New Roman' }),
+      new TextRun({ text: 'FACTURE', bold: true, size: 52, color: brandColor(), font: 'Times New Roman' }),
     ],
     alignment: AlignmentType.LEFT,
     spacing: { after: 100 },
@@ -83,7 +90,7 @@ export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, 
         children: [
           new TableCell({
             children: [
-              new Paragraph({ children: [new TextRun({ text: COMPANY_INFO.name, bold: true, size: 20, color: BLUE, font: 'Times New Roman' })], spacing: { after: 40 } }),
+              new Paragraph({ children: [new TextRun({ text: COMPANY_INFO.name, bold: true, size: 20, color: brandColor(), font: 'Times New Roman' })], spacing: { after: 40 } }),
               new Paragraph({ children: [new TextRun({ text: COMPANY_INFO.address, size: 16, color: GRAY, font: 'Times New Roman' })], spacing: { after: 20 } }),
               new Paragraph({ children: [new TextRun({ text: `Tél : ${COMPANY_INFO.phone}`, size: 16, color: GRAY, font: 'Times New Roman' })], spacing: { after: 20 } }),
               new Paragraph({ children: [new TextRun({ text: `Email : ${COMPANY_INFO.email}`, size: 16, color: GRAY, font: 'Times New Roman' })], spacing: { after: 20 } }),
@@ -95,7 +102,7 @@ export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, 
           }),
           new TableCell({
             children: [
-              new Paragraph({ children: [new TextRun({ text: 'Facturé à :', bold: true, size: 20, color: BLUE, font: 'Times New Roman' })], spacing: { after: 40 } }),
+              new Paragraph({ children: [new TextRun({ text: 'Facturé à :', bold: true, size: 20, color: brandColor(), font: 'Times New Roman' })], spacing: { after: 40 } }),
               new Paragraph({ children: [new TextRun({ text: prospect.nomStructure, size: 16, color: GRAY, font: 'Times New Roman' })], spacing: { after: 20 } }),
               new Paragraph({ children: [new TextRun({ text: `Contact : ${prospect.nomDecideur}`, size: 16, color: GRAY, font: 'Times New Roman' })], spacing: { after: 20 } }),
               new Paragraph({ children: [new TextRun({ text: `Tél : ${prospect.telephone}`, size: 16, color: GRAY, font: 'Times New Roman' })], spacing: { after: 20 } }),
@@ -159,8 +166,8 @@ export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, 
   children.push(new Paragraph({
     alignment: AlignmentType.RIGHT,
     children: [
-      new TextRun({ text: 'Total HT : ', bold: true, size: 24, color: BLUE, font: 'Times New Roman' }),
-      new TextRun({ text: `${formatMontant(invoice.montantHT)} F`, bold: true, size: 24, color: BLUE, font: 'Times New Roman' }),
+      new TextRun({ text: 'Total HT : ', bold: true, size: 24, color: brandColor(), font: 'Times New Roman' }),
+      new TextRun({ text: `${formatMontant(invoice.montantHT)} F`, bold: true, size: 24, color: brandColor(), font: 'Times New Roman' }),
     ],
     spacing: { after: 120 },
   }));
@@ -168,7 +175,7 @@ export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, 
   // Montant en lettres
   children.push(new Paragraph({
     children: [
-      new TextRun({ text: 'Arrêtée la présente facture à la somme de : ', bold: true, size: 18, color: BLUE, font: 'Times New Roman' }),
+      new TextRun({ text: 'Arrêtée la présente facture à la somme de : ', bold: true, size: 18, color: brandColor(), font: 'Times New Roman' }),
       new TextRun({ text: montantEnLettres(invoice.montantTTC), italics: true, size: 18, color: GRAY, font: 'Times New Roman' }),
     ],
     spacing: { after: 200 },
@@ -176,13 +183,26 @@ export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, 
 
   // Payment methods
   children.push(new Paragraph({
-    children: [new TextRun({ text: 'Modalités de paiement :', bold: true, size: 18, color: BLUE, font: 'Times New Roman' })],
+    children: [new TextRun({ text: 'Modalités de paiement :', bold: true, size: 18, color: brandColor(), font: 'Times New Roman' })],
     spacing: { after: 60 },
   }));
-  for (const mode of ['Virement bancaire', 'Mobile Money', 'Espèces']) {
+  const paymentModes = [
+    COMPANY_INFO.ibanBancaire ? `Virement : ${COMPANY_INFO.banqueNom || ''} — ${COMPANY_INFO.ibanBancaire}` : 'Virement bancaire',
+    ...(COMPANY_INFO.waveLink ? ['Wave'] : []),
+    ...(COMPANY_INFO.orangeMoneyLink ? ['Orange Money'] : []),
+    'Espèces',
+  ];
+  for (const mode of paymentModes) {
     children.push(new Paragraph({
       children: [new TextRun({ text: `• ${mode}`, size: 16, color: GRAY, font: 'Times New Roman' })],
       spacing: { after: 20 },
+    }));
+  }
+
+  if (COMPANY_INFO.documentTerms) {
+    children.push(new Paragraph({
+      children: [new TextRun({ text: COMPANY_INFO.documentTerms, size: 14, color: GRAY, font: 'Times New Roman' })],
+      spacing: { before: 160, after: 80 },
     }));
   }
 
@@ -196,7 +216,7 @@ export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, 
 
   // Footer
   children.push(new Paragraph({
-    children: [new TextRun({ text: `${COMPANY_INFO.name} - ${COMPANY_INFO.address} | Tél : ${COMPANY_INFO.phone} | ${COMPANY_INFO.email} | ${COMPANY_INFO.website}`, size: 14, color: GRAY, font: 'Times New Roman' })],
+    children: [new TextRun({ text: `${COMPANY_INFO.documentFooter ? `${COMPANY_INFO.documentFooter} • ` : ''}${COMPANY_INFO.name} - ${COMPANY_INFO.address} | Tél : ${COMPANY_INFO.phone} | ${COMPANY_INFO.email}`, size: 14, color: GRAY, font: 'Times New Roman' })],
     alignment: AlignmentType.CENTER,
     spacing: { before: 400 },
   }));

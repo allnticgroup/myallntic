@@ -5,6 +5,7 @@ import { fr } from 'date-fns/locale';
 import { getCompanySettings } from './companySettings';
 import { addLogoToPdf } from './pdfLogo';
 import { montantEnLettres } from './numberToWords';
+import { hexToRgb } from './brandSettings';
 
 function getMaterialsMap(): Record<string, Material> {
   try {
@@ -29,6 +30,9 @@ function getCompanyInfo(devis: Devis) {
     logo: settings.logo,
     services: settings.services,
     tauxTVA: settings.tauxTVA,
+    primary: hexToRgb(settings.primaryColor),
+    documentFooter: settings.documentFooter,
+    documentTerms: settings.documentTerms,
   };
 }
 
@@ -39,6 +43,7 @@ function formatMontant(montant: number): string {
 
 export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   const COMPANY_INFO = getCompanyInfo(devis);
+  const [brandR, brandG, brandB] = COMPANY_INFO.primary;
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 15;
@@ -51,7 +56,7 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   // Nom de l'entreprise à côté du logo
   doc.setFontSize(18);
   doc.setFont('times', 'bold');
-  doc.setTextColor(33, 90, 168);
+  doc.setTextColor(brandR, brandG, brandB);
   doc.text(COMPANY_INFO.name, margin + 30, y + 10);
 
   // Services à côté du logo (sous le nom)
@@ -65,7 +70,7 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   // DEVIS en haut à droite
   doc.setFontSize(28);
   doc.setFont('times', 'bold');
-  doc.setTextColor(33, 90, 168);
+  doc.setTextColor(brandR, brandG, brandB);
   doc.text('DEVIS', pageWidth - margin, y + 8, { align: 'right' });
 
   // Numéro et date sous DEVIS
@@ -78,7 +83,7 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   y += 35;
 
   // Ligne de séparation
-  doc.setDrawColor(33, 90, 168);
+  doc.setDrawColor(brandR, brandG, brandB);
   doc.setLineWidth(0.8);
   doc.line(margin, y, pageWidth - margin, y);
   y += 10;
@@ -91,13 +96,13 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   // Bloc entreprise à gauche
   doc.setFillColor(240, 245, 250);
   doc.rect(leftColX, y, colWidth, 35, 'F');
-  doc.setDrawColor(33, 90, 168);
+  doc.setDrawColor(brandR, brandG, brandB);
   doc.setLineWidth(0.5);
   doc.line(leftColX, y, leftColX, y + 35);
 
   doc.setFontSize(10);
   doc.setFont('times', 'bold');
-  doc.setTextColor(33, 90, 168);
+  doc.setTextColor(brandR, brandG, brandB);
   doc.text(COMPANY_INFO.name, leftColX + 5, y + 8);
   
   doc.setFontSize(8);
@@ -111,13 +116,13 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   // Bloc client à droite
   doc.setFillColor(240, 245, 250);
   doc.rect(rightColX, y, colWidth, 35, 'F');
-  doc.setDrawColor(33, 90, 168);
+  doc.setDrawColor(brandR, brandG, brandB);
   doc.setLineWidth(0.5);
   doc.line(rightColX, y, rightColX, y + 35);
 
   doc.setFontSize(10);
   doc.setFont('times', 'bold');
-  doc.setTextColor(33, 90, 168);
+  doc.setTextColor(brandR, brandG, brandB);
   doc.text('Client :', rightColX + 5, y + 8);
   
   doc.setFontSize(8);
@@ -268,7 +273,7 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   {
     doc.setFontSize(9);
     doc.setFont('times', 'bold');
-    doc.setTextColor(33, 90, 168);
+    doc.setTextColor(brandR, brandG, brandB);
     const label = 'Arrêté le présent devis à la somme de : ';
     doc.text(label, margin, y);
     const labelWidth = doc.getTextWidth(label);
@@ -301,7 +306,7 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   if (devis.acompteRecu && devis.montantAcompte > 0) {
     doc.setFontSize(9);
     doc.setFont('times', 'bold');
-    doc.setTextColor(33, 90, 168);
+    doc.setTextColor(brandR, brandG, brandB);
     doc.text('Conditions de règlement :', margin, y);
     y += 6;
     doc.setFont('times', 'normal');
@@ -344,7 +349,7 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   
   doc.setFontSize(8);
   doc.setFont('times', 'bold');
-  doc.setTextColor(33, 90, 168);
+  doc.setTextColor(brandR, brandG, brandB);
   doc.text('CONDITIONS GÉNÉRALES DE VENTE', margin, y);
   y += 6;
   
@@ -352,10 +357,7 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   doc.setFont('times', 'normal');
   doc.setTextColor(80, 80, 80);
   
-  const cgv = [
-    '1. VALIDITÉ : Ce devis est valable 7 jours à compter de sa date d\'émission.',
-    '2. PAIEMENT : Un acompte de 75% est requis à la commande. Le solde est dû à la livraison.',
-  ];
+  const cgv = doc.splitTextToSize(COMPANY_INFO.documentTerms || 'Devis valable 7 jours. Acompte de 75% à la commande, solde à la livraison.', pageWidth - margin * 2) as string[];
   
   cgv.forEach((line) => {
     if (y > 275) {
@@ -369,14 +371,14 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   // ===== PIED DE PAGE CENTRÉ =====
   const footerY = 285;
   
-  doc.setDrawColor(33, 90, 168);
+  doc.setDrawColor(brandR, brandG, brandB);
   doc.setLineWidth(0.5);
   doc.line(margin, footerY - 8, pageWidth - margin, footerY - 8);
   
   doc.setFontSize(7);
   doc.setFont('times', 'normal');
   doc.setTextColor(80, 80, 80);
-  const footerText = `${COMPANY_INFO.name} - ${COMPANY_INFO.address} | Tél : ${COMPANY_INFO.phone} | ${COMPANY_INFO.email} | ${COMPANY_INFO.website}`;
+  const footerText = `${COMPANY_INFO.documentFooter ? `${COMPANY_INFO.documentFooter} • ` : ''}${COMPANY_INFO.name} - ${COMPANY_INFO.address} | Tél : ${COMPANY_INFO.phone} | ${COMPANY_INFO.email}`;
   doc.text(footerText, pageWidth / 2, footerY - 2, { align: 'center' });
 
   // Télécharger le PDF

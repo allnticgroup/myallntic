@@ -6,6 +6,7 @@ import { fr } from 'date-fns/locale';
 import { getCompanySettings } from './companySettings';
 import { loadLogoImageRun } from './docxLogo';
 import { montantEnLettres } from './numberToWords';
+import { hexToDocx } from './brandSettings';
 
 function getMaterialsMap(): Record<string, Material> {
   try {
@@ -34,7 +35,7 @@ function formatMontant(montant: number): string {
   return montant.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
-const BLUE = '215AA8';
+const brandColor = () => hexToDocx(getCompanySettings().primaryColor);
 const GRAY = '505050';
 const LIGHT_BG = 'F0F5FA';
 const RED = 'DC2626';
@@ -127,9 +128,9 @@ export async function generateDevisDocx(devis: Devis, prospect: Prospect) {
   children.push(new Paragraph({
     children: [
       ...(logoImage ? [logoImage, new TextRun({ text: '  ', size: 36 })] : []),
-      new TextRun({ text: COMPANY_INFO.name, bold: true, size: 36, color: BLUE, font: FONT }),
+       new TextRun({ text: COMPANY_INFO.name, bold: true, size: 36, color: brandColor(), font: FONT }),
       new TextRun({ text: '\t', size: 36 }),
-      new TextRun({ text: 'DEVIS', bold: true, size: 52, color: BLUE, font: FONT }),
+       new TextRun({ text: 'DEVIS', bold: true, size: 52, color: brandColor(), font: FONT }),
     ],
     spacing: { after: 100 },
   }));
@@ -142,7 +143,7 @@ export async function generateDevisDocx(devis: Devis, prospect: Prospect) {
   children.push(new Paragraph({
     children: [new TextRun({ text: `Numéro : ${devis.id.slice(0, 8).toUpperCase()}   |   Date : ${format(new Date(devis.dateDevis), 'dd/MM/yyyy', { locale: fr })}`, size: 20, color: GRAY, font: FONT })],
     spacing: { after: 200 },
-    border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: BLUE, space: 4 } },
+    border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: brandColor(), space: 4 } },
   }));
 
   // ===== ENTREPRISE / CLIENT =====
@@ -159,7 +160,7 @@ export async function generateDevisDocx(devis: Devis, prospect: Prospect) {
         children: [
           new TableCell({
             children: [
-              new Paragraph({ children: [new TextRun({ text: COMPANY_INFO.name, bold: true, size: 20, color: BLUE, font: FONT })], spacing: { after: 40 } }),
+               new Paragraph({ children: [new TextRun({ text: COMPANY_INFO.name, bold: true, size: 20, color: brandColor(), font: FONT })], spacing: { after: 40 } }),
               new Paragraph({ children: [new TextRun({ text: COMPANY_INFO.address, size: 16, color: GRAY, font: FONT })], spacing: { after: 20 } }),
               new Paragraph({ children: [new TextRun({ text: `Tél : ${COMPANY_INFO.phone}`, size: 16, color: GRAY, font: FONT })], spacing: { after: 20 } }),
               new Paragraph({ children: [new TextRun({ text: `Email : ${COMPANY_INFO.email}`, size: 16, color: GRAY, font: FONT })], spacing: { after: 20 } }),
@@ -172,7 +173,7 @@ export async function generateDevisDocx(devis: Devis, prospect: Prospect) {
           }),
           new TableCell({
             children: [
-              new Paragraph({ children: [new TextRun({ text: 'Client :', bold: true, size: 20, color: BLUE, font: FONT })], spacing: { after: 40 } }),
+               new Paragraph({ children: [new TextRun({ text: 'Client :', bold: true, size: 20, color: brandColor(), font: FONT })], spacing: { after: 40 } }),
               new Paragraph({ children: [new TextRun({ text: prospect.nomStructure, size: 16, color: GRAY, font: FONT })], spacing: { after: 20 } }),
               new Paragraph({ children: [new TextRun({ text: `Contact : ${prospect.nomDecideur}`, size: 16, color: GRAY, font: FONT })], spacing: { after: 20 } }),
               new Paragraph({ children: [new TextRun({ text: `Tél : ${prospect.telephone}`, size: 16, color: GRAY, font: FONT })], spacing: { after: 20 } }),
@@ -269,7 +270,7 @@ export async function generateDevisDocx(devis: Devis, prospect: Prospect) {
   // Montant total en lettres
   children.push(new Paragraph({
     children: [
-      new TextRun({ text: 'Arrêté le présent devis à la somme de : ', bold: true, size: 18, color: BLUE, font: FONT }),
+       new TextRun({ text: 'Arrêté le présent devis à la somme de : ', bold: true, size: 18, color: brandColor(), font: FONT }),
       new TextRun({ text: montantEnLettres(devis.montant), italics: true, size: 18, color: GRAY, font: FONT }),
     ],
     spacing: { before: 200, after: 160 },
@@ -298,7 +299,7 @@ export async function generateDevisDocx(devis: Devis, prospect: Prospect) {
   // Acompte
   if (devis.acompteRecu && devis.montantAcompte > 0) {
     children.push(new Paragraph({
-      children: [new TextRun({ text: 'Conditions de règlement :', bold: true, size: 18, color: BLUE, font: FONT })],
+       children: [new TextRun({ text: 'Conditions de règlement :', bold: true, size: 18, color: brandColor(), font: FONT })],
       spacing: { after: 60 },
     }));
     children.push(new Paragraph({
@@ -325,24 +326,20 @@ export async function generateDevisDocx(devis: Devis, prospect: Prospect) {
 
   // CGV
   children.push(new Paragraph({
-    children: [new TextRun({ text: 'CONDITIONS GÉNÉRALES DE VENTE', bold: true, size: 16, color: BLUE, font: FONT })],
+    children: [new TextRun({ text: 'CONDITIONS GÉNÉRALES DE VENTE', bold: true, size: 16, color: brandColor(), font: FONT })],
     spacing: { before: 200, after: 60 },
   }));
   children.push(new Paragraph({
-    children: [new TextRun({ text: "1. VALIDITÉ : Ce devis est valable 7 jours à compter de sa date d'émission.", size: 14, color: GRAY, font: FONT })],
-    spacing: { after: 30 },
-  }));
-  children.push(new Paragraph({
-    children: [new TextRun({ text: '2. PAIEMENT : Un acompte de 75% est requis à la commande. Le solde est dû à la livraison.', size: 14, color: GRAY, font: FONT })],
+    children: [new TextRun({ text: getCompanySettings().documentTerms || 'Devis valable 7 jours. Acompte de 75% à la commande, solde à la livraison.', size: 14, color: GRAY, font: FONT })],
     spacing: { after: 200 },
   }));
 
   // Footer
   children.push(new Paragraph({
-    children: [new TextRun({ text: `${COMPANY_INFO.name} - ${COMPANY_INFO.address} | Tél : ${COMPANY_INFO.phone} | ${COMPANY_INFO.email} | ${COMPANY_INFO.website}`, size: 14, color: GRAY, font: FONT })],
+    children: [new TextRun({ text: `${getCompanySettings().documentFooter ? `${getCompanySettings().documentFooter} • ` : ''}${COMPANY_INFO.name} - ${COMPANY_INFO.address} | Tél : ${COMPANY_INFO.phone} | ${COMPANY_INFO.email}`, size: 14, color: GRAY, font: FONT })],
     alignment: AlignmentType.CENTER,
     spacing: { before: 300 },
-    border: { top: { style: BorderStyle.SINGLE, size: 6, color: BLUE, space: 4 } },
+    border: { top: { style: BorderStyle.SINGLE, size: 6, color: brandColor(), space: 4 } },
   }));
 
   const doc = new Document({
