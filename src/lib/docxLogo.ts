@@ -39,7 +39,7 @@ export async function loadLogoImageRun(
 ): Promise<ImageRun | null> {
   try {
     const settings = getCompanySettings();
-    const src = settings.logo || '/logo.png';
+    const src = settings.logo || '/icon-512.png';
     const img = await loadImage(src);
 
     const width = img.naturalWidth || img.width || 1;
@@ -51,7 +51,9 @@ export async function loadLogoImageRun(
     const displayHeightPx = Math.max(1, Math.round(height * scale));
 
     const type = getExtension(src);
-    const data = base64ToUint8Array(src);
+    const data = src.startsWith('data:')
+      ? base64ToUint8Array(src)
+      : new Uint8Array(await (await fetch(src)).arrayBuffer());
 
     return new ImageRun({
       data,

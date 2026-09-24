@@ -1,7 +1,7 @@
-# MyALLNTIC
+# MyALLNTIC GROUP
 
 Contexte
-Je suis entrepreneur individuel en Côte d’Ivoire, fondateur de ALLNTIC, une activité de services technologiques et sécurité électronique (réseaux, vidéosurveillance, maintenance).
+Je suis entrepreneur individuel en Côte d’Ivoire, fondateur de ALLNTIC GROUP, une activité de services technologiques et sécurité électronique (réseaux, vidéosurveillance, maintenance).
 Je travaille en parallèle comme salarié, donc mon temps est limité.
 Je veux une application web PWA interne, usage personnel uniquement, pour gérer mes prospects, devis, paiements et interventions.
 Ce n’est PAS un SaaS, PAS une application client, PAS multi-utilisateurs.

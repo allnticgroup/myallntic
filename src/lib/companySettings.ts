@@ -1,13 +1,15 @@
 import { CompanySettings } from '@/types';
+const logoAsset = { url: '/allntic-group-logo.jpg' };
 
 const DEFAULT_SETTINGS: CompanySettings = {
-  nom: 'ALLNTIC',
+  nom: 'ALLNTIC GROUP',
   adresse: 'Abidjan, Côte d\'Ivoire',
   ville: 'Abidjan',
   telephone: '+225 07 78 02 33 31',
   email: 'all.ntic225@gmail.com',
   siteWeb: 'www.allntic.com',
   tauxTVA: 0,
+  logo: logoAsset.url,
   services: [
     'Installation et maintenance',
     'Réseaux et câblage',
@@ -20,7 +22,9 @@ const DEFAULT_SETTINGS: CompanySettings = {
 export function getCompanySettings(): CompanySettings {
   try {
     const item = window.localStorage.getItem('allntic_company_settings');
-    return item ? { ...DEFAULT_SETTINGS, ...JSON.parse(item) } : DEFAULT_SETTINGS;
+    if (!item) return DEFAULT_SETTINGS;
+    const stored = JSON.parse(item) as CompanySettings;
+    return { ...DEFAULT_SETTINGS, ...stored, nom: stored.nom === 'ALLNTIC' ? 'ALLNTIC GROUP' : stored.nom, logo: stored.logo || logoAsset.url };
   } catch {
     return DEFAULT_SETTINGS;
   }

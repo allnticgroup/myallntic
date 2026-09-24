@@ -1,6 +1,6 @@
 import type { ParsedMaterial } from '@/lib/parseMaterialsPdf';
 
-// Catalogue Hikvision / ALLNTIC — extrait du TECH_LIST officiel
+// Catalogue Hikvision / ALLNTIC GROUP — extrait du TECH_LIST officiel
 // Prix en FCFA. Peuvent être révisés à l'import.
 export const HIKVISION_CATALOG: ParsedMaterial[] = [
   // ===== Écrans interactifs =====

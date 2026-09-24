@@ -312,6 +312,10 @@ export async function generateDevisDocx(devis: Devis, prospect: Prospect) {
   }
 
   // Signature
+  if (devis.signatureClient) {
+    const signature = photoRun(devis.signatureClient);
+    if (signature) children.push(new Paragraph({ alignment: AlignmentType.RIGHT, children: [signature], spacing: { before: 160, after: 60 } }));
+  }
   children.push(new Paragraph({
     alignment: AlignmentType.RIGHT,
     children: [new TextRun({ text: 'Signature du client (précédée de la mention « Bon pour accord »)', italics: true, size: 14, color: '646464', font: FONT })],

@@ -1,4 +1,4 @@
-# Roadmap ALLNTIC
+# Roadmap ALLNTIC GROUP
 
 ## Fait
 - [x] Relances devis, impayés par client, objectif mensuel, prévisionnel trésorerie (page Pilotage)

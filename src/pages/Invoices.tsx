@@ -1,5 +1,5 @@
-import { useState, useMemo, useRef } from 'react';
-import { Plus, FileText, Download, Trash2, Check, Send, Clock, AlertTriangle, Search, Filter, ChevronDown, Eye, Pencil, Upload } from 'lucide-react';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import { Plus, FileText, Download, Trash2, Check, Send, Clock, AlertTriangle, Search, Filter, ChevronDown, Eye, Pencil, Upload, Repeat, Save } from 'lucide-react';
 import { format, addDays, isAfter } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
@@ -26,7 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useInvoices, useProspects, useDevis, useMaterials } from '@/hooks/useData';
+import { useInvoices, useProspects, useDevis, useMaterials, useSavedFilters } from '@/hooks/useData';
 import { useClients, useVentes } from '@/hooks/useErpData';
 import { Invoice, InvoiceStatus, INVOICE_STATUS_LABELS, Prospect, Devis, DevisLigne } from '@/types';
 import { generateInvoiceDocx } from '@/lib/generateInvoiceDocx';
@@ -50,6 +50,8 @@ export default function Invoices() {
   const { getClient } = useClients();
   const { ventes } = useVentes();
   const { materials } = useMaterials();
+  const { filters: savedFilters, saveFilter, deleteFilter } = useSavedFilters('invoices');
+  const [recurring, setRecurring] = useState(() => JSON.parse(localStorage.getItem('allntic_recurring_invoices') || '[]') as Array<{id:string;devisId:string;jour:number;actif:boolean;lastPeriod?:string}>);
 
   const getInvoiceClientName = (invoice: Invoice) => {
     if (invoice.source === 'vente' && invoice.clientId) {
@@ -119,6 +121,23 @@ export default function Invoices() {
   const [selectedDevisId, setSelectedDevisId] = useState<string>('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [previewingInvoice, setPreviewingInvoice] = useState<Invoice | null>(null);
+
+  const persistRecurring = (next: typeof recurring) => { setRecurring(next); localStorage.setItem('allntic_recurring_invoices', JSON.stringify(next)); };
+  const addRecurring = () => { if(!selectedDevisId) return toast.error('Sélectionnez un devis'); persistRecurring([...recurring,{id:crypto.randomUUID(),devisId:selectedDevisId,jour:new Date().getDate(),actif:true}]); toast.success('Facturation mensuelle activée'); };
+
+  useEffect(() => {
+    const period = new Date().toISOString().slice(0, 7);
+    const due = recurring.filter((item) => item.actif && item.lastPeriod !== period && item.jour <= new Date().getDate());
+    if (!due.length) return;
+    due.forEach((item) => {
+      const devis = devisList.find((d) => d.id === item.devisId);
+      if (!devis) return;
+      addInvoice({ numero: generateInvoiceNumber(), devisId: devis.id, prospectId: devis.prospectId, montantHT: devis.montant, montantTTC: devis.montant, dateEmission: new Date().toISOString().slice(0,10), dateEcheance: addDays(new Date(),30).toISOString().slice(0,10), statut:'draft' });
+    });
+    persistRecurring(recurring.map((item) => due.some((x) => x.id === item.id) ? { ...item, lastPeriod: period } : item));
+    toast.success(`${due.length} facture(s) récurrente(s) générée(s)`);
+    // Génération contrôlée une fois par période stockée.
+  }, []);
 
   // Auto-update overdue invoices
   useMemo(() => {
@@ -417,6 +436,8 @@ export default function Invoices() {
             </SelectContent>
           </Select>
         </div>
+        <div className="flex flex-wrap gap-2"><Button size="sm" variant="ghost" onClick={()=>{const nom=window.prompt('Nom du filtre');if(nom)saveFilter(nom,{searchQuery,statusFilter});}}><Save className="h-4 w-4 mr-1"/>Enregistrer</Button>{savedFilters.map(filter=><Badge key={filter.id} variant="secondary" className="cursor-pointer" onClick={()=>{setSearchQuery(filter.criteria.searchQuery||'');setStatusFilter((filter.criteria.statusFilter||'all') as InvoiceStatus|'all')}}>{filter.nom}<button className="ml-1" onClick={(e)=>{e.stopPropagation();deleteFilter(filter.id)}}>×</button></Badge>)}</div>
+        {recurring.length > 0 && <Card><CardContent className="p-3"><p className="text-sm font-semibold flex items-center gap-2"><Repeat className="h-4 w-4"/>{recurring.length} facturation(s) mensuelle(s)</p>{recurring.map(item=><div key={item.id} className="flex justify-between text-xs mt-2"><span>{devisList.find(d=>d.id===item.devisId)?.objet || 'Devis'} · jour {item.jour}</span><button className="text-destructive" onClick={()=>persistRecurring(recurring.filter(x=>x.id!==item.id))}>Supprimer</button></div>)}</CardContent></Card>}
 
         {/* Invoice List */}
         {filteredInvoices.length === 0 ? (
@@ -541,6 +562,7 @@ export default function Invoices() {
                 Créer
               </Button>
             </div>
+            <Button variant="outline" onClick={addRecurring} disabled={!selectedDevisId} className="w-full"><Repeat className="h-4 w-4 mr-2"/>Créer chaque mois</Button>
           </div>
         </DialogContent>
       </Dialog>

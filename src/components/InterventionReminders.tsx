@@ -42,7 +42,7 @@ export function InterventionReminders() {
 
     if ('Notification' in window && Notification.permission === 'granted') {
       try {
-        new Notification('ALLNTIC — Rappel interventions', { body: `${titre}\n${description}` });
+        new Notification('ALLNTIC GROUP — Rappel interventions', { body: `${titre}\n${description}` });
       } catch {
         // ignore
       }

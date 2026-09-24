@@ -1,5 +1,28 @@
 import { useLocalStorage } from './useLocalStorage';
-import { Prospect, Devis, Intervention, Material, Payment, Expense, Invoice, Supplier, Purchase, Employee, Salary, EmployeeDocument } from '@/types';
+import { Prospect, Devis, Intervention, Material, Payment, Expense, Invoice, Supplier, Purchase, Employee, Salary, EmployeeDocument, MaterialPack, SavedFilter } from '@/types';
+
+export function useMaterialPacks() {
+  const [packs, setPacks] = useLocalStorage<MaterialPack[]>('allntic_material_packs', []);
+  const addPack = (pack: Omit<MaterialPack, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const now = new Date().toISOString();
+    const created = { ...pack, id: crypto.randomUUID(), createdAt: now, updatedAt: now };
+    setPacks((prev) => [...prev, created]);
+    return created;
+  };
+  const deletePack = (id: string) => setPacks((prev) => prev.filter((pack) => pack.id !== id));
+  return { packs, addPack, deletePack };
+}
+
+export function useSavedFilters(page: string) {
+  const [allFilters, setAllFilters] = useLocalStorage<SavedFilter[]>('allntic_saved_filters', []);
+  const filters = allFilters.filter((filter) => filter.page === page);
+  const saveFilter = (nom: string, criteria: Record<string, string>) => setAllFilters((prev) => [
+    ...prev.filter((filter) => !(filter.page === page && filter.nom === nom)),
+    { id: crypto.randomUUID(), page, nom, criteria, createdAt: new Date().toISOString() },
+  ]);
+  const deleteFilter = (id: string) => setAllFilters((prev) => prev.filter((filter) => filter.id !== id));
+  return { filters, saveFilter, deleteFilter };
+}
 
 export function useProspects() {
   const [prospects, setProspects] = useLocalStorage<Prospect[]>('allntic_prospects', []);

@@ -14,6 +14,8 @@ import {
   Clock,
   UserCheck,
   Pencil,
+  ClipboardCheck,
+  Camera,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -23,6 +25,8 @@ import { ProspectForm } from '@/components/forms/ProspectForm';
 import { DevisForm } from '@/components/forms/DevisForm';
 import { InterventionForm } from '@/components/forms/InterventionForm';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Sheet,
@@ -64,6 +68,7 @@ import {
   Intervention,
 } from '@/types';
 import { toast } from 'sonner';
+import { compressImageToBase64 } from '@/lib/imageCompression';
 
 type FormType = 'prospect' | 'devis' | 'intervention' | null;
 
@@ -89,6 +94,7 @@ export default function ProspectDetail() {
   const [showForm, setShowForm] = useState<FormType>(null);
   const [showConvert, setShowConvert] = useState(false);
   const [editingIntervention, setEditingIntervention] = useState<Intervention | null>(null);
+  const [auditLabel, setAuditLabel] = useState('');
 
   const prospect = id ? getProspect(id) : undefined;
   const devisList = id ? getDevisForProspect(id) : [];
@@ -271,6 +277,11 @@ export default function ProspectDetail() {
           </CardContent>
         </Card>
 
+        <Card className="animate-slide-up"><CardHeader className="pb-2"><CardTitle className="text-base flex items-center gap-2"><ClipboardCheck className="h-4 w-4"/>Checklist d’audit</CardTitle></CardHeader><CardContent className="space-y-2">
+          {(prospect.auditChecklist || []).map((item) => <div key={item.id} className="flex items-center gap-2"><Checkbox checked={item.checked} onCheckedChange={(checked) => updateProspect(prospect.id,{auditChecklist:(prospect.auditChecklist||[]).map((x)=>x.id===item.id?{...x,checked:checked===true}:x)})}/><span className={`text-sm flex-1 ${item.checked?'line-through text-muted-foreground':''}`}>{item.label}</span><Button size="icon" variant="ghost" onClick={()=>updateProspect(prospect.id,{auditChecklist:(prospect.auditChecklist||[]).filter(x=>x.id!==item.id)})}><Trash2 className="h-3 w-3"/></Button></div>)}
+          <div className="flex gap-2"><Input value={auditLabel} onChange={(e)=>setAuditLabel(e.target.value)} placeholder="Ex. Vérifier le câblage"/><Button size="sm" onClick={()=>{if(!auditLabel.trim())return;updateProspect(prospect.id,{auditChecklist:[...(prospect.auditChecklist||[]),{id:crypto.randomUUID(),label:auditLabel.trim(),checked:false}]});setAuditLabel('');}}>Ajouter</Button></div>
+        </CardContent></Card>
+
         {/* Devis Section */}
         <Card className="animate-slide-up">
           <CardHeader className="pb-2 flex flex-row items-center justify-between">
@@ -394,6 +405,7 @@ export default function ProspectDetail() {
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
+                    <label className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-md hover:bg-background" title="Ajouter des photos"><Camera className="h-4 w-4"/><input type="file" accept="image/*" multiple className="hidden" onChange={async(e)=>{const files=Array.from(e.target.files||[]);const photos=await Promise.all(files.map(file=>compressImageToBase64(file,900,.72)));updateIntervention(intervention.id,{photos:[...(intervention.photos||[]),...photos]});e.target.value='';}}/></label>
                     <Button
                       size="sm"
                       variant={intervention.statut === 'fait' ? 'secondary' : 'default'}
@@ -434,6 +446,7 @@ export default function ProspectDetail() {
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
+                  {intervention.photos?.length ? <div className="flex gap-1 mt-2">{intervention.photos.map((photo,index)=><img key={index} src={photo} alt={`Chantier ${index+1}`} className="h-14 w-14 rounded object-cover" onClick={()=>window.open(photo,'_blank')}/>)}</div> : null}
                 </div>
               ))
             )}

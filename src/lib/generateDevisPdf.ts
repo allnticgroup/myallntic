@@ -326,6 +326,9 @@ export async function generateDevisPdf(devis: Devis, prospect: Prospect) {
   doc.setFont('times', 'italic');
   doc.setTextColor(100, 100, 100);
   doc.text('Signature du client (précédée de la mention « Bon pour accord »)', pageWidth - margin - 78, y + 5);
+  if (devis.signatureClient) {
+    try { doc.addImage(devis.signatureClient, 'PNG', pageWidth - margin - 62, y + 7, 45, 15); } catch { /* signature invalide ignorée */ }
+  }
   y += 35;
 
   // ===== CONDITIONS GÉNÉRALES =====

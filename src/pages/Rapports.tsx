@@ -12,6 +12,7 @@ import { useVentes, useClients } from '@/hooks/useErpData';
 import { useDevis, useExpenses, useMaterials, usePayments } from '@/hooks/useData';
 import { exportToCsv } from '@/lib/export';
 import { toast } from 'sonner';
+import { generateRapportPdf } from '@/lib/generateRapportPdf';
 
 const CHART_COLORS = [
   'hsl(var(--primary))',
@@ -94,7 +95,7 @@ export default function Rapports() {
   return (
     <div className="min-h-screen pb-20">
       <PageHeader title="Rapports" subtitle="Analyse de l'activité"
-        action={<Button size="sm" variant="outline" onClick={handleExportReport}><Download className="h-4 w-4 mr-1" />Export CSV</Button>}
+        action={<div className="flex gap-2"><Button size="sm" variant="outline" onClick={() => generateRapportPdf(revenueData, topProducts)}><Download className="h-4 w-4 mr-1" />PDF</Button><Button size="sm" variant="outline" onClick={handleExportReport}><Download className="h-4 w-4 mr-1" />CSV</Button></div>}
       />
       <main className="p-4 space-y-4 max-w-lg mx-auto">
         <Select value={period} onValueChange={setPeriod}>
