@@ -3,7 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import logoAsset from '@/assets/allntic-group-logo.jpg.asset.json';
+const logoAsset = { url: '/allntic-group-logo.jpg' };
 
 interface PageHeaderProps {
   title: string;

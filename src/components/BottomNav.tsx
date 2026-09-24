@@ -4,7 +4,7 @@ import { LayoutDashboard, Users, UserCheck, ShoppingCart, Menu, FileText, Packag
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import logoAsset from '@/assets/allntic-group-logo.jpg.asset.json';
+const logoAsset = { url: '/allntic-group-logo.jpg' };
 
 const mainNavItems = [
   { to: '/', icon: LayoutDashboard, label: 'Tableau' },

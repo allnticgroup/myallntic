@@ -1,5 +1,5 @@
 import { CompanySettings } from '@/types';
-import logoAsset from '@/assets/allntic-group-logo.jpg.asset.json';
+const logoAsset = { url: '/allntic-group-logo.jpg' };
 
 const DEFAULT_SETTINGS: CompanySettings = {
   nom: 'ALLNTIC GROUP',

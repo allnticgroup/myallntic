@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Lock } from 'lucide-react';
-import logoAsset from '@/assets/allntic-group-logo.jpg.asset.json';
+const logoAsset = { url: '/allntic-group-logo.jpg' };
 
 export const PIN_KEY = 'allntic_pin_hash';
 
