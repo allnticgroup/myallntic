@@ -28,8 +28,16 @@ export interface Prospect {
   statut: ProspectStatus;
   notes: string;
   clientId?: string; // lien vers le client lié (après conversion)
+  auditChecklist?: AuditChecklistItem[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface AuditChecklistItem {
+  id: string;
+  label: string;
+  checked: boolean;
+  notes?: string;
 }
 
 export interface DevisLigne {
@@ -72,8 +80,31 @@ export interface Intervention {
   datePrevue: string;
   statut: InterventionStatus;
   notes: string;
+  photos?: string[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface MaterialPackLine {
+  materialId: string;
+  quantite: number;
+}
+
+export interface MaterialPack {
+  id: string;
+  nom: string;
+  description: string;
+  lignes: MaterialPackLine[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SavedFilter {
+  id: string;
+  page: string;
+  nom: string;
+  criteria: Record<string, string>;
+  createdAt: string;
 }
 
 export const STATUS_LABELS: Record<ProspectStatus, string> = {

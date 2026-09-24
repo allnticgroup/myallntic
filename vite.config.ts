@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: null,
-      includeAssets: ['favicon.png', 'icon-192.png', 'icon-512.png'],
+      includeAssets: ['favicon.png', 'icon-192.png', 'icon-512.png', 'allntic-group-logo.jpg'],
       manifest: {
         id: '/',
         name: 'ALLNTIC GROUP',

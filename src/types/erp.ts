@@ -100,8 +100,21 @@ export interface Project {
   depenses: number;
   taches: ProjectTask[];
   notes: string;
+  photos?: string[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ProjectLaborEntry {
+  id: string;
+  projectId: string;
+  employeeId?: string;
+  intervenant: string;
+  heures: number;
+  tauxHoraire: number;
+  date: string;
+  notes: string;
+  createdAt: string;
 }
 
 export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {

@@ -1,5 +1,5 @@
 import { useLocalStorage } from './useLocalStorage';
-import { Client, Vente, StockMovement, Project, ProjectTask } from '@/types/erp';
+import { Client, Vente, StockMovement, Project, ProjectTask, ProjectLaborEntry } from '@/types/erp';
 
 // ===== ID Generation =====
 function generateCode(prefix: string, items: { code: string }[]): string {
@@ -177,4 +177,15 @@ export function useProjects() {
   };
 
   return { projects, addProject, updateProject, deleteProject, getProject, addTask, updateTask, deleteTask };
+}
+
+export function useProjectLabor() {
+  const [entries, setEntries] = useLocalStorage<ProjectLaborEntry[]>('allntic_project_labor', []);
+  const addLabor = (entry: Omit<ProjectLaborEntry, 'id' | 'createdAt'>) => {
+    const created = { ...entry, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+    setEntries((prev) => [created, ...prev]);
+    return created;
+  };
+  const deleteLabor = (id: string) => setEntries((prev) => prev.filter((entry) => entry.id !== id));
+  return { entries, addLabor, deleteLabor };
 }
