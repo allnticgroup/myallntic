@@ -26,6 +26,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { PageHeader } from '@/components/PageHeader';
+import { SecuritySettings } from '@/components/SecuritySettings';
 import { useCompanySettings } from '@/hooks/useCompanySettings';
 import { useAuditLog } from '@/hooks/useAuditLog';
 import { AUDIT_ACTION_LABELS, AUDIT_ENTITY_LABELS, AuditEntity } from '@/types';
@@ -122,7 +123,7 @@ export default function Settings() {
 
       <div className="container max-w-lg mx-auto px-4 py-6">
         <Tabs defaultValue="entreprise" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="entreprise">
               <Building2 className="h-4 w-4 mr-2" />
               Entreprise
@@ -131,6 +132,7 @@ export default function Settings() {
               <History className="h-4 w-4 mr-2" />
               Historique
             </TabsTrigger>
+            <TabsTrigger value="securite">Sécurité</TabsTrigger>
           </TabsList>
 
           <TabsContent value="entreprise" className="space-y-4 mt-4">
@@ -381,6 +383,9 @@ export default function Settings() {
                 ))}
               </div>
             )}
+          </TabsContent>
+          <TabsContent value="securite" className="space-y-4 mt-4">
+            <SecuritySettings />
           </TabsContent>
         </Tabs>
       </div>

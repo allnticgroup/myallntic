@@ -28,6 +28,8 @@ import Projets from "./pages/Projets";
 import ProjetDetail from "./pages/ProjetDetail";
 import Rapports from "./pages/Rapports";
 import Settings from "./pages/Settings";
+import Pilotage from "./pages/Pilotage";
+import { PinLock } from "@/components/PinLock";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +40,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner position="top-center" />
+        <PinLock>
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
@@ -60,6 +63,7 @@ const App = () => (
             <Route path="/projets" element={<Projets />} />
             <Route path="/projets/:id" element={<ProjetDetail />} />
             <Route path="/rapports" element={<Rapports />} />
+            <Route path="/pilotage" element={<Pilotage />} />
             <Route path="/parametres" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
@@ -67,6 +71,7 @@ const App = () => (
           <PwaInstallButton />
           <BottomNav />
         </BrowserRouter>
+        </PinLock>
       </TooltipProvider>
     </QueryClientProvider>
   </ThemeProvider>

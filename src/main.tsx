@@ -10,3 +10,4 @@ void registerServiceWorker();
 
 // Sauvegarde automatique des données (différée pour ne pas bloquer le démarrage)
 setTimeout(() => runAutoBackupOnLaunch(), 3000);
+setTimeout(() => import("./lib/backupHistory").then((m) => m.dailySnapshot()), 4000);

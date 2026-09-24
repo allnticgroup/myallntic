@@ -26,6 +26,7 @@ const menuItems = [
   { to: '/materiels', icon: Package, label: 'Matériels' },
   { to: '/finances', icon: Wallet, label: 'Finances' },
   { to: '/rapports', icon: BarChart3, label: 'Rapports' },
+  { to: '/pilotage', icon: BarChart3, label: 'Pilotage' },
   { to: '/employes', icon: Users, label: 'Employés' },
   { to: '/calendrier', icon: CalendarDays, label: 'Calendrier' },
   { to: '/parametres', icon: Settings, label: 'Paramètres' },
