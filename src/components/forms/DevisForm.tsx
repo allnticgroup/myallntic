@@ -39,6 +39,8 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { SignaturePad } from '@/components/SignaturePad';
+import { useMaterialPacks } from '@/hooks/useData';
 
 // Composant sortable pour chaque ligne
 interface SortableLigneItemProps {
@@ -107,6 +109,7 @@ interface DevisFormProps {
 
 export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormProps) {
   const { materials } = useMaterials();
+  const { packs } = useMaterialPacks();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }), useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }));
   const [lignes, setLignes] = useState<DevisLigne[]>(devis?.lignes || []);
 
@@ -132,6 +135,7 @@ export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormPr
     entrepriseTelephone: devis?.entrepriseTelephone || '+225 07 78 02 33 31',
     entrepriseEmail: devis?.entrepriseEmail || 'all.ntic225@gmail.com',
     entrepriseSite: devis?.entrepriseSite || 'www.allntic.com',
+    signatureClient: devis?.signatureClient || '',
   });
 
   const [selectedMaterialId, setSelectedMaterialId] = useState<string>('');
@@ -189,6 +193,16 @@ export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormPr
 
     setSelectedMaterialId('');
     setQuantite(1);
+  };
+
+  const addPack = (packId: string) => {
+    const pack = packs.find((item) => item.id === packId);
+    if (!pack) return;
+    const additions: DevisLigne[] = pack.lignes.flatMap((line) => {
+      const material = materials.find((item) => item.id === line.materialId);
+      return material ? [{ materialId: material.id, nom: material.nom, reference: material.reference, categorie: material.categorie, quantite: line.quantite, prixUnitaire: material.prixUnitaire, total: line.quantite * material.prixUnitaire }] : [];
+    });
+    setLignes((current) => [...current, ...additions]);
   };
 
   const handleRemoveLigne = (index: number) => {
@@ -304,6 +318,8 @@ export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormPr
           </SelectContent>
         </Select>
       </div>
+
+      {packs.length > 0 && <div className="space-y-2"><Label>Pack prêt-à-vendre</Label><Select onValueChange={addPack}><SelectTrigger><SelectValue placeholder="Insérer un pack" /></SelectTrigger><SelectContent>{packs.map((pack) => <SelectItem key={pack.id} value={pack.id}>{pack.nom}</SelectItem>)}</SelectContent></Select></div>}
 
       {/* Sélection des matériels */}
       <div className="space-y-3 p-4 rounded-lg bg-muted/50 border border-border">

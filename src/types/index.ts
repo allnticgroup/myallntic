@@ -68,6 +68,7 @@ export interface Devis {
   entrepriseTelephone: string;
   entrepriseEmail: string;
   entrepriseSite: string;
+  signatureClient?: string;
   createdAt: string;
   updatedAt: string;
 }

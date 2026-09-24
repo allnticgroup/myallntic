@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Plus, Search, Edit2, Trash2, Package, AlertTriangle, Upload, FileUp, Download } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Package, AlertTriangle, Upload, FileUp, Download, QrCode, Save } from 'lucide-react';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMaterials } from '@/hooks/useData';
+import { useMaterials, useSavedFilters } from '@/hooks/useData';
 import { MaterialForm } from '@/components/forms/MaterialForm';
 import { Material, MaterialCategory, MATERIAL_CATEGORY_LABELS } from '@/types';
 import { EmptyState } from '@/components/EmptyState';
@@ -19,9 +19,11 @@ import { toast } from 'sonner';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Sparkles } from 'lucide-react';
 import { exportMaterialsToCsv } from '@/lib/export';
+import { generateMaterialQrLabels } from '@/lib/generateMaterialQrLabels';
 
 export default function Materials() {
   const { materials, addMaterial, deleteMaterial } = useMaterials();
+  const { filters, saveFilter, deleteFilter } = useSavedFilters('materials');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<MaterialCategory | 'all'>('all');
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -161,6 +163,7 @@ export default function Materials() {
               <Download className="h-4 w-4 mr-1" />
               CSV
             </Button>
+            <Button size="sm" variant="outline" onClick={() => generateMaterialQrLabels(filteredMaterials)} disabled={filteredMaterials.length === 0}><QrCode className="h-4 w-4 mr-1" />QR</Button>
             <Button
               size="sm"
               variant="outline"
@@ -219,6 +222,10 @@ export default function Materials() {
               ))}
             </SelectContent>
           </Select>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" variant="ghost" onClick={() => { const nom=window.prompt('Nom du filtre'); if(nom) saveFilter(nom,{searchQuery,categoryFilter}); }}><Save className="h-4 w-4 mr-1"/>Enregistrer le filtre</Button>
+          {filters.map((filter) => <Badge key={filter.id} variant="secondary" className="cursor-pointer gap-1" onClick={() => {setSearchQuery(filter.criteria.searchQuery || '');setCategoryFilter((filter.criteria.categoryFilter || 'all') as MaterialCategory | 'all');}}>{filter.nom}<button onClick={(e)=>{e.stopPropagation();deleteFilter(filter.id)}} aria-label={`Supprimer ${filter.nom}`}>×</button></Badge>)}
         </div>
 
         {/* Materials List */}
