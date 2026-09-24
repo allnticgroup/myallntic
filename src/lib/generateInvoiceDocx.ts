@@ -18,6 +18,12 @@ function getCompanyInfo() {
     website: settings.siteWeb,
     logo: settings.logo,
     services: settings.services,
+    waveLink: settings.waveLink,
+    orangeMoneyLink: settings.orangeMoneyLink,
+    ibanBancaire: settings.ibanBancaire,
+    banqueNom: settings.banqueNom,
+    documentFooter: settings.documentFooter,
+    documentTerms: settings.documentTerms,
   };
 }
 
@@ -180,10 +186,23 @@ export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, 
     children: [new TextRun({ text: 'Modalités de paiement :', bold: true, size: 18, color: brandColor(), font: 'Times New Roman' })],
     spacing: { after: 60 },
   }));
-  for (const mode of ['Virement bancaire', 'Mobile Money', 'Espèces']) {
+  const paymentModes = [
+    COMPANY_INFO.ibanBancaire ? `Virement : ${COMPANY_INFO.banqueNom || ''} — ${COMPANY_INFO.ibanBancaire}` : 'Virement bancaire',
+    ...(COMPANY_INFO.waveLink ? ['Wave'] : []),
+    ...(COMPANY_INFO.orangeMoneyLink ? ['Orange Money'] : []),
+    'Espèces',
+  ];
+  for (const mode of paymentModes) {
     children.push(new Paragraph({
       children: [new TextRun({ text: `• ${mode}`, size: 16, color: GRAY, font: 'Times New Roman' })],
       spacing: { after: 20 },
+    }));
+  }
+
+  if (COMPANY_INFO.documentTerms) {
+    children.push(new Paragraph({
+      children: [new TextRun({ text: COMPANY_INFO.documentTerms, size: 14, color: GRAY, font: 'Times New Roman' })],
+      spacing: { before: 160, after: 80 },
     }));
   }
 
@@ -197,7 +216,7 @@ export async function generateInvoiceDocx(invoice: Invoice, prospect: Prospect, 
 
   // Footer
   children.push(new Paragraph({
-    children: [new TextRun({ text: `${COMPANY_INFO.name} - ${COMPANY_INFO.address} | Tél : ${COMPANY_INFO.phone} | ${COMPANY_INFO.email} | ${COMPANY_INFO.website}`, size: 14, color: GRAY, font: 'Times New Roman' })],
+    children: [new TextRun({ text: `${COMPANY_INFO.documentFooter ? `${COMPANY_INFO.documentFooter} • ` : ''}${COMPANY_INFO.name} - ${COMPANY_INFO.address} | Tél : ${COMPANY_INFO.phone} | ${COMPANY_INFO.email}`, size: 14, color: GRAY, font: 'Times New Roman' })],
     alignment: AlignmentType.CENTER,
     spacing: { before: 400 },
   }));

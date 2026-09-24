@@ -1,4 +1,4 @@
-import { CompanySettings } from '@/types';
+import type { CompanySettings } from '@/types';
 
 export const OFFICIAL_BRAND = {
   primaryColor: '#0645B5',

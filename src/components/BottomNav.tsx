@@ -60,7 +60,7 @@ export function BottomNav() {
 
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
         <SheetContent side="bottom" className="rounded-t-lg pb-8 max-h-[90vh] overflow-y-auto">
-          <SheetHeader className="mb-4"><SheetTitle>Modules ALLNTIC GROUP</SheetTitle></SheetHeader>
+          <SheetHeader className="mb-4"><SheetTitle>Modules {settings.nom}</SheetTitle></SheetHeader>
           <div className="grid grid-cols-3 gap-3">
             {menuItems.map(({ to, icon: Icon, label }) => <Link key={to} to={to} onClick={() => setMenuOpen(false)} className={cn('flex min-h-20 flex-col items-center justify-center gap-2 p-3 rounded-md border transition-smooth text-center', isActive(to) ? 'bg-primary/10 border-primary text-primary' : 'bg-card border-border text-muted-foreground hover:bg-muted')}><Icon className="h-6 w-6"/><span className="text-xs font-semibold leading-tight">{label}</span></Link>)}
           </div>

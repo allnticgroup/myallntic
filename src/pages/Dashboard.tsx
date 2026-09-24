@@ -25,8 +25,10 @@ import { fr } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 import { GlobalSearch } from '@/components/GlobalSearch';
+import { useCompanySettings } from '@/hooks/useCompanySettings';
 
 export default function Dashboard() {
+  const { settings } = useCompanySettings();
   const { prospects } = useProspects();
   const { devisList } = useDevis();
   const { interventions } = useInterventions();
@@ -186,7 +188,7 @@ export default function Dashboard() {
       </AlertDialog>
       <GlobalSearch open={showSearch} onOpenChange={setShowSearch} />
 
-      <PageHeader title="ALLNTIC GROUP" subtitle="Centre de pilotage" action={<div className="flex gap-1"><Button size="icon" variant="ghost" onClick={() => setShowSearch(true)} aria-label="Rechercher"><Search /></Button><Button size="icon" variant="ghost" onClick={handleImportClick} aria-label="Importer"><Upload /></Button><Button size="icon" variant="ghost" onClick={handleExport} aria-label="Sauvegarder"><Download /></Button></div>} />
+      <PageHeader title={settings.nom} subtitle="Centre de pilotage" action={<div className="flex gap-1"><Button size="icon" variant="ghost" onClick={() => setShowSearch(true)} aria-label="Rechercher"><Search /></Button><Button size="icon" variant="ghost" onClick={handleImportClick} aria-label="Importer"><Upload /></Button><Button size="icon" variant="ghost" onClick={handleExport} aria-label="Sauvegarder"><Download /></Button></div>} />
 
       <main className="p-4 lg:p-8 max-w-7xl mx-auto space-y-5">
         <header><h2 className="text-2xl lg:text-3xl font-bold">Priorités du jour</h2><p className="text-sm text-muted-foreground mt-1">Décidez et agissez depuis un seul écran.</p></header>
