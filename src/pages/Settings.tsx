@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
-import { Building2, Upload, X, Plus, Trash2, Save, History, Clock, Search, Filter } from 'lucide-react';
+import { Building2, Upload, X, Plus, Trash2, Save, History, Clock, Search, Filter, Palette, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +34,7 @@ import { AUDIT_ACTION_LABELS, AUDIT_ENTITY_LABELS, AuditEntity } from '@/types';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { OFFICIAL_BRAND, normalizeHex } from '@/lib/brandSettings';
 
 export default function Settings() {
   const { settings, updateSettings } = useCompanySettings();
@@ -48,6 +50,13 @@ export default function Settings() {
   const [tauxTVA, setTauxTVA] = useState(settings.tauxTVA);
   const [services, setServices] = useState(settings.services);
   const [logo, setLogo] = useState(settings.logo);
+  const [logoLight, setLogoLight] = useState(settings.logoLight || settings.logo);
+  const [logoDark, setLogoDark] = useState(settings.logoDark || settings.logo);
+  const [primaryColor, setPrimaryColor] = useState(settings.primaryColor || OFFICIAL_BRAND.primaryColor);
+  const [accentColor, setAccentColor] = useState(settings.accentColor || OFFICIAL_BRAND.accentColor);
+  const [darkColor, setDarkColor] = useState(settings.darkColor || OFFICIAL_BRAND.darkColor);
+  const [documentFooter, setDocumentFooter] = useState(settings.documentFooter || 'Merci pour votre confiance.');
+  const [documentTerms, setDocumentTerms] = useState(settings.documentTerms || 'Devis valable 7 jours. Acompte de 75% à la commande, solde à la livraison.');
   const [waveLink, setWaveLink] = useState(settings.waveLink || '');
   const [orangeMoneyLink, setOrangeMoneyLink] = useState(settings.orangeMoneyLink || '');
   const [ibanBancaire, setIbanBancaire] = useState(settings.ibanBancaire || '');
@@ -61,8 +70,10 @@ export default function Settings() {
   const [auditEntityFilter, setAuditEntityFilter] = useState<AuditEntity | 'all'>('all');
 
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const logoLightInputRef = useRef<HTMLInputElement>(null);
+  const logoDarkInputRef = useRef<HTMLInputElement>(null);
 
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>, setter: (value: string) => void) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
@@ -70,7 +81,7 @@ export default function Settings() {
       return;
     }
     const reader = new FileReader();
-    reader.onload = () => setLogo(reader.result as string);
+    reader.onload = () => setter(reader.result as string);
     reader.readAsDataURL(file);
   };
 
@@ -78,7 +89,11 @@ export default function Settings() {
     updateSettings({
       nom, adresse, ville, telephone, email, siteWeb,
       numeroFiscal: numeroFiscal || undefined,
-      tauxTVA, services, logo,
+      tauxTVA, services, logo, logoLight, logoDark,
+      primaryColor: normalizeHex(primaryColor, OFFICIAL_BRAND.primaryColor),
+      accentColor: normalizeHex(accentColor, OFFICIAL_BRAND.accentColor),
+      darkColor: normalizeHex(darkColor, OFFICIAL_BRAND.darkColor),
+      documentFooter: documentFooter.trim(), documentTerms: documentTerms.trim(),
       waveLink: waveLink || undefined,
       orangeMoneyLink: orangeMoneyLink || undefined,
       ibanBancaire: ibanBancaire || undefined,
@@ -121,7 +136,7 @@ export default function Settings() {
     <div className="min-h-screen bg-background pb-24">
       <PageHeader title="Paramètres" subtitle="Configuration de l'entreprise" showBack />
 
-      <div className="container max-w-lg mx-auto px-4 py-6">
+      <div className="container max-w-3xl mx-auto px-4 py-6">
         <Tabs defaultValue="entreprise" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="entreprise">
@@ -136,41 +151,44 @@ export default function Settings() {
           </TabsList>
 
           <TabsContent value="entreprise" className="space-y-4 mt-4">
-            {/* Logo */}
+            {/* Identité visuelle */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Logo de l'entreprise</CardTitle>
+                <CardTitle className="text-base flex items-center gap-2"><Palette className="h-4 w-4 text-primary" />Identité visuelle</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-20 w-20 rounded-lg">
-                    {logo ? (
-                      <AvatarImage src={logo} alt="Logo" className="rounded-lg object-contain" />
-                    ) : (
-                      <AvatarFallback className="rounded-lg bg-primary/10">
-                        <Building2 className="h-8 w-8 text-primary" />
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
-                  <div className="flex flex-col gap-2">
-                    <input
-                      ref={logoInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleLogoUpload}
-                      className="hidden"
-                    />
-                    <Button type="button" variant="outline" size="sm" onClick={() => logoInputRef.current?.click()}>
-                      <Upload className="h-4 w-4 mr-2" />
-                      {logo ? 'Changer' : 'Ajouter logo'}
-                    </Button>
-                    {logo && (
-                      <Button type="button" variant="ghost" size="sm" onClick={() => setLogo(undefined)} className="text-destructive">
-                        <X className="h-4 w-4 mr-2" />
-                        Supprimer
-                      </Button>
-                    )}
-                  </div>
+              <CardContent className="space-y-5">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    { label: 'Logo principal', value: logo, setter: setLogo, ref: logoInputRef, surface: 'bg-muted' },
+                    { label: 'Variante claire', value: logoLight, setter: setLogoLight, ref: logoLightInputRef, surface: 'bg-card' },
+                    { label: 'Variante sombre', value: logoDark, setter: setLogoDark, ref: logoDarkInputRef, surface: 'bg-sidebar' },
+                  ].map((item) => (
+                    <div key={item.label} className="space-y-2">
+                      <Label>{item.label}</Label>
+                      <div className={`h-28 rounded-md border flex items-center justify-center p-3 ${item.surface}`}>
+                        <Avatar className="h-20 w-20 rounded-md">
+                          {item.value ? <AvatarImage src={item.value} alt={item.label} className="rounded-md object-contain" /> : <AvatarFallback className="rounded-md"><Building2 className="h-7 w-7" /></AvatarFallback>}
+                        </Avatar>
+                      </div>
+                      <input ref={item.ref} type="file" accept="image/*" onChange={(event) => handleLogoUpload(event, item.setter)} className="hidden" />
+                      <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => item.ref.current?.click()}><Upload className="h-4 w-4 mr-2" />Modifier</Button>
+                    </div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {[
+                    { id: 'primaryColor', label: 'Bleu principal', value: primaryColor, setter: setPrimaryColor },
+                    { id: 'accentColor', label: 'Accent cyan', value: accentColor, setter: setAccentColor },
+                    { id: 'darkColor', label: 'Bleu nuit', value: darkColor, setter: setDarkColor },
+                  ].map((color) => (
+                    <div key={color.id} className="space-y-2">
+                      <Label htmlFor={color.id}>{color.label}</Label>
+                      <div className="flex gap-2">
+                        <input id={color.id} type="color" value={normalizeHex(color.value, OFFICIAL_BRAND.primaryColor)} onChange={(event) => color.setter(event.target.value)} className="h-10 w-12 rounded-md border bg-card p-1" />
+                        <Input value={color.value} onChange={(event) => color.setter(event.target.value)} maxLength={7} className="font-mono uppercase" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -209,6 +227,15 @@ export default function Settings() {
                     <Input id="siteWeb" value={siteWeb} onChange={(e) => setSiteWeb(e.target.value)} />
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><FileText className="h-4 w-4 text-primary" />Informations sur les documents</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2"><Label htmlFor="documentFooter">Message de pied de page</Label><Input id="documentFooter" value={documentFooter} onChange={(event) => setDocumentFooter(event.target.value)} placeholder="Merci pour votre confiance." /></div>
+                <div className="space-y-2"><Label htmlFor="documentTerms">Conditions et mentions</Label><Textarea id="documentTerms" value={documentTerms} onChange={(event) => setDocumentTerms(event.target.value)} rows={4} placeholder="Validité, acompte, délai et autres mentions..." /></div>
+                <p className="text-xs text-muted-foreground">Ces informations accompagnent les coordonnées, le numéro fiscal et les moyens de paiement dans les documents générés.</p>
               </CardContent>
             </Card>
 
