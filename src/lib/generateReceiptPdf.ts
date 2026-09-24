@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { getCompanySettings } from './companySettings';
 import { addLogoToPdf } from './pdfLogo';
+import { hexToRgb } from './brandSettings';
 
 function formatMontant(montant: number): string {
   return montant.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -15,6 +16,7 @@ export async function generateReceiptPdf(
   invoiceNumero?: string,
 ) {
   const company = getCompanySettings();
+  const [brandR, brandG, brandB] = hexToRgb(company.primaryColor);
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 15;
@@ -26,7 +28,7 @@ export async function generateReceiptPdf(
   // En-tête entreprise
   doc.setFontSize(16);
   doc.setFont('times', 'bold');
-  doc.setTextColor(33, 90, 168);
+  doc.setTextColor(brandR, brandG, brandB);
   doc.text(company.nom, margin + 30, y + 8);
 
   doc.setFontSize(8);
@@ -54,7 +56,7 @@ export async function generateReceiptPdf(
   );
 
   y += 38;
-  doc.setDrawColor(33, 90, 168);
+  doc.setDrawColor(brandR, brandG, brandB);
   doc.setLineWidth(0.8);
   doc.line(margin, y, pageWidth - margin, y);
   y += 12;
@@ -62,7 +64,7 @@ export async function generateReceiptPdf(
   // Reçu de
   doc.setFontSize(10);
   doc.setFont('times', 'bold');
-  doc.setTextColor(33, 90, 168);
+  doc.setTextColor(brandR, brandG, brandB);
   doc.text('Reçu de :', margin, y);
   doc.setFont('times', 'normal');
   doc.setTextColor(40, 40, 40);
@@ -84,7 +86,7 @@ export async function generateReceiptPdf(
   // Détails
   doc.setFontSize(10);
   doc.setFont('times', 'bold');
-  doc.setTextColor(33, 90, 168);
+  doc.setTextColor(brandR, brandG, brandB);
   doc.text('Mode de paiement :', margin, y);
   doc.setFont('times', 'normal');
   doc.setTextColor(40, 40, 40);
@@ -93,7 +95,7 @@ export async function generateReceiptPdf(
 
   if (payment.reference) {
     doc.setFont('times', 'bold');
-    doc.setTextColor(33, 90, 168);
+    doc.setTextColor(brandR, brandG, brandB);
     doc.text('Référence :', margin, y);
     doc.setFont('times', 'normal');
     doc.setTextColor(40, 40, 40);
@@ -103,7 +105,7 @@ export async function generateReceiptPdf(
 
   if (invoiceNumero) {
     doc.setFont('times', 'bold');
-    doc.setTextColor(33, 90, 168);
+    doc.setTextColor(brandR, brandG, brandB);
     doc.text('Facture :', margin, y);
     doc.setFont('times', 'normal');
     doc.setTextColor(40, 40, 40);
@@ -114,7 +116,7 @@ export async function generateReceiptPdf(
   if (payment.notes) {
     y += 4;
     doc.setFont('times', 'bold');
-    doc.setTextColor(33, 90, 168);
+    doc.setTextColor(brandR, brandG, brandB);
     doc.text('Notes :', margin, y);
     y += 5;
     doc.setFont('times', 'normal');
@@ -136,14 +138,14 @@ export async function generateReceiptPdf(
 
   // Footer
   const footerY = 285;
-  doc.setDrawColor(33, 90, 168);
+  doc.setDrawColor(brandR, brandG, brandB);
   doc.setLineWidth(0.5);
   doc.line(margin, footerY - 8, pageWidth - margin, footerY - 8);
   doc.setFontSize(7);
   doc.setFont('times', 'normal');
   doc.setTextColor(80, 80, 80);
   doc.text(
-    `${company.nom} - ${company.adresse} | ${company.telephone} | ${company.email}`,
+    `${company.documentFooter ? `${company.documentFooter} • ` : ''}${company.nom} - ${company.adresse} | ${company.telephone} | ${company.email}`,
     pageWidth / 2,
     footerY - 2,
     { align: 'center' },
