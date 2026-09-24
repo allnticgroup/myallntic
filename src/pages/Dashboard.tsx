@@ -84,48 +84,6 @@ export default function Dashboard() {
     return months;
   }, [devisList]);
 
-  // Chart data: Prospects by status
-  const prospectsByStatus = useMemo(() => {
-    const statusCounts: Record<string, number> = {};
-    prospects.forEach(p => {
-      statusCounts[p.statut] = (statusCounts[p.statut] || 0) + 1;
-    });
-    return Object.entries(statusCounts).map(([status, count]) => ({
-      name: STATUS_LABELS[status as ProspectStatus] || status,
-      value: count,
-      status,
-    }));
-  }, [prospects]);
-
-  const STATUS_COLORS: Record<string, string> = {
-    prospect: 'hsl(var(--primary))',
-    audit_prevu: 'hsl(var(--warning))',
-    audit_realise: 'hsl(210, 70%, 50%)',
-    devis_envoye: 'hsl(280, 70%, 50%)',
-    signe: 'hsl(var(--success))',
-    refuse: 'hsl(var(--destructive))',
-  };
-
-  // Chart data: Prospects per month (last 6 months)
-  const prospectsByMonth = useMemo(() => {
-    const months = [];
-    for (let i = 5; i >= 0; i--) {
-      const date = subMonths(new Date(), i);
-      const start = startOfMonth(date);
-      const end = endOfMonth(date);
-      
-      const monthProspects = prospects.filter(p => 
-        isWithinInterval(new Date(p.createdAt), { start, end })
-      ).length;
-      
-      months.push({
-        name: format(date, 'MMM', { locale: fr }),
-        prospects: monthProspects,
-      });
-    }
-    return months;
-  }, [prospects]);
-
   const handleExport = () => {
     const data = getAllData();
     const filename = generateExportFilename();
@@ -200,7 +158,7 @@ export default function Dashboard() {
 
   const { invoices } = useInvoices();
   const overdueTotal = invoices
-    .filter((invoice) => invoice.statut === 'late' || (invoice.statut !== 'paid' && new Date(invoice.dateEcheance) < new Date()))
+    .filter((invoice) => invoice.statut === 'overdue' || (invoice.statut !== 'paid' && new Date(invoice.dateEcheance) < new Date()))
     .reduce((sum, invoice) => sum + invoice.montantTTC, 0);
   const criticalStock = materials.filter((material) => material.stockQuantite <= material.stockMinimum).length;
   const activeProjects = projects.filter((project) => project.statut === 'en_cours').length;
@@ -238,7 +196,7 @@ export default function Dashboard() {
           <StatCard icon={FileText} label="Devis à relancer" value={pendingDevis.length} variant="warning" />
           <StatCard icon={Wrench} label="Interventions" value={upcomingInterventions.length} />
 
-          <Card className="col-span-2 lg:col-span-2 border-destructive/20"><CardContent className="p-5 flex items-center justify-between gap-4"><div><p className="text-xs font-bold uppercase text-destructive">Impayés à suivre</p><p className="text-2xl font-bold mt-1">{overdueTotal.toLocaleString('fr-FR')} FCFA</p><p className="text-xs text-muted-foreground mt-1">{invoices.filter(i => i.statut === 'late').length} facture(s) signalée(s)</p></div><Receipt className="h-9 w-9 text-destructive"/></CardContent></Card>
+          <Card className="col-span-2 lg:col-span-2 border-destructive/20"><CardContent className="p-5 flex items-center justify-between gap-4"><div><p className="text-xs font-bold uppercase text-destructive">Impayés à suivre</p><p className="text-2xl font-bold mt-1">{overdueTotal.toLocaleString('fr-FR')} FCFA</p><p className="text-xs text-muted-foreground mt-1">{invoices.filter(i => i.statut === 'overdue').length} facture(s) signalée(s)</p></div><Receipt className="h-9 w-9 text-destructive"/></CardContent></Card>
           <Card className="col-span-2 bg-primary text-primary-foreground border-0"><CardContent className="p-5 flex items-center gap-5"><div className="h-16 w-16 shrink-0 rounded-full border-8 border-accent/30 flex items-center justify-center font-bold">{targetProgress}%</div><div><p className="font-bold">Objectif mensuel</p><p className="text-xs text-primary-foreground/70 mt-1">{monthlyTarget ? `${totalRevenue.toLocaleString('fr-FR')} sur ${monthlyTarget.toLocaleString('fr-FR')} FCFA` : 'Définissez votre objectif dans Pilotage'}</p></div></CardContent></Card>
 
           <Card className="col-span-2 lg:col-span-2"><CardHeader className="pb-3"><CardTitle className="text-base">Actions rapides</CardTitle></CardHeader><CardContent className="grid grid-cols-2 gap-2">{[
