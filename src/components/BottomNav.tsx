@@ -4,7 +4,7 @@ import { LayoutDashboard, Users, UserCheck, ShoppingCart, Menu, FileText, Packag
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-const logoAsset = { url: '/allntic-group-logo.jpg' };
+import { BrandLogo } from '@/components/BrandLogo';
 
 const mainNavItems = [
   { to: '/', icon: LayoutDashboard, label: 'Tableau' },
@@ -34,7 +34,7 @@ export function BottomNav() {
     <>
       <aside className={cn('fixed inset-y-0 left-0 z-50 hidden lg:flex flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border transition-[width] duration-200', collapsed ? 'w-20' : 'w-64')}>
         <Link to="/" className="h-20 px-4 flex items-center gap-3 border-b border-sidebar-border overflow-hidden">
-          <img src={logoAsset.url} alt="ALLNTIC GROUP" className="h-12 w-12 shrink-0 rounded-md object-contain bg-card" />
+          <BrandLogo className="h-12 w-12 shrink-0 rounded-md bg-card" />
           {!collapsed && <span className="font-bold font-heading leading-tight">ALLNTIC<br/><span className="text-accent text-xs">GROUP</span></span>}
         </Link>
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">

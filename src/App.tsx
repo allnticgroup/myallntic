@@ -30,6 +30,7 @@ import Rapports from "./pages/Rapports";
 import Settings from "./pages/Settings";
 import Pilotage from "./pages/Pilotage";
 import { PinLock } from "@/components/PinLock";
+import { BrandIdentity } from "@/components/BrandIdentity";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
   <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <BrandIdentity />
         <Toaster />
         <Sonner position="top-center" />
         <PinLock>

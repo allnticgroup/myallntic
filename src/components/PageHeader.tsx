@@ -3,7 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
-const logoAsset = { url: '/allntic-group-logo.jpg' };
+import { BrandLogo } from '@/components/BrandLogo';
 
 interface PageHeaderProps {
   title: string;
@@ -29,7 +29,7 @@ export function PageHeader({ title, subtitle, showBack, action }: PageHeaderProp
               <ArrowLeft className="h-5 w-5" />
             </Button>
           )}
-          {!showBack && <img src={logoAsset.url} alt="ALLNTIC GROUP" className="h-10 w-10 rounded-md object-contain lg:hidden" />}
+          {!showBack && <BrandLogo className="h-10 w-10 rounded-md lg:hidden" />}
           <div className="min-w-0">
             <h1 className="font-semibold text-lg truncate">{title}</h1>
             {subtitle && (

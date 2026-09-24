@@ -417,6 +417,13 @@ export interface CompanySettings {
   email: string;
   siteWeb: string;
   logo?: string; // Base64
+  logoLight?: string;
+  logoDark?: string;
+  primaryColor?: string;
+  accentColor?: string;
+  darkColor?: string;
+  documentFooter?: string;
+  documentTerms?: string;
   numeroFiscal?: string;
   tauxTVA: number; // en pourcentage, 0 = pas de TVA
   services: string[];
