@@ -15,6 +15,7 @@ import {
   UserCheck,
   Pencil,
   ClipboardCheck,
+  Camera,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -67,6 +68,7 @@ import {
   Intervention,
 } from '@/types';
 import { toast } from 'sonner';
+import { compressImageToBase64 } from '@/lib/imageCompression';
 
 type FormType = 'prospect' | 'devis' | 'intervention' | null;
 
@@ -403,6 +405,7 @@ export default function ProspectDetail() {
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
+                    <label className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-md hover:bg-background" title="Ajouter des photos"><Camera className="h-4 w-4"/><input type="file" accept="image/*" multiple className="hidden" onChange={async(e)=>{const files=Array.from(e.target.files||[]);const photos=await Promise.all(files.map(file=>compressImageToBase64(file,900,.72)));updateIntervention(intervention.id,{photos:[...(intervention.photos||[]),...photos]});e.target.value='';}}/></label>
                     <Button
                       size="sm"
                       variant={intervention.statut === 'fait' ? 'secondary' : 'default'}
@@ -443,6 +446,7 @@ export default function ProspectDetail() {
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
+                  {intervention.photos?.length ? <div className="flex gap-1 mt-2">{intervention.photos.map((photo,index)=><img key={index} src={photo} alt={`Chantier ${index+1}`} className="h-14 w-14 rounded object-cover" onClick={()=>window.open(photo,'_blank')}/>)}</div> : null}
                 </div>
               ))
             )}
