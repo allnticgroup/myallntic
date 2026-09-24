@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from 'react';
-import { Plus, FileText, Download, Trash2, Check, Send, Clock, AlertTriangle, Search, Filter, ChevronDown, Eye, Pencil, Upload } from 'lucide-react';
+import { Plus, FileText, Download, Trash2, Check, Send, Clock, AlertTriangle, Search, Filter, ChevronDown, Eye, Pencil, Upload, Repeat, Save } from 'lucide-react';
 import { format, addDays, isAfter } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PageHeader } from '@/components/PageHeader';
@@ -26,7 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useInvoices, useProspects, useDevis, useMaterials } from '@/hooks/useData';
+import { useInvoices, useProspects, useDevis, useMaterials, useSavedFilters } from '@/hooks/useData';
 import { useClients, useVentes } from '@/hooks/useErpData';
 import { Invoice, InvoiceStatus, INVOICE_STATUS_LABELS, Prospect, Devis, DevisLigne } from '@/types';
 import { generateInvoiceDocx } from '@/lib/generateInvoiceDocx';
@@ -50,6 +50,8 @@ export default function Invoices() {
   const { getClient } = useClients();
   const { ventes } = useVentes();
   const { materials } = useMaterials();
+  const { filters: savedFilters, saveFilter, deleteFilter } = useSavedFilters('invoices');
+  const [recurring, setRecurring] = useState(() => JSON.parse(localStorage.getItem('allntic_recurring_invoices') || '[]') as Array<{id:string;devisId:string;jour:number;actif:boolean;lastPeriod?:string}>);
 
   const getInvoiceClientName = (invoice: Invoice) => {
     if (invoice.source === 'vente' && invoice.clientId) {
@@ -119,6 +121,9 @@ export default function Invoices() {
   const [selectedDevisId, setSelectedDevisId] = useState<string>('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [previewingInvoice, setPreviewingInvoice] = useState<Invoice | null>(null);
+
+  const persistRecurring = (next: typeof recurring) => { setRecurring(next); localStorage.setItem('allntic_recurring_invoices', JSON.stringify(next)); };
+  const addRecurring = () => { if(!selectedDevisId) return toast.error('Sélectionnez un devis'); persistRecurring([...recurring,{id:crypto.randomUUID(),devisId:selectedDevisId,jour:new Date().getDate(),actif:true}]); toast.success('Facturation mensuelle activée'); };
 
   // Auto-update overdue invoices
   useMemo(() => {
