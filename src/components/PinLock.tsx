@@ -32,7 +32,7 @@ export function PinLock({ children }: { children: ReactNode }) {
     <div className="min-h-screen flex items-center justify-center bg-background p-6">
       <div className="w-full max-w-xs space-y-4 text-center">
         <Lock className="h-10 w-10 mx-auto text-primary" />
-        <h1 className="text-xl font-bold text-foreground">ALLNTIC</h1>
+        <h1 className="text-xl font-bold text-foreground">ALLNTIC GROUP</h1>
         <Input type="password" inputMode="numeric" autoFocus placeholder="Code PIN" value={pin}
           onChange={(e) => { setPin(e.target.value); setError(false); }}
           onKeyDown={(e) => e.key === 'Enter' && submit()} className="text-center text-lg tracking-widest" />

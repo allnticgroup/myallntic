@@ -95,7 +95,7 @@ export default function Interventions() {
     setNotifPermission(perm);
     if (perm === 'granted') {
       toast.success('Rappels activés');
-      new Notification('ALLNTIC', { body: 'Les rappels d\u2019interventions sont activés.' });
+      new Notification('ALLNTIC GROUP', { body: 'Les rappels d\u2019interventions sont activés.' });
     } else {
       toast.error('Rappels refusés');
     }

@@ -1,7 +1,7 @@
 import { CompanySettings } from '@/types';
 
 const DEFAULT_SETTINGS: CompanySettings = {
-  nom: 'ALLNTIC',
+  nom: 'ALLNTIC GROUP',
   adresse: 'Abidjan, Côte d\'Ivoire',
   ville: 'Abidjan',
   telephone: '+225 07 78 02 33 31',

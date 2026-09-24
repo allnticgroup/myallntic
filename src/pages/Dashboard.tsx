@@ -265,7 +265,7 @@ export default function Dashboard() {
       <GlobalSearch open={showSearch} onOpenChange={setShowSearch} />
 
       <PageHeader 
-        title="ALLNTIC" 
+        title="ALLNTIC GROUP" 
         subtitle="Tableau de bord"
         action={
           <div className="flex gap-2">

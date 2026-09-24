@@ -19,8 +19,8 @@ export default defineConfig(({ mode }) => ({
       includeAssets: ['favicon.ico', 'icon-192.png', 'icon-512.png'],
       manifest: {
         id: '/',
-        name: 'ALLNTIC CRM',
-        short_name: 'ALLNTIC',
+        name: 'ALLNTIC GROUP CRM',
+        short_name: 'ALLNTIC GROUP',
         description: 'Gestion prospects, devis et interventions - Services technologiques et sécurité électronique',
         lang: 'fr',
         theme_color: '#1e3a5f',

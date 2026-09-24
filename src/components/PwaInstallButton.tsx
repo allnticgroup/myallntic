@@ -63,7 +63,7 @@ export function PwaInstallButton() {
       onClick={installApp}
       className="fixed right-4 z-50 inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-lg transition-smooth hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
       style={{ bottom: "calc(4.75rem + env(safe-area-inset-bottom, 0px))" }}
-      aria-label="Installer ALLNTIC"
+      aria-label="Installer ALLNTIC GROUP"
     >
       <Download className="h-4 w-4" aria-hidden="true" />
       <span>Installer</span>

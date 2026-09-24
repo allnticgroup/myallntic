@@ -120,7 +120,7 @@ export default function Finances() {
       salaries: employeeSalaries,
       periode: selectedPeriode,
       entreprise: {
-        nom: 'ALLNTIC',
+        nom: 'ALLNTIC GROUP',
         adresse: 'Dakar, Sénégal',
         telephone: '+221 77 000 00 00',
       },

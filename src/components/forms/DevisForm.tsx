@@ -127,7 +127,7 @@ export function DevisForm({ prospectId, devis, onSubmit, onCancel }: DevisFormPr
     statut: devis?.statut || ('envoye' as DevisStatus),
     acompteRecu: devis?.acompteRecu || false,
     montantAcompte: devis?.montantAcompte || 0,
-    entrepriseNom: devis?.entrepriseNom || 'ALLNTIC',
+    entrepriseNom: devis?.entrepriseNom || 'ALLNTIC GROUP',
     entrepriseAdresse: devis?.entrepriseAdresse || 'Abidjan, Côte d\'Ivoire',
     entrepriseTelephone: devis?.entrepriseTelephone || '+225 07 78 02 33 31',
     entrepriseEmail: devis?.entrepriseEmail || 'all.ntic225@gmail.com',
