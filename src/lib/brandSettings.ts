@@ -17,6 +17,10 @@ export function hexToRgb(value: string | undefined, fallback = OFFICIAL_BRAND.pr
   return [Number.parseInt(hex.slice(0, 2), 16), Number.parseInt(hex.slice(2, 4), 16), Number.parseInt(hex.slice(4, 6), 16)];
 }
 
+export function hexToDocx(value: string | undefined, fallback = OFFICIAL_BRAND.primaryColor) {
+  return normalizeHex(value, fallback).slice(1);
+}
+
 function hexToHsl(value: string, fallback: string) {
   const [r8, g8, b8] = hexToRgb(value, fallback);
   const r = r8 / 255;

@@ -33,12 +33,10 @@ export function useCompanySettings() {
   const [settings, setSettings] = useLocalStorage<CompanySettings>('allntic_company_settings', DEFAULT_SETTINGS);
 
   const updateSettings = (updates: Partial<CompanySettings>) => {
-    setSettings((prev) => {
-      const next = { ...prev, ...updates };
-      applyBrandTheme(next);
-      window.dispatchEvent(new Event(BRAND_SETTINGS_EVENT));
-      return next;
-    });
+    const next = { ...brandedSettings, ...updates };
+    setSettings(next);
+    applyBrandTheme(next);
+    window.dispatchEvent(new Event(BRAND_SETTINGS_EVENT));
   };
 
   const brandedSettings = { ...DEFAULT_SETTINGS, ...settings, nom: settings.nom === 'ALLNTIC' ? 'ALLNTIC GROUP' : settings.nom, logo: settings.logo || logoAsset.url };

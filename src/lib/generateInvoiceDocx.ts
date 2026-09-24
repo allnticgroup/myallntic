@@ -6,6 +6,7 @@ import { fr } from 'date-fns/locale';
 import { getCompanySettings } from './companySettings';
 import { loadLogoImageRun } from './docxLogo';
 import { montantEnLettres } from './numberToWords';
+import { hexToDocx } from './brandSettings';
 
 function getCompanyInfo() {
   const settings = getCompanySettings();
@@ -24,14 +25,14 @@ function formatMontant(montant: number): string {
   return montant.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
-const BLUE = '215AA8';
+const brandColor = () => hexToDocx(getCompanySettings().primaryColor);
 const GRAY = '505050';
 const LIGHT_BG = 'F0F5FA';
 
 function headerCell(text: string): TableCell {
   return new TableCell({
     children: [new Paragraph({ children: [new TextRun({ text, bold: true, color: 'FFFFFF', size: 16, font: 'Times New Roman' })], spacing: { before: 40, after: 40 } })],
-    shading: { type: ShadingType.SOLID, color: BLUE },
+    shading: { type: ShadingType.CLEAR, color: 'auto', fill: brandColor() },
     verticalAlign: 'center',
   });
 }
